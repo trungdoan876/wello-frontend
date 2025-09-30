@@ -13,8 +13,7 @@ class StartPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const SizedBox(height: 40), // đẩy ảnh xuống từ trên
-
+              // const SizedBox(height: 40), // đẩy ảnh xuống từ trên
               Image.asset('assets/images/wello.png', fit: BoxFit.contain),
 
               const SizedBox(height: 20), // khoảng cách giữa ảnh và chữ
@@ -45,15 +44,17 @@ class StartPage extends StatelessWidget {
                   color: Color.fromARGB(221, 80, 73, 73),
                 ),
               ),
-
-              const Spacer(), // đẩy button xuống dưới
-
+              const SizedBox(height: 30),
+              // const Spacer(), // đẩy button xuống dưới
               SizedBox(
                 width: double.infinity,
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Colors.blue, Color.fromARGB(255, 62, 77, 240)],
+                      colors: [
+                        Color.fromARGB(255, 61, 165, 250),
+                        Color.fromARGB(255, 69, 83, 235),
+                      ],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
