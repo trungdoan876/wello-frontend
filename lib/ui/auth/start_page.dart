@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wello_frontend/ui/login/login_page.dart';
+import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
+import 'package:wello_frontend/ui/widgets/loading_page.dart';
+
 
 class StartPage extends StatelessWidget {
   const StartPage({super.key});
@@ -49,39 +53,20 @@ class StartPage extends StatelessWidget {
               const Spacer(), // đẩy button xuống dưới
 
               SizedBox(
-                width: double.infinity,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Colors.blue, Color.fromARGB(255, 62, 77, 240)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/home');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: const Text(
-                      "Bắt đầu ngay!",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                width: 280,
+                child: AnimatedStartButton(
+                  text: "Bắt đầu ngay!",
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => LoadingPage(nextPage: const LoginPage()),
+                        ),
+                      );
+                  },
                 ),
               ),
+              const SizedBox(height: 30),
             ],
           ),
         ),
