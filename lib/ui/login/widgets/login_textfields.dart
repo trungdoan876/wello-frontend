@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class LoginTextFields extends StatelessWidget {
   const LoginTextFields({super.key});
@@ -8,86 +9,66 @@ class LoginTextFields extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Email field
-        TextField(
-          decoration: InputDecoration(
-            labelText: "Email",
-            hintStyle: GoogleFonts.beVietnamPro(
-              color: const Color(0xFFF1F4FF),
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-            ),
-            filled: true,
-            fillColor: const Color(0xFFF8FAFF),
-            contentPadding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Color(0xFF7D90D2),
-                width: 2,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF7D90D2),
-                width: 2.5,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 30),
-
-        // Password field
-        TextField(
-            obscureText: true, //ẩn ký tự
-          decoration: InputDecoration(
-            labelText: "Password",
-            hintStyle: GoogleFonts.beVietnamPro(
-              color: const Color(0xFFF1F4FF),
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-            ),
-            filled: true,
-            fillColor: const Color(0xFFF8FAFF),
-            contentPadding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Color(0xFF7D90D2),
-                width: 2,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF7D90D2),
-                width: 2.5,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-       Align(
-        alignment: Alignment.centerRight,
-        child: TextButton(
-            onPressed: () {},
-            style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFF3A5DD9),
-            overlayColor: Colors.transparent, 
-            textStyle: GoogleFonts.beVietnamPro(
-                fontWeight: FontWeight.w600,
-                decoration: TextDecoration.underline, //  gạch chân
-                decorationColor: Color(0xFF3A5DD9),   //  chỉnh màu gạch chân
-                decorationThickness: 2,                //  gạch đậm hơn
-            ),
-            ),
-            child: const Text("Quên mật khẩu?"),
-        ),
-        )
-
+        _buildTextField(context, "Email"),
+        SizedBox(height: context.h(0.025)),
+        _buildTextField(context, "Password", isPassword: true),
+        SizedBox(height: context.h(0.015)),
+        _buildForgotPassword(context),
       ],
     );
+  }
 
+  Widget _buildTextField(BuildContext context, String label, {bool isPassword = false}) {
+    return TextField(
+      obscureText: isPassword,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.beVietnamPro(
+          color: const Color(0xFF3A5DD9),
+          fontSize: context.w(0.04),
+          fontWeight: FontWeight.w600,
+        ),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFF),
+        contentPadding: EdgeInsets.symmetric(
+          vertical: context.h(0.028),
+          horizontal: context.w(0.05),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(context.w(0.05)),
+          borderSide: const BorderSide(color: Color(0xFF7D90D2), width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(context.w(0.03)),
+          borderSide: const BorderSide(color: Color(0xFF7D90D2), width: 2.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForgotPassword(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: TextButton(
+        onPressed: () {},
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFF3A5DD9),
+          overlayColor: Colors.transparent,
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Text(
+          "Quên mật khẩu?",
+          style: GoogleFonts.beVietnamPro(
+            fontSize: context.w(0.035),
+            fontWeight: FontWeight.w600,
+            decoration: TextDecoration.underline,
+            decorationColor: const Color(0xFF3A5DD9),
+            decorationThickness: 1.5,
+          ),
+        ),
+      ),
+    );
   }
 }

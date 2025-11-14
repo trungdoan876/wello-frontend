@@ -1,31 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:wello_frontend/ui/widgets/responsive.dart'; // Import extension
+
 
 class SocialButtonsRow extends StatelessWidget {
   const SocialButtonsRow({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final buttonSize = context.w(0.14); // 14% chiều rộng màn hình
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildSocialButton("assets/images/google.png"),
+        _buildSocialButton(context, "assets/images/google.png", buttonSize),
+        SizedBox(width: context.w(0.04)),
       ],
     );
   }
 
-  Widget _buildSocialButton(String imagePath) {
+  Widget _buildSocialButton(BuildContext context, String imagePath, double size) {
     return Container(
-      height: 50,
-      width: 50,
-      padding: const EdgeInsets.all(13),
+      width: size,
+      height: size,
+      padding: EdgeInsets.all(size * 0.26), // Scale padding theo size
       decoration: BoxDecoration(
         color: const Color(0xFFECECEC),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(size * 0.24),
         boxShadow: [
           BoxShadow(
             color: Colors.black12.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
+            blurRadius: size * 0.1,
+            offset: Offset(0, size * 0.06),
           ),
         ],
       ),
