@@ -51,8 +51,8 @@ class _AnimatedStartButtonState extends State<AnimatedStartButton>
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [
-                Color(0xFF76ABFB),
-                Color(0xFF457DD0),
+                Color(0xFFF8BD17),
+                Color(0xFFF4D205),
               ],
               begin: Alignment.topCenter, // 🔼 từ trên
               end: Alignment.bottomCenter, // 🔽 xuống dưới
@@ -60,7 +60,7 @@ class _AnimatedStartButtonState extends State<AnimatedStartButton>
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: Colors.blue.withOpacity(0.4),
+                color: const Color.fromARGB(255, 236, 192, 33).withOpacity(0.4),
                 blurRadius: 20,
                 offset: const Offset(0, 6),
               ),

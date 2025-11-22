@@ -11,11 +11,10 @@ class RegisterTextFields extends StatelessWidget {
     return Column(
       children: [
         _buildTextField(context, "Email"),
-        SizedBox(height: context.h(0.02)),
+        SizedBox(height: context.h(0.025)),
         _buildTextField(context, "Password", isPassword: true),
-        SizedBox(height: context.h(0.02)),
+        SizedBox(height: context.h(0.025)),
         _buildTextField(context, "Confirm Password", isPassword: true),
-        SizedBox(height: context.h(0.01)),
       ],
     );
   }
@@ -27,22 +26,22 @@ class RegisterTextFields extends StatelessWidget {
         labelText: label,
         labelStyle: GoogleFonts.beVietnamPro(
           fontSize: context.sp(4),
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFF3A5DD9),
+          fontWeight: FontWeight.w500,
+          color: const Color(0xFF626262),
         ),
         filled: true,
-        fillColor: const Color(0xFFF8FAFF),
+        fillColor: const Color(0xFFFFFBE2),
         contentPadding: EdgeInsets.symmetric(
-          vertical: context.h(0.028),
-          horizontal: context.w(0.05),
+          vertical: context.h(0.025),
+          horizontal: context.w(0.04),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(context.w(0.05)),
-          borderSide: const BorderSide(color: Color(0xFF7D90D2), width: 2),
+          borderSide: const BorderSide(color: Color(0xFFEBCF23), width: 2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(context.w(0.03)),
-          borderSide: const BorderSide(color: Color(0xFF7D90D2), width: 2.5),
+          borderSide: const BorderSide(color: Color(0xFFEBCF23), width: 2.5),
         ),
       ),
     );
