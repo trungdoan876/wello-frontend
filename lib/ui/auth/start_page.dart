@@ -90,7 +90,7 @@ class StartPage extends StatelessWidget {
                     onPressed: () {
                        Navigator.push(
                             context,
-                            CupertinoPageRoute(
+                            MaterialPageRoute(
                               builder: (context) => const LoginPage(), 
                             ),
                           );

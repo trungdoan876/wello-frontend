@@ -62,7 +62,7 @@ class RegisterFormContent extends StatelessWidget {
             onPressed: () {
               Navigator.push(
               context,
-              CupertinoPageRoute(builder: (_) => const LoginPage()),
+              MaterialPageRoute(builder: (_) => const LoginPage()),
             );
               // TODO: điều hướng sang LoginPage
             },

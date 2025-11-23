@@ -84,7 +84,7 @@ class LoginFormContent extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              CupertinoPageRoute(builder: (_) => const RegisterPage()),
+              MaterialPageRoute(builder: (_) => const RegisterPage()),
             );
           },
           child: Text(

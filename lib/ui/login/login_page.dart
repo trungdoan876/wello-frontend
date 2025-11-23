@@ -51,7 +51,7 @@ class LoginPage extends StatelessWidget {
                     padding: EdgeInsets.symmetric(
                       vertical: context.h(0.05),
                     ),
-                                      decoration: BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.75), // Nền trắng mờ
                       borderRadius: BorderRadius.circular(context.sp(5.0)),
                       boxShadow: [
