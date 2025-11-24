@@ -7,11 +7,10 @@ class RegisterUser {
   RegisterUser({required this.repository});
 
   Future<bool> execute({
-    required String name,
     required String email,
     required String password,
   }) async {
-    final user = User(name: name, email: email, password: password);
+    final user = User(email: email, password: password);
     return await repository.registerUser(user);
   }
 }
