@@ -2,13 +2,45 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wello_frontend/data/services/api_service.dart';
 import 'package:wello_frontend/ui/login/login_page.dart';
 import 'package:wello_frontend/ui/register/widgets/register_textfields.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 
 class RegisterFormContent extends StatelessWidget {
-  const RegisterFormContent({super.key});
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final TextEditingController confirmPasswordController;
+
+  const RegisterFormContent({
+    super.key,
+    required this.emailController,
+    required this.passwordController,
+    required this.confirmPasswordController,
+  });
+
+  // Hàm hiển thị popup
+  void showPopup(
+    BuildContext context, {
+    required String title,
+    required String message,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +49,7 @@ class RegisterFormContent extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: context.w(0.04)),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             'TẠO TÀI KHOẢN',
@@ -37,34 +70,88 @@ class RegisterFormContent extends StatelessWidget {
               color: const Color.fromARGB(255, 143, 142, 142),
               fontStyle: FontStyle.italic,
             ),
+            textAlign: TextAlign.center,
           ),
 
-          SizedBox(height: context.h(0.02)),
+          SizedBox(height: context.h(0.03)),
 
           // --- Input Fields ---
-          const RegisterTextFields(),
+          RegisterTextFields(
+            emailController: emailController,
+            passwordController: passwordController,
+            confirmPasswordController: confirmPasswordController,
+          ),
 
-          SizedBox(height: context.h(0.03)),
+          SizedBox(height: context.h(0.04)),
 
           // --- Nút Đăng ký ---
           SizedBox(
             width: context.w(0.8),
             child: AnimatedStartButton(
               text: "Đăng ký",
-              onPressed: () {},
+              onPressed: () async {
+                final email = emailController.text.trim();
+                final password = passwordController.text;
+                final confirmPassword = confirmPasswordController.text;
+
+                if (email.isEmpty ||
+                    password.isEmpty ||
+                    confirmPassword.isEmpty) {
+                  showPopup(
+                    context,
+                    title: "Lỗi",
+                    message: "Vui lòng điền đầy đủ thông tin.",
+                  );
+                  return;
+                }
+
+                if (password != confirmPassword) {
+                  showPopup(
+                    context,
+                    title: "Lỗi",
+                    message: "Password và Confirm Password không khớp",
+                  );
+                  return;
+                }
+
+                try {
+                  bool success = await ApiService().register(
+                    email: email,
+                    password: password,
+                  );
+                  if (success) {
+                    showPopup(
+                      context,
+                      title: "Thành công",
+                      message: "Bạn đã đăng ký thành công!",
+                    );
+                  } else {
+                    showPopup(
+                      context,
+                      title: "Lỗi",
+                      message: "Đăng ký thất bại. Vui lòng thử lại.",
+                    );
+                  }
+                } catch (e) {
+                  showPopup(
+                    context,
+                    title: "Lỗi",
+                    message: "Không thể kết nối server: $e",
+                  );
+                }
+              },
             ),
           ),
 
-          SizedBox(height: context.h(0.03)),
+          SizedBox(height: context.h(0.04)),
 
           // ---- Đã có tài khoản ----
           TextButton(
             onPressed: () {
               Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LoginPage()),
-            );
-              // TODO: điều hướng sang LoginPage
+                context,
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+              );
             },
             child: Text(
               'Bạn đã có tài khoản',
@@ -90,10 +177,7 @@ class RegisterFormContent extends StatelessWidget {
           SizedBox(height: context.h(0.02)),
 
           // Google Icon
-          Image.asset(
-            "assets/images/google.png",
-            width: context.w(0.08),
-          ),
+          Image.asset("assets/images/google.png", width: context.w(0.08)),
         ],
       ),
     );

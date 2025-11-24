@@ -10,7 +10,6 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<bool> registerUser(User user) async {
     return await apiService.register(
-      name: user.name,
       email: user.email,
       password: user.password,
     );

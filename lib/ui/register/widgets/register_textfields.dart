@@ -2,25 +2,49 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
-
 class RegisterTextFields extends StatelessWidget {
-  const RegisterTextFields({super.key});
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final TextEditingController confirmPasswordController;
+
+  const RegisterTextFields({
+    super.key,
+    required this.emailController,
+    required this.passwordController,
+    required this.confirmPasswordController,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildTextField(context, "Email"),
+        _buildTextField(context, "Email", controller: emailController),
         SizedBox(height: context.h(0.025)),
-        _buildTextField(context, "Password", isPassword: true),
+        _buildTextField(
+          context,
+          "Password",
+          controller: passwordController,
+          isPassword: true,
+        ),
         SizedBox(height: context.h(0.025)),
-        _buildTextField(context, "Confirm Password", isPassword: true),
+        _buildTextField(
+          context,
+          "Confirm Password",
+          controller: confirmPasswordController,
+          isPassword: true,
+        ),
       ],
     );
   }
 
-  Widget _buildTextField(BuildContext context, String label, {bool isPassword = false}) {
+  Widget _buildTextField(
+    BuildContext context,
+    String label, {
+    bool isPassword = false,
+    required TextEditingController controller,
+  }) {
     return TextField(
+      controller: controller,
       obscureText: isPassword,
       decoration: InputDecoration(
         labelText: label,

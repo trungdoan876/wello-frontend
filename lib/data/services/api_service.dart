@@ -4,10 +4,9 @@ import 'package:http/http.dart' as http;
 class ApiService {
   final String baseUrl;
 
-  ApiService({this.baseUrl = "http://localhost:8080/api"});
+  ApiService({this.baseUrl = "http://10.0.2.2:8080/api"});
 
   Future<bool> register({
-    required String name,
     required String email,
     required String password,
   }) async {
@@ -16,7 +15,7 @@ class ApiService {
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'name': name, 'email': email, 'password': password}),
+      body: jsonEncode({'email': email, 'password': password}),
     );
 
     if (response.statusCode == 200) {
