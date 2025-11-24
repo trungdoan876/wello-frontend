@@ -1,87 +1,121 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+// QUAN TRỌNG: Đảm bảo đã thêm và import gói google_fonts
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:wello_frontend/ui/login/login_page.dart';
+import 'package:wello_frontend/ui/widgets/animated_start_button.dart';// ignore: depend_on_referenced_packages
+import 'package:wello_frontend/ui/widgets/responsive.dart';
 class StartPage extends StatelessWidget {
   const StartPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // --- Định nghĩa Màu sắc ---
+    const Color lightCream = Color(0xFFFFFBEA);
+    // Màu Wello cũ: const Color welloYellow = Color(0xFFFDC000); 
+    // Màu Healthy Food cũ: const Color healthyGreen = Color(0xFF4CAF50);
+    
+    // Màu Wello ):
+    const Color newWelloOrange = Color(0xFFEBCF23); 
+    const Color darkText = Color(0xFF5A5A5A);
+
     return Scaffold(
+      backgroundColor: lightCream,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
+        child: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const SizedBox(height: 40), // đẩy ảnh xuống từ trên
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              // Thêm khoảng trống ở trên
+              SizedBox(height: context.h(0.1)), 
 
-              Image.asset('assets/images/wello.png', fit: BoxFit.contain),
-
-              const SizedBox(height: 20), // khoảng cách giữa ảnh và chữ
+              // --- Tiêu đề "Wello" (Áp dụng style mới) ---
               Text(
                 'Wello',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: GoogleFonts.lobster().fontFamily,
-                  foreground: Paint()
-                    ..shader = const LinearGradient(
-                      colors: <Color>[
-                        Color.fromARGB(255, 148, 201, 244),
-                        Color.fromARGB(255, 114, 108, 231),
-                      ],
-                    ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-              const Text(
-                "Wello giúp bạn đạt được mục tiêu sức khỏe với các phân tích chuyên sâu, "
-                "theo dõi vấn đề sức khỏe và những thử thách hấp dẫn.\n\n"
-                "Hãy bắt đầu hành trình khỏe mạnh hơn ngay hôm nay!",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color.fromARGB(221, 80, 73, 73),
+                style: GoogleFonts.pacifico(
+                  // Font size responsive (ví dụ: 11% cạnh ngắn nhất)
+                  fontSize: context.sp(18), 
+                  // Màu sắc mới: Xanh da trời nhạt
+                  color: newWelloOrange, 
+                  // Sử dụng fontWeight.w400 như yêu cầu
+                  fontWeight: FontWeight.w400, 
+                ),
+              ),
+              
+              // Khoảng trống 3% chiều cao màn hình
+              SizedBox(height: context.h(0.03)),
+
+              // --- Đoạn mô tả 1 ---
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.w(0.08)), 
+                child: Text(
+                  'Wello giúp bạn đạt được mục tiêu sức khỏe với các phân tích chuyên sâu, theo dõi vấn đề sức khỏe và những thử thách hấp dẫn.',
+                  textAlign: TextAlign.center,
+                 style: GoogleFonts.beVietnamPro(
+                    fontSize: context.sp(4.0), 
+                    color: darkText,
+                    height: 1.5,
+                  ),
                 ),
               ),
 
-              const Spacer(), // đẩy button xuống dưới
+              // Khoảng trống 2% chiều cao màn hình
+              SizedBox(height: context.h(0.02)),
 
-              SizedBox(
-                width: double.infinity,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Colors.blue, Color.fromARGB(255, 62, 77, 240)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(30),
+              // --- Đoạn mô tả 2 ---
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.w(0.08)),
+                child: Text(
+                  'Hãy bắt đầu hành trình khỏe mạnh hơn ngay hôm nay!',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.beVietnamPro(
+                    fontSize: context.sp(4.0),
+                    color: darkText,
+                    fontWeight: FontWeight.bold,
                   ),
-                  child: ElevatedButton(
+                ),
+              ),
+
+              // Khoảng trống 5% chiều cao màn hình
+              SizedBox(height: context.h(0.05)),
+
+              // --- Nút "Let's Start" ---
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.w(0.1)),
+                child: SizedBox(
+                  width: context.w(0.8), // responsive theo chiều ngang
+                  child: AnimatedStartButton(
+                    text: "Let's Start",
                     onPressed: () {
-                      Navigator.pushNamed(context, '/home');
+                       Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginPage(), 
+                            ),
+                          );
+                      // TODO: Xử lý logic login
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: const Text(
-                      "Bắt đầu ngay!",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
                   ),
                 ),
               ),
+
+              // Khoảng trống 2% chiều cao màn hình
+              SizedBox(height: context.h(0.01)),
+
+              // --- Hình ảnh ---
+              //Spacer(), 
+              Padding(
+                padding: EdgeInsets.all(context.w(0.05)),
+                child: SizedBox(
+                  height: context.h(0.35), 
+                  child: Image.asset(
+                    'assets/images/healthy_food.png', 
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+
             ],
           ),
         ),
