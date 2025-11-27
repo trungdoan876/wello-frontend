@@ -21,11 +21,11 @@ class NumberBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: context.w(0.42),                // 🔥 responsive width
+      width: context.w(0.7),                // 🔥 responsive width
       padding: EdgeInsets.all(context.w(0.04)), // 🔥 responsive padding
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(context.w(0.04)), // 🔥 responsive bo góc
+        borderRadius: BorderRadius.circular(context.w(0.05)), // 🔥 responsive bo góc
       ),
       child: Column(
         children: [
@@ -35,13 +35,13 @@ class NumberBox extends StatelessWidget {
               Text(
                 title,
                 style: GoogleFonts.baloo2(
-                  fontSize: context.sp(5),
+                  fontSize: context.sp(8),
                   fontWeight: FontWeight.w900,
                   color: const Color(0xffF8BD17),
                 ),
               ),
 
-            SizedBox(width: context.w(0.01)),
+            SizedBox(width: context.w(0.07)),
 
               if (unit.isNotEmpty)
                 Container(
@@ -56,7 +56,7 @@ class NumberBox extends StatelessWidget {
                   child: Text(
                     unit,
                     style: GoogleFonts.baloo2(
-                      fontSize: context.sp(4),
+                      fontSize: context.sp(6),
                       fontWeight: FontWeight.w900,
                       color: Colors.white,
                     ),
@@ -72,7 +72,7 @@ class NumberBox extends StatelessWidget {
          Text(
           "$value",
           style: TextStyle(
-            fontSize: context.sp(7),
+            fontSize: context.sp(10),
             fontWeight: FontWeight.bold,
             color: const Color(0xffF8BD17),
           ),
@@ -81,28 +81,29 @@ class NumberBox extends StatelessWidget {
       //  SizedBox(height: context.h(0.01)),
 
         Container(
-          width: context.w(0.25),           // 🔥 độ dài gạch chân (tự chỉnh)
-          height: context.h(0.002),         // 🔥 độ dày
+          width: context.w(0.4),           // 🔥 độ dài gạch chân (tự chỉnh)
+          height: context.h(0.004),         // 🔥 độ dày
           color: const Color(0xffF8BD17),   // 🔥 màu giống text
         ),
-          SizedBox(height: context.h(0.015)),
+          SizedBox(height: context.h(0.025)),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               button("-", onMinus, context),
-              SizedBox(width: context.w(0.05)),
+              SizedBox(width: context.w(0.1)),
               button("+", onPlus, context),
             ],
           ),
+         // SizedBox(height: context.h(0.015)),
         ],
       ),
     );
   }
- 
+
 
   // Nút cộng – trừ responsive
   Widget button(String text, VoidCallback onTap, BuildContext context) {
-  double size = context.w(0.12);
+  double size = context.w(0.14);
 
   return GestureDetector(
     onTap: onTap,

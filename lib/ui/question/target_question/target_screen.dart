@@ -1,7 +1,8 @@
 // lib/screens/activity_level_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wello_frontend/ui/question_1/widgets/activity_option_button.dart';
+import 'package:wello_frontend/ui/question/activity_question/widgets/activity_option_button.dart';
+import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart'; // Dùng responsive của bạn
 
 // Định nghĩa Enum cho các mức độ hoạt động
@@ -51,57 +52,72 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color lightCream = Color(0xFFFFFBEA);
-    const Color mainYellow = Color(0xFFEBCF23);
     final size = MediaQuery.of(context).size; // Lấy kích thước màn hình
     return Scaffold(
-      backgroundColor: lightCream,
+  // ---- APP BAR ----
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.0)),
+        child: Padding(
+         padding: EdgeInsets.only(top: context.h(0.0)),
+          child: AppBar(
+            elevation: 0,
+            backgroundColor: Color(0xFFFFFBEA),
+            centerTitle: true,
+            leadingWidth: context.w(0.2),
+            iconTheme: IconThemeData(
+              color: const Color(0xffEBCF23),
+              size: context.sp(10),
+            ),
+            title: Text(
+              "Wello",
+              style: GoogleFonts.pacifico(
+                fontSize: context.sp(12.0),
+                color: const Color(0xffEBCF23),
+              ),
+            ),
+          ),
+       ),
+      ),
+
+      extendBodyBehindAppBar: true,
+      
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Stack(
           children: [
-            // --- Hình nền full màn hình ---
-        SizedBox(
-          width: size.width,
-          height: size.height,
-          child: Image.asset(
-            'assets/images/question_bg_2.png', // Hình nền
-            fit: BoxFit.cover, // Bao phủ toàn màn hình
-          ),
-        ),
+            // ------ Background full màn hình ------
+            SizedBox(
+              width: size.width,
+              height: size.height,
+              child: Image.asset(
+                'assets/images/question_bg_2.png',
+                fit: BoxFit.cover,
+              ),
+            ),
 
-        // --- Nội dung chính ---
+            // ------ Nội dung chính ------
             SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: context.w(0.08)),
+              padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  SizedBox(height: context.h(0.02)),
-                  
-                  // --- Tiêu đề Wello ---
-                  Text(
-                    'Wello',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.pacifico(
-                      fontSize: context.sp(10.0),
-                      color: mainYellow,
-                    ),
-                  ),
-                  SizedBox(height: context.h(0.03)),
-                  
-                  // --- Câu hỏi Chính ---
+                children: [
+                  SizedBox(height: context.h(0.08)), // đẩy xuống dưới AppBar
+
+                  // --- Câu hỏi chính ---
                   Text(
                     'Bạn vận động như thế\nnào?',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.baloo2(
                       fontSize: context.sp(8.0),
                       fontWeight: FontWeight.bold,
-                      color: mainYellow,
+                      color: const Color(0xffEBCF23),
                       height: 1.2,
                     ),
                   ),
-                  SizedBox(height: context.h(0.02)),
-                  
-                  // --- Danh sách các nút chọn mức độ hoạt động ---
+
+                  SizedBox(height: context.h(0.03)),
+
+                  // --- Các button lựa chọn ---
                   ..._activityOptions.map((option) {
                     return ActivityOptionButton(
                       title: option['title'],
@@ -110,17 +126,33 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                       onPressed: () => _selectLevel(option['level']),
                     );
                   }).toList(),
+                  SizedBox(height: context.h(0.05)), // Khoảng cách dưới cùng
+
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
+                  child: AnimatedStartButton(
+                    text: "Tiếp tục",
+                    onPressed:_selectedLevel == null
+                        ? null
+                        : () {
+                      //  Navigator.push(
+                      //             context,
+                      //             MaterialPageRoute(
+                      //               builder: (_) => const ActivityLevelScreen(),
+                      //             ),
+                      //           );
+                    },
+                  ),
+                ),
                   
-                //  SizedBox(height: context.h(0.05)),
-                  
-                  // Phần khoảng trống cuối cùng để tránh bị che
-                //  SizedBox(height: context.h(0.15)), 
                 ],
+                
               ),
             ),
           ],
         ),
       ),
     );
+
   }
 }

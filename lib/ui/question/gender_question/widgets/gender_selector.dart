@@ -13,11 +13,14 @@ class GenderSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return  Wrap(
+        alignment: WrapAlignment.center,
+        spacing: context.w(0.03),   // khoảng cách ngang
+        runSpacing: context.h(0.025), // khoảng cách khi xuống hàng
       children: [
         genderItem(context, "male", "Nam", Icons.male),
         genderItem(context, "female", "Nữ", Icons.female),
+        genderItem(context, "other", "Khác", Icons.transgender),
       ],
     );
   }
@@ -54,7 +57,7 @@ class GenderSelector extends StatelessWidget {
             Text(
               label,
               style: GoogleFonts.baloo2(
-                fontSize: context.sp(8), // responsive text
+                fontSize: context.sp(7), // responsive text
                 fontWeight: FontWeight.w900,
                 color: isActive ? Colors.white : Colors.black54,
               ),
