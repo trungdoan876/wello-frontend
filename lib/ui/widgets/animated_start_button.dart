@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class AnimatedStartButton extends StatefulWidget {
-  final String text; //  Chữ hiển thị trên nút
-  final VoidCallback onPressed; //  Hành động khi nhấn nút
+  final String text; 
+  final VoidCallback? onPressed; // ✅ Cho phép null => disabled
 
   const AnimatedStartButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    this.onPressed, // nullable
   });
 
   @override
@@ -25,7 +25,7 @@ class _AnimatedStartButtonState extends State<AnimatedStartButton>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
-    )..repeat(reverse: true);
+    );
 
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(
@@ -33,6 +33,23 @@ class _AnimatedStartButtonState extends State<AnimatedStartButton>
         curve: Curves.easeInOut,
       ),
     );
+
+    _updateAnimationState();
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedStartButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _updateAnimationState();
+  }
+
+  void _updateAnimationState() {
+    if (widget.onPressed == null) {
+      _controller.stop();
+      _controller.value = 1.0; // giữ stable không phóng to
+    } else {
+      _controller.repeat(reverse: true);
+    }
   }
 
   @override
@@ -43,37 +60,47 @@ class _AnimatedStartButtonState extends State<AnimatedStartButton>
 
   @override
   Widget build(BuildContext context) {
+    final bool isDisabled = widget.onPressed == null;
+
     return ScaleTransition(
       scale: _scaleAnimation,
-      child: GestureDetector(
-        onTap: widget.onPressed,
+      child:GestureDetector(
+        onTap: isDisabled ? null : widget.onPressed,
         child: Container(
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFFF8BD17),
-                Color(0xFFF4D205),
-              ],
-              begin: Alignment.topCenter, // 🔼 từ trên
-              end: Alignment.bottomCenter, // 🔽 xuống dưới
+            gradient: LinearGradient(
+              colors: isDisabled
+                  ? [
+                      const Color(0xFFE0E0E0),
+                      const Color(0xFFBDBDBD),
+                    ] // xám mờ
+                  : const [
+                      Color(0xFFF8BD17),
+                      Color(0xFFF4D205),
+                    ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
             borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: const Color.fromARGB(255, 236, 192, 33).withOpacity(0.4),
-                blurRadius: 20,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            boxShadow: isDisabled
+                ? []
+                : [
+                    BoxShadow(
+                      color: const Color.fromARGB(255, 236, 192, 33)
+                          .withOpacity(0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
           ),
           padding: const EdgeInsets.symmetric(vertical: 15),
           alignment: Alignment.center,
           child: Text(
             widget.text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: isDisabled ? Colors.black38 : Colors.white,
             ),
           ),
         ),

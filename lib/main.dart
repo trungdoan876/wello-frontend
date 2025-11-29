@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wello_frontend/ui/auth/start_page.dart';
-
 void main() {
   runApp(MyApp());
 }

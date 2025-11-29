@@ -42,7 +42,7 @@ class ActivityOptionButton extends StatelessWidget {
         margin: EdgeInsets.symmetric(vertical: context.h(0.01)),
         padding: EdgeInsets.symmetric(
           horizontal: context.w(0.03),
-          vertical: context.h(0.02),
+          vertical: context.h(0.013),
         ),
         decoration: BoxDecoration(
           color: backgroundColor,

@@ -74,20 +74,6 @@ class _HeightSliderState extends State<HeightSlider> {
           ],
         ),
 
-        //SizedBox(height: context.h(0.015)),
-
-        // ----- HEIGHT NUMBER ABOVE SLIDER -----
-        Center(
-          child: Text(
-            _value.toInt().toString(),
-            style: GoogleFonts.baloo2(
-              fontSize: context.sp(8),
-              fontWeight: FontWeight.w900,
-              color: Colors.amber,
-            ),
-          ),
-        ),
-
         // ----- BUTTONS + SLIDER -----
         Row(
           children: [
@@ -99,24 +85,68 @@ class _HeightSliderState extends State<HeightSlider> {
                 child: Icon(
                   Icons.remove,
                   color: const Color(0xffF8BF15),
-                  size: context.w(0.11),   // 🔥 responsive
+                  size: context.w(0.11),   // responsive
                 ),
               ),
             ),
 
-           // SizedBox(width: context.w(0.02)),
+           //SizedBox(width: context.w(0.02)),
 
             // Slider
-            Expanded(
-              child: Slider(
-                value: _value,
-                min: 120,
-                max: 220,
-                activeColor: Colors.amber,
-                inactiveColor: Colors.grey.shade300,
-                onChanged: (v) => updateValue(v),
-              ),
-            ),
+           Expanded(
+            child: SizedBox(
+          height: context.h(0.12),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Tính vị trí chính xác của thumb
+              double min = 120.0;
+              double max = 220.0;
+              double percent = (_value - min) / (max - min);
+              double thumbX = percent * constraints.maxWidth;
+
+              // Giới hạn để số không bị tràn ra ngoài
+              double numberWidth = 60; // Ước lượng chiều rộng của số (3 chữ số + padding)
+              double left = (thumbX - numberWidth / 2).clamp(0.0, constraints.maxWidth - numberWidth);
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Slider chính
+                  Slider(
+                    value: _value,
+                    min: 120.0,
+                    max: 220.0,
+                    activeColor: const Color(0xffF8BD17),
+                    inactiveColor: Colors.grey.shade300,
+                    thumbColor: Colors.amber, // Ẩn thumb mặc định để tự làm đẹp hơn
+                    onChanged: updateValue,
+                  ),
+
+                  // Số đi theo thumb
+                  Positioned(
+                    left: left,
+                    bottom: 60, // Điều chỉnh độ cao của số
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    
+                      child: Text(
+                        _value.toInt().toString(),
+                        style: GoogleFonts.baloo2(
+                          fontSize: context.sp(8),
+                          fontWeight: FontWeight.w900,
+                          color: Colors.amber,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+          ),
+
+
 
           //  SizedBox(width: context.w(0.02)),
 
