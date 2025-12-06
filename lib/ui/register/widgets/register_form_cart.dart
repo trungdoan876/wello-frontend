@@ -1,9 +1,9 @@
-// lib/ui/register/widgets/register_form_card.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wello_frontend/data/services/api_service.dart';
+import 'package:wello_frontend/data/repositories/auth_repository.dart';
 import 'package:wello_frontend/ui/login/login_page.dart';
+import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/widgets/register_textfields.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
@@ -115,21 +115,25 @@ class RegisterFormContent extends StatelessWidget {
                 }
 
                 try {
-                  bool success = await ApiService().register(
+                  final repository = AuthRepository();
+                  final response = await repository.register(
                     email: email,
                     password: password,
                   );
-                  if (success) {
-                    showPopup(
+
+                  if (response.success) {
+                    // Navigate to Question Flow (Onboarding)
+                    Navigator.push(
                       context,
-                      title: "Thành công",
-                      message: "Bạn đã đăng ký thành công!",
+                      MaterialPageRoute(
+                        builder: (_) => NamePage(),
+                      ),
                     );
                   } else {
                     showPopup(
                       context,
                       title: "Lỗi",
-                      message: "Đăng ký thất bại. Vui lòng thử lại.",
+                      message: response.message ?? "Đăng ký thất bại.",
                     );
                   }
                 } catch (e) {
@@ -142,6 +146,8 @@ class RegisterFormContent extends StatelessWidget {
               },
             ),
           ),
+
+
 
           SizedBox(height: context.h(0.04)),
 
