@@ -1,5 +1,6 @@
 import '../entities/user.dart';
 
 abstract class UserRepository {
-  Future<bool> registerUser(User user);
+  /// Register a new user and return the user entity with ID from server.
+  Future<User> registerUser(User user);
 }

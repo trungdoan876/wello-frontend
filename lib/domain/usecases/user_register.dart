@@ -6,7 +6,8 @@ class RegisterUser {
 
   RegisterUser({required this.repository});
 
-  Future<bool> execute({
+  /// Register a new user and return the registered user entity with ID.
+  Future<User> execute({
     required String email,
     required String password,
   }) async {

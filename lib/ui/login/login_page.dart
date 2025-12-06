@@ -3,8 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/login/widgets/login_form_card.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +77,10 @@ class LoginPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const LoginFormContent(), // Widget chứa nội dung form
+                    child: LoginFormContent(
+                      emailController: emailController,
+                      passwordController: passwordController,
+                    ),
                   ),
                   
                   SizedBox(height: context.h(0.05)),
