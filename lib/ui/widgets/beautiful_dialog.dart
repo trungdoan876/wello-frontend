@@ -17,11 +17,9 @@ class BeautifulDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color primaryYellow = Color(0xFFEBCF23);
-    
+
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       elevation: 8,
       backgroundColor: Colors.transparent,
       child: Container(
@@ -44,9 +42,7 @@ class BeautifulDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isError 
-                    ? Colors.red.shade50 
-                    : Colors.green.shade50,
+                color: isError ? Colors.red.shade50 : Colors.green.shade50,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -55,9 +51,9 @@ class BeautifulDialog extends StatelessWidget {
                 color: isError ? Colors.red.shade400 : Colors.green.shade400,
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Message
             Text(
               message,
@@ -68,9 +64,9 @@ class BeautifulDialog extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // OK Button
             SizedBox(
               width: double.infinity,
@@ -110,11 +106,8 @@ class BeautifulDialog extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => BeautifulDialog(
-        title: title,
-        message: message,
-        isError: isError,
-      ),
+      builder: (context) =>
+          BeautifulDialog(title: title, message: message, isError: isError),
     );
   }
 }

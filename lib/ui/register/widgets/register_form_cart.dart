@@ -63,9 +63,9 @@ class RegisterFormContent extends StatelessWidget {
                   size: 30,
                 ),
               ),
-              
+
               SizedBox(height: context.h(0.02)),
-              
+
               // Message
               Text(
                 message,
@@ -77,9 +77,9 @@ class RegisterFormContent extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               SizedBox(height: context.h(0.03)),
-              
+
               // OK Button
               SizedBox(
                 width: double.infinity,
@@ -194,9 +194,7 @@ class RegisterFormContent extends StatelessWidget {
                     // Navigate to Question Flow (Onboarding)
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => NamePage(),
-                      ),
+                      MaterialPageRoute(builder: (_) => NamePage()),
                     );
                   } else {
                     showPopup(
@@ -215,8 +213,6 @@ class RegisterFormContent extends StatelessWidget {
               },
             ),
           ),
-
-
 
           SizedBox(height: context.h(0.04)),
 

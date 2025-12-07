@@ -125,9 +125,7 @@ class LoginFormContent extends StatelessWidget {
                       // Navigate to QuestionFlow (Khảo sát)
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => NamePage(),
-                        ),
+                        MaterialPageRoute(builder: (_) => NamePage()),
                       );
                     } else {
                       // TODO: Navigate to Home/Dashboard
