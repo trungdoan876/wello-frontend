@@ -58,19 +58,6 @@ class BeautifulDialog extends StatelessWidget {
             
             const SizedBox(height: 20),
             
-            // Title
-            Text(
-              title,
-              style: GoogleFonts.baloo2(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF2C2C2C),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            
-            const SizedBox(height: 12),
-            
             // Message
             Text(
               message,

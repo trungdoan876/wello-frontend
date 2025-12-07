@@ -1,7 +1,5 @@
 import '../../domain/repositories/auth_repository.dart';
 import '../data_source/auth_remote_data_source.dart';
-import '../models/requests/login_request_model.dart';
-import '../models/requests/register_request_model.dart';
 import '../models/responses/login_response_model.dart';
 import '../models/responses/register_response_model.dart';
 

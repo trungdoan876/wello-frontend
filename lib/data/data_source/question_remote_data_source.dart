@@ -11,7 +11,7 @@ class QuestionRemoteDataSource {
 
   /// Fetch questions list from backend API
   Future<List<Question>> fetchQuestions() async {
-    final url = Uri.parse('$baseUrl/questions-list');
+    final url = Uri.parse('$baseUrl/survey/questions');
 
     try {
       final response = await http.get(

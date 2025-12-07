@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/ui/auth/start_page.dart';
+import 'package:wello_frontend/ui/summary/summary_page.dart';
 
 void main() {
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => QuestionProvider()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => QuestionProvider())],
       child: MyApp(),
     ),
   );
@@ -19,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'My Flutter App',
+      title: 'My Wello',
       theme: ThemeData(
         primarySwatch: Colors.blue,
 
