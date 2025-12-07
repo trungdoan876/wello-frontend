@@ -1,29 +1,20 @@
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/user_repository.dart';
-import '../repositories/auth_repository.dart';
+import '../data_source/user_remote_data_source.dart';
+import '../models/requests/register_request_model.dart';
+import '../models/responses/register_response_model.dart';
 
 class UserRepositoryImpl implements UserRepository {
-  final AuthRepository authRepository;
+  final UserRemoteDataSource userRemoteDataSource;
 
-  UserRepositoryImpl({required this.authRepository});
+  UserRepositoryImpl({required this.userRemoteDataSource});
 
   @override
-  Future<User> registerUser(User user) async {
-    final response = await authRepository.register(
-      email: user.email,
-      password: user.password,
+  Future<bool> registerUser(User user) async {
+    final request = RegisterRequestModel.fromEntity(user);
+    final RegisterResponseModel response = await userRemoteDataSource.register(
+      request: request,
     );
-
-    if (response.success) {
-      // Return user entity with ID from response
-      return User(
-        email: user.email,
-        password: user.password,
-        id: response.idUser,
-      );
-    } else {
-      // Throw exception if registration fails
-      throw Exception(response.message ?? 'Registration failed');
-    }
+    return response.success;
   }
 }

@@ -1,16 +1,12 @@
 class RegisterResponseModel {
   final bool success;
   final String? message;
-  final String? token;
   final String? userId;
-  final int? idUser; // Maps to 'id_user' from API
 
   RegisterResponseModel({
     required this.success,
     this.message,
-    this.token,
     this.userId,
-    this.idUser,
   });
 
   factory RegisterResponseModel.fromJson(Map<String, dynamic> json) {
@@ -24,9 +20,7 @@ class RegisterResponseModel {
     return RegisterResponseModel(
       success: successFlag,
       message: json['message']?.toString(),
-      token: json['token']?.toString(),
       userId: json['userId']?.toString(),
-      idUser: json['id_user'] != null ? int.tryParse(json['id_user'].toString()) : null,
     );
   }
 
@@ -34,9 +28,7 @@ class RegisterResponseModel {
     return {
       'success': success,
       if (message != null) 'message': message,
-      if (token != null) 'token': token,
       if (userId != null) 'userId': userId,
-      if (idUser != null) 'id_user': idUser,
     };
   }
 }

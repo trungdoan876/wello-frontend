@@ -106,14 +106,14 @@ class LoginFormContent extends StatelessWidget {
                 if (email.isEmpty || password.isEmpty) {
                   showPopup(
                     context,
-                    title: "Lỗi",
+                    title: "",
                     message: "Vui lòng điền đầy đủ thông tin.",
                   );
                   return;
                 }
 
                 try {
-                  final repository = AuthRepository();
+                  final repository = AuthRepositoryImpl();
                   final response = await repository.login(
                     email: email,
                     password: password,
@@ -125,15 +125,13 @@ class LoginFormContent extends StatelessWidget {
                       // Navigate to QuestionFlow (Khảo sát)
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => NamePage(),
-                        ),
+                        MaterialPageRoute(builder: (_) => NamePage()),
                       );
                     } else {
                       // TODO: Navigate to Home/Dashboard
                       showPopup(
                         context,
-                        title: "Thành công",
+                        title: "",
                         message: "Đăng nhập thành công! (Home page chưa có)",
                         isError: false,
                       );
@@ -141,14 +139,14 @@ class LoginFormContent extends StatelessWidget {
                   } else {
                     showPopup(
                       context,
-                      title: "Lỗi",
+                      title: "",
                       message: response.message ?? "Đăng nhập thất bại.",
                     );
                   }
                 } catch (e) {
                   showPopup(
                     context,
-                    title: "Lỗi",
+                    title: "",
                     message: "Không thể kết nối server: $e",
                   );
                 }
