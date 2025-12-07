@@ -1,27 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wello_frontend/data/models/question.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+
 class GenderSelector extends StatelessWidget {
   final String selected;
   final Function(String) onSelect;
+  final List<QuestionOption> options;
 
   const GenderSelector({
     super.key,
     required this.selected,
     required this.onSelect,
+    required this.options,
   });
+
+  IconData _getIconForGender(String answer) {
+    switch (answer) {
+      case 'MALE':
+        return Icons.male;
+      case 'FEMALE':
+        return Icons.female;
+      case 'OTHER':
+        return Icons.transgender;
+      default:
+        return Icons.person;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return  Wrap(
-        alignment: WrapAlignment.center,
-        spacing: context.w(0.03),   // khoảng cách ngang
-        runSpacing: context.h(0.025), // khoảng cách khi xuống hàng
-      children: [
-        genderItem(context, "male", "Nam", Icons.male),
-        genderItem(context, "female", "Nữ", Icons.female),
-        genderItem(context, "other", "Khác", Icons.transgender),
-      ],
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: context.w(0.03),   // khoảng cách ngang
+      runSpacing: context.h(0.025), // khoảng cách khi xuống hàng
+      children: options.map((option) {
+        return genderItem(
+          context,
+          option.answer,
+          option.moTa,
+          _getIconForGender(option.answer),
+        );
+      }).toList(),
     );
   }
 
@@ -68,3 +88,4 @@ class GenderSelector extends StatelessWidget {
     );
   }
 }
+

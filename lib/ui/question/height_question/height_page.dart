@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/domain/providers/question_provider.dart';
+import 'package:wello_frontend/data/models/question.dart';
 import 'package:wello_frontend/ui/question/age_weight_question/weight_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'widgets/height_slider.dart';
+
 class HeightPage extends StatefulWidget {
-  const HeightPage({super.key});
+  final Question question;
+  const HeightPage({super.key, required this.question});
 
   @override
   State<HeightPage> createState() => _HeightPageState();
@@ -68,7 +73,7 @@ class _HeightPageState extends State<HeightPage> {
 
                 // ----- TITLE -----
                 Text(
-                  "Chiều cao hiện tại của bạn ?",
+                  widget.question.question,
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(7),
                     fontWeight: FontWeight.w900,
@@ -87,6 +92,7 @@ class _HeightPageState extends State<HeightPage> {
                   ),
                   child: HeightSlider(
                     height: height,
+                    unit: widget.question.unit ?? "cm",
                     onChanged: (v) {
                       setState(() => height = v);
                     },
@@ -101,13 +107,19 @@ class _HeightPageState extends State<HeightPage> {
                           child: AnimatedStartButton(
                             text: "Tiếp tục",
                             onPressed:() {
-                                  Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const WeightPage(),
-                                  ),
-                                );
-                                  },
+                                  final provider = Provider.of<QuestionProvider>(context, listen: false);
+                                  final nextQuestion = provider.getQuestionByIndex(3);
+                                  if (nextQuestion != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => WeightPage(
+                                          question: nextQuestion,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
                           ),
                         ),
 
@@ -120,3 +132,4 @@ class _HeightPageState extends State<HeightPage> {
     );
   }
 }
+

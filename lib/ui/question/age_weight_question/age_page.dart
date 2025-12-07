@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wello_frontend/ui/question/activity_question/activity_level_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/domain/providers/question_provider.dart';
+import 'package:wello_frontend/data/models/question.dart';
+import 'package:wello_frontend/ui/question/target_question/target_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 import 'widgets/number_box.dart';
 
 class AgePage extends StatefulWidget {
-  const AgePage({super.key});
+  final Question question;
+  const AgePage({super.key, required this.question});
 
   @override
   State<AgePage> createState() => _AgePageState();
@@ -15,6 +19,11 @@ class AgePage extends StatefulWidget {
 
 class _AgePageState extends State<AgePage> {
   int age = 20; // tuổi mặc định
+
+  String _getUnit() {
+    if (widget.question.unit == "inputNumber") return "";
+    return widget.question.unit ?? "";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +80,7 @@ class _AgePageState extends State<AgePage> {
 
                 // ----- TITLE -----
                 Text(
-                  "Tuổi của bạn là bao nhiêu?",
+                  widget.question.question,
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(7),
                     fontWeight: FontWeight.w900,
@@ -90,7 +99,7 @@ class _AgePageState extends State<AgePage> {
                   ),
                   child: NumberBox(
                     title: "Tuổi",
-                    unit: "",
+                    unit: _getUnit(),
                     value: age,
                     onMinus: () {
                       setState(() {
@@ -109,12 +118,18 @@ class _AgePageState extends State<AgePage> {
                   child: AnimatedStartButton(
                     text: "Tiếp tục",
                     onPressed: () {
-                    Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const ActivityLevelScreen(),
-                                ),
-                              );
+                      final provider = Provider.of<QuestionProvider>(context, listen: false);
+                      final nextQuestion = provider.getQuestionByIndex(5);
+                      if (nextQuestion != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TargetLevelScreen(
+                              question: nextQuestion,
+                            ),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),
@@ -126,3 +141,4 @@ class _AgePageState extends State<AgePage> {
     );
   }
 }
+

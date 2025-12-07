@@ -1,9 +1,9 @@
-// lib/ui/register/widgets/register_form_card.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wello_frontend/data/services/api_service.dart';
+import 'package:wello_frontend/data/repositories/auth_repository.dart';
 import 'package:wello_frontend/ui/login/login_page.dart';
+import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/widgets/register_textfields.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
@@ -28,16 +28,85 @@ class RegisterFormContent extends StatelessWidget {
   }) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("OK"),
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: EdgeInsets.all(context.sp(5)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header with icon
+              Container(
+                width: context.sp(15),
+                height: context.sp(15),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEBCF23).withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.info_outline_rounded,
+                  color: Color(0xFFEBCF23),
+                  size: 30,
+                ),
+              ),
+
+              SizedBox(height: context.h(0.02)),
+
+              // Message
+              Text(
+                message,
+                style: GoogleFonts.baloo2(
+                  fontSize: context.sp(4.5),
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              SizedBox(height: context.h(0.03)),
+
+              // OK Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFEBCF23),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: context.h(0.015)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
+                  child: Text(
+                    "OK",
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(5),
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -99,7 +168,7 @@ class RegisterFormContent extends StatelessWidget {
                     confirmPassword.isEmpty) {
                   showPopup(
                     context,
-                    title: "Lỗi",
+                    title: "",
                     message: "Vui lòng điền đầy đủ thông tin.",
                   );
                   return;
@@ -108,34 +177,36 @@ class RegisterFormContent extends StatelessWidget {
                 if (password != confirmPassword) {
                   showPopup(
                     context,
-                    title: "Lỗi",
+                    title: "",
                     message: "Password và Confirm Password không khớp",
                   );
                   return;
                 }
 
                 try {
-                  bool success = await ApiService().register(
+                  final repository = AuthRepositoryImpl();
+                  final response = await repository.register(
                     email: email,
                     password: password,
                   );
-                  if (success) {
-                    showPopup(
+
+                  if (response.success) {
+                    // Navigate to Question Flow (Onboarding)
+                    Navigator.push(
                       context,
-                      title: "Thành công",
-                      message: "Bạn đã đăng ký thành công!",
+                      MaterialPageRoute(builder: (_) => NamePage()),
                     );
                   } else {
                     showPopup(
                       context,
-                      title: "Lỗi",
-                      message: "Đăng ký thất bại. Vui lòng thử lại.",
+                      title: "",
+                      message: response.message ?? "Đăng ký thất bại.",
                     );
                   }
                 } catch (e) {
                   showPopup(
                     context,
-                    title: "Lỗi",
+                    title: "",
                     message: "Không thể kết nối server: $e",
                   );
                 }
