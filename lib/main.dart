@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wello_frontend/ui/home/home_screen.dart';
-import 'package:wello_frontend/ui/main_navigation_screen.dart';
-import 'package:wello_frontend/ui/profile/profile_screen.dart';
+import 'package:wello_frontend/ui/auth/start_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -24,7 +22,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      home: MainNavigationScreen(),
+      home: StartPage(),
     );
   }
 }
