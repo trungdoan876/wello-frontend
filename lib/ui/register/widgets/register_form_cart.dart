@@ -2,11 +2,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:wello_frontend/data/services/api_service.dart';
 import 'package:wello_frontend/ui/login/login_page.dart';
 import 'package:wello_frontend/ui/register/widgets/register_textfields.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
+
 
 class RegisterFormContent extends StatelessWidget {
   final TextEditingController emailController;
@@ -20,27 +23,7 @@ class RegisterFormContent extends StatelessWidget {
     required this.confirmPasswordController,
   });
 
-  // Hàm hiển thị popup
-  void showPopup(
-    BuildContext context, {
-    required String title,
-    required String message,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -97,46 +80,53 @@ class RegisterFormContent extends StatelessWidget {
                 if (email.isEmpty ||
                     password.isEmpty ||
                     confirmPassword.isEmpty) {
-                  showPopup(
-                    context,
-                    title: "Lỗi",
-                    message: "Vui lòng điền đầy đủ thông tin.",
-                  );
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    title: 'Lỗi',
+                    text: 'Vui lòng điền đầy đủ thông tin.',
+                    );
                   return;
                 }
+                
 
                 if (password != confirmPassword) {
-                  showPopup(
-                    context,
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
                     title: "Lỗi",
-                    message: "Password và Confirm Password không khớp",
+                    text: "Password và Confirm Password không khớp",
                   );
                   return;
                 }
 
                 try {
+              
                   bool success = await ApiService().register(
                     email: email,
                     password: password,
                   );
                   if (success) {
-                    showPopup(
-                      context,
-                      title: "Thành công",
-                      message: "Bạn đã đăng ký thành công!",
-                    );
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.success,
+                      title: 'Thành công',
+                      text: 'Bạn đã đăng ký thành công!',
+                      );
                   } else {
-                    showPopup(
-                      context,
-                      title: "Lỗi",
-                      message: "Đăng ký thất bại. Vui lòng thử lại.",
+                    QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    title: 'Lỗi',
+                    text: 'Đăng ký thất bại. Vui lòng thử lại.',
                     );
                   }
                 } catch (e) {
-                  showPopup(
-                    context,
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
                     title: "Lỗi",
-                    message: "Không thể kết nối server: $e",
+                    text: "Không thể kết nối server: $e",
                   );
                 }
               },
