@@ -10,7 +10,16 @@ import 'widgets/number_box.dart';
 
 class WeightPage extends StatefulWidget {
   final Question question;
-  const WeightPage({super.key, required this.question});
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  const WeightPage({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+  });
 
   @override
   State<WeightPage> createState() => _WeightPageState();
@@ -55,7 +64,7 @@ class _WeightPageState extends State<WeightPage> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/bg_question_weight.png"), 
+            image: AssetImage("assets/images/bg_question_weight.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -112,7 +121,10 @@ class _WeightPageState extends State<WeightPage> {
                   child: AnimatedStartButton(
                     text: "Tiếp tục",
                     onPressed: () {
-                      final provider = Provider.of<QuestionProvider>(context, listen: false);
+                      final provider = Provider.of<QuestionProvider>(
+                        context,
+                        listen: false,
+                      );
                       final nextQuestion = provider.getQuestionByIndex(4);
                       if (nextQuestion != null) {
                         Navigator.push(
@@ -120,6 +132,10 @@ class _WeightPageState extends State<WeightPage> {
                           MaterialPageRoute(
                             builder: (_) => AgePage(
                               question: nextQuestion,
+                              fullname: widget.fullname,
+                              gender: widget.gender,
+                              height: widget.height,
+                              weight: weight,
                             ),
                           ),
                         );
@@ -135,4 +151,3 @@ class _WeightPageState extends State<WeightPage> {
     );
   }
 }
-

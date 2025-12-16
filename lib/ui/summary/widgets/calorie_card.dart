@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import '../../../data/models/responses/survey_response_model.dart';
 
 class CalorieCard extends StatelessWidget {
-  const CalorieCard({super.key});
+  final SurveyResponseModel survey;
+  const CalorieCard({super.key, required this.survey});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,7 @@ class CalorieCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  "1335",
+                  "${survey.dailyCalories}",
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(7),
                     fontWeight: FontWeight.w900,
@@ -69,7 +71,7 @@ class CalorieCard extends StatelessWidget {
                     TextSpan(
                       children: [
                         TextSpan(
-                          text: "1335\n",
+                          text: "${survey.dailyCalories}\n",
                           style:GoogleFonts.baloo2(
                             fontSize: context.sp(4.6),
                             fontWeight: FontWeight.w900,

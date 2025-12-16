@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import '../../../data/models/responses/survey_response_model.dart';
 
 class BMICard extends StatelessWidget {
-  const BMICard({super.key});
+  final SurveyResponseModel survey;
+  const BMICard({super.key, required this.survey});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,7 @@ class BMICard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    "23.4",
+                    "${survey.bmi.toStringAsFixed(1)}",
                     style: GoogleFonts.baloo2(
                       fontSize: context.sp(8.5),
                       fontWeight: FontWeight.bold,
@@ -95,7 +97,7 @@ class BMICard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left: show a small horizontal line above the height label
+              // Left: Height
               Padding(
                 padding: EdgeInsets.only(left: context.w(0.03)),
                 child: Column(
@@ -106,7 +108,9 @@ class BMICard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "160cm",
+                          survey.height != null
+                              ? "${survey.height!.toStringAsFixed(0)}cm"
+                              : "-- cm",
                           style: GoogleFonts.baloo2(
                             fontSize: context.sp(6),
                             fontWeight: FontWeight.bold,
@@ -127,31 +131,34 @@ class BMICard extends StatelessWidget {
                   ],
                 ),
               ),
-               Padding(
+              // Right: Weight
+              Padding(
                 padding: EdgeInsets.only(right: context.w(0.03)),
                 child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "60kg",
-                    style: GoogleFonts.baloo2(
-                      fontSize: context.sp(6),
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      survey.weight != null
+                          ? "${survey.weight!.toStringAsFixed(0)}kg"
+                          : "-- kg",
+                      style: GoogleFonts.baloo2(
+                        fontSize: context.sp(6),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: context.h(0.001)),
-                  Text(
-                    "Cân nặng",
-                    style: GoogleFonts.baloo2(
-                      fontSize: context.sp(5),
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
+                    SizedBox(height: context.h(0.001)),
+                    Text(
+                      "Cân nặng",
+                      style: GoogleFonts.baloo2(
+                        fontSize: context.sp(5),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
             ],
           ),
         ],

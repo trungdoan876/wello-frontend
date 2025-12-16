@@ -10,7 +10,20 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class TargetLevelScreen extends StatefulWidget {
   final Question question;
-  const TargetLevelScreen({super.key, required this.question});
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  final int? weight;
+  final int? age;
+  const TargetLevelScreen({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+    this.weight,
+    this.age,
+  });
 
   @override
   State<TargetLevelScreen> createState() => _TargetLevelScreenState();
@@ -30,18 +43,18 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
     setState(() {
       _selectedLevel = level;
     });
-    print('Selected Target Level: $level'); 
+    print('Selected Target Level: $level');
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
-  // ---- APP BAR ----
+      // ---- APP BAR ----
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.0)),
         child: Padding(
-         padding: EdgeInsets.only(top: context.h(0.0)),
+          padding: EdgeInsets.only(top: context.h(0.0)),
           child: AppBar(
             elevation: 0,
             backgroundColor: Color(0xFFFFFBEA),
@@ -59,11 +72,11 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
               ),
             ),
           ),
-       ),
+        ),
       ),
 
       extendBodyBehindAppBar: true,
-      
+
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Stack(
@@ -85,7 +98,6 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(height: context.h(0.08)), // đẩy xuống dưới AppBar
-
                   // --- Câu hỏi chính ---
                   Text(
                     widget.question.question,
@@ -111,37 +123,45 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                   }).toList(),
                   SizedBox(height: context.h(0.05)), // Khoảng cách dưới cùng
 
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
-                  child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed:_selectedLevel == null
-                        ? null
-                        : () {
-                      final provider = Provider.of<QuestionProvider>(context, listen: false);
-                      final nextQuestion = provider.getQuestionByIndex(6);
-                      if (nextQuestion != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ActivityLevelScreen(
-                              question: nextQuestion,
-                            ),
-                          ),
-                        );
-                      }
-                    },
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
+                    child: AnimatedStartButton(
+                      text: "Tiếp tục",
+                      onPressed: _selectedLevel == null
+                          ? null
+                          : () {
+                              final provider = Provider.of<QuestionProvider>(
+                                context,
+                                listen: false,
+                              );
+                              final nextQuestion = provider.getQuestionByIndex(
+                                6,
+                              );
+                              if (nextQuestion != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ActivityLevelScreen(
+                                      question: nextQuestion,
+                                      fullname: widget.fullname,
+                                      gender: widget.gender,
+                                      height: widget.height,
+                                      weight: widget.weight,
+                                      age: widget.age,
+                                      goal: _selectedLevel,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                    ),
                   ),
-                ),
-                  
                 ],
-                
               ),
             ),
           ],
         ),
       ),
     );
-
   }
 }

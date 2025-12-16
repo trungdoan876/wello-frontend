@@ -25,7 +25,7 @@ class _NamePageState extends State<NamePage> {
     nameController.addListener(() {
       setState(() {}); // cập nhật UI khi nhập
     });
-    
+
     // Load questions from backend if not already loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<QuestionProvider>(context, listen: false);
@@ -50,8 +50,9 @@ class _NamePageState extends State<NamePage> {
         }
 
         // Get current question (from prop or from provider)
-        _currentQuestion = widget.question ?? questionProvider.getQuestionByIndex(0);
-        
+        _currentQuestion =
+            widget.question ?? questionProvider.getQuestionByIndex(0);
+
         if (_currentQuestion == null) {
           return _buildErrorScreen(questionProvider);
         }
@@ -68,9 +69,7 @@ class _NamePageState extends State<NamePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
-              color: const Color(0xffEBCF23),
-            ),
+            CircularProgressIndicator(color: const Color(0xffEBCF23)),
             SizedBox(height: 20),
             Text(
               'Đang tải câu hỏi...',
@@ -94,11 +93,7 @@ class _NamePageState extends State<NamePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 80,
-                color: Colors.red,
-              ),
+              Icon(Icons.error_outline, size: 80, color: Colors.red),
               SizedBox(height: 20),
               Text(
                 'Không thể tải câu hỏi',
@@ -126,10 +121,7 @@ class _NamePageState extends State<NamePage> {
                 ),
                 child: Text(
                   'Thử lại',
-                  style: GoogleFonts.baloo2(
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
+                  style: GoogleFonts.baloo2(fontSize: 18, color: Colors.white),
                 ),
               ),
             ],
@@ -231,13 +223,15 @@ class _NamePageState extends State<NamePage> {
                         ? null
                         : () {
                             // Get next question from provider
-                            final nextQuestion = questionProvider.getQuestionByIndex(1);
+                            final nextQuestion = questionProvider
+                                .getQuestionByIndex(1);
                             if (nextQuestion != null) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => GenderPage(
                                     question: nextQuestion,
+                                    fullname: nameController.text.trim(),
                                   ),
                                 ),
                               );

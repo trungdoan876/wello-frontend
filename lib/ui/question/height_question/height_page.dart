@@ -10,42 +10,49 @@ import 'widgets/height_slider.dart';
 
 class HeightPage extends StatefulWidget {
   final Question question;
-  const HeightPage({super.key, required this.question});
+  final String? fullname;
+  final String? gender;
+  const HeightPage({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+  });
 
   @override
   State<HeightPage> createState() => _HeightPageState();
 }
 
 class _HeightPageState extends State<HeightPage> {
-  double height = 165;   // chiều cao mặc định
+  double height = 165; // chiều cao mặc định
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       // ---- APP BAR ----
       appBar: PreferredSize(
-      preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.05)),
-      child: Padding(
-        padding: EdgeInsets.only(top: context.h(0.05)),
-        child: AppBar(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          centerTitle: true,
-          leadingWidth: context.w(0.2), 
-          iconTheme: IconThemeData(
-            color: Color(0xffEBCF23),
-            size: context.sp(10),
-          ),
-          title: Text(
-            "Wello",
-            style: GoogleFonts.pacifico(
-              fontSize: context.sp(12.0),
-              color: const Color(0xffEBCF23),
+        preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.05)),
+        child: Padding(
+          padding: EdgeInsets.only(top: context.h(0.05)),
+          child: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            centerTitle: true,
+            leadingWidth: context.w(0.2),
+            iconTheme: IconThemeData(
+              color: Color(0xffEBCF23),
+              size: context.sp(10),
+            ),
+            title: Text(
+              "Wello",
+              style: GoogleFonts.pacifico(
+                fontSize: context.sp(12.0),
+                color: const Color(0xffEBCF23),
+              ),
             ),
           ),
         ),
       ),
-    ),
       extendBodyBehindAppBar: true,
       // ---- BACKGROUND ----
       body: Container(
@@ -53,7 +60,9 @@ class _HeightPageState extends State<HeightPage> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/bg_question_height.png"), // đổi ảnh của bạn
+            image: AssetImage(
+              "assets/images/bg_question_height.png",
+            ), // đổi ảnh của bạn
             fit: BoxFit.cover,
           ),
         ),
@@ -68,7 +77,6 @@ class _HeightPageState extends State<HeightPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                
                 SizedBox(height: context.h(0.07)),
 
                 // ----- TITLE -----
@@ -103,27 +111,31 @@ class _HeightPageState extends State<HeightPage> {
 
                 // ---- NEXT BUTTON (OPTIONAL) ----
                 SizedBox(
-                          width: context.w(0.5),
-                          child: AnimatedStartButton(
-                            text: "Tiếp tục",
-                            onPressed:() {
-                                  final provider = Provider.of<QuestionProvider>(context, listen: false);
-                                  final nextQuestion = provider.getQuestionByIndex(3);
-                                  if (nextQuestion != null) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => WeightPage(
-                                          question: nextQuestion,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                },
+                  width: context.w(0.5),
+                  child: AnimatedStartButton(
+                    text: "Tiếp tục",
+                    onPressed: () {
+                      final provider = Provider.of<QuestionProvider>(
+                        context,
+                        listen: false,
+                      );
+                      final nextQuestion = provider.getQuestionByIndex(3);
+                      if (nextQuestion != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => WeightPage(
+                              question: nextQuestion,
+                              fullname: widget.fullname,
+                              gender: widget.gender,
+                              height: height.toInt(),
+                            ),
                           ),
-                        ),
-
-                
+                        );
+                      }
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -132,4 +144,3 @@ class _HeightPageState extends State<HeightPage> {
     );
   }
 }
-

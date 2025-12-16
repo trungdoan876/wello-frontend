@@ -11,7 +11,18 @@ import 'widgets/number_box.dart';
 
 class AgePage extends StatefulWidget {
   final Question question;
-  const AgePage({super.key, required this.question});
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  final int? weight;
+  const AgePage({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+    this.weight,
+  });
 
   @override
   State<AgePage> createState() => _AgePageState();
@@ -61,7 +72,7 @@ class _AgePageState extends State<AgePage> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/bg_question_age.png"), 
+            image: AssetImage("assets/images/bg_question_age.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -118,7 +129,10 @@ class _AgePageState extends State<AgePage> {
                   child: AnimatedStartButton(
                     text: "Tiếp tục",
                     onPressed: () {
-                      final provider = Provider.of<QuestionProvider>(context, listen: false);
+                      final provider = Provider.of<QuestionProvider>(
+                        context,
+                        listen: false,
+                      );
                       final nextQuestion = provider.getQuestionByIndex(5);
                       if (nextQuestion != null) {
                         Navigator.push(
@@ -126,6 +140,11 @@ class _AgePageState extends State<AgePage> {
                           MaterialPageRoute(
                             builder: (_) => TargetLevelScreen(
                               question: nextQuestion,
+                              fullname: widget.fullname,
+                              gender: widget.gender,
+                              height: widget.height,
+                              weight: widget.weight,
+                              age: age,
                             ),
                           ),
                         );
@@ -141,4 +160,3 @@ class _AgePageState extends State<AgePage> {
     );
   }
 }
-

@@ -5,12 +5,32 @@ import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/data/models/question.dart';
 import 'package:wello_frontend/ui/question/activity_question/widgets/activity_option_button.dart';
+import 'package:wello_frontend/domain/providers/survey_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/data/models/requests/survey_request_model.dart';
+import 'package:wello_frontend/ui/summary/summary_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class ActivityLevelScreen extends StatefulWidget {
   final Question question;
-  const ActivityLevelScreen({super.key, required this.question});
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  final int? weight;
+  final int? age;
+  final String? goal;
+
+  const ActivityLevelScreen({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+    this.weight,
+    this.age,
+    this.goal,
+  });
 
   @override
   State<ActivityLevelScreen> createState() => _ActivityLevelScreenState();
@@ -49,10 +69,7 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
             backgroundColor: Colors.transparent,
             centerTitle: true,
             leadingWidth: context.w(0.2),
-            iconTheme: IconThemeData(
-              color: mainYellow,
-              size: context.sp(10),
-            ),
+            iconTheme: IconThemeData(color: mainYellow, size: context.sp(10)),
             title: Text(
               "Wello",
               style: GoogleFonts.pacifico(
@@ -111,17 +128,65 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                   );
                 }).toList(),
 
-               SizedBox(height: context.h(0.05)),
+                SizedBox(height: context.h(0.05)),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
-                  child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed:_selectedLevel == null
-                        ? null
-                        : () {
-                      // TODO: Submit survey to backend
-                      print("Survey completed! Activity level: $_selectedLevel");
-                      // Navigate to home or submit survey
+                  child: Consumer<SurveyProvider>(
+                    builder: (context, surveyProvider, child) {
+                      return AnimatedStartButton(
+                        text: surveyProvider.isLoading
+                            ? "Đang gửi..."
+                            : "Tiếp tục",
+                        onPressed:
+                            _selectedLevel == null || surveyProvider.isLoading
+                            ? null
+                            : () async {
+                                // Build request from collected answers
+                                final request = SurveyRequestModel(
+                                  userId: 1,
+                                  fullname: widget.fullname ?? 'No name',
+                                  gender: widget.gender ?? 'MALE',
+                                  age: widget.age ?? 25,
+                                  height: widget.height ?? 170,
+                                  weight: widget.weight ?? 65,
+                                  goal: widget.goal ?? 'KEEP_FIT',
+                                  activityLevel: _selectedLevel!,
+                                );
+
+                                try {
+                                  await surveyProvider.submitSurvey(request);
+                                  final result = surveyProvider.surveyResult;
+                                  if (result != null) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            SummaryPage(survey: result),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  // show simple dialog on error
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => AlertDialog(
+                                      title: const Text('Lỗi'),
+                                      content: Text(
+                                        surveyProvider.errorMessage ??
+                                            e.toString(),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Đóng'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              },
+                      );
                     },
                   ),
                 ),
@@ -133,4 +198,3 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
     );
   }
 }
-

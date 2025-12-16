@@ -10,7 +10,8 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class GenderPage extends StatefulWidget {
   final Question question;
-  const GenderPage({super.key, required this.question});
+  final String? fullname;
+  const GenderPage({super.key, required this.question, this.fullname});
 
   @override
   State<GenderPage> createState() => _GenderPageState();
@@ -22,7 +23,6 @@ class _GenderPageState extends State<GenderPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       // 👉 AppBar giống HeightPage
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.05)),
@@ -33,10 +33,10 @@ class _GenderPageState extends State<GenderPage> {
             backgroundColor: Colors.transparent,
             centerTitle: true,
 
-            leadingWidth: context.w(0.2), 
+            leadingWidth: context.w(0.2),
             iconTheme: IconThemeData(
               color: Color(0xffEBCF23), // màu icon back
-               size: context.sp(10),
+              size: context.sp(10),
             ),
 
             title: Text(
@@ -67,7 +67,6 @@ class _GenderPageState extends State<GenderPage> {
             padding: EdgeInsets.symmetric(horizontal: context.w(0.07)),
             child: Column(
               children: [
-
                 SizedBox(height: context.h(0.1)),
 
                 Text(
@@ -99,7 +98,10 @@ class _GenderPageState extends State<GenderPage> {
                     onPressed: selectedGender.isEmpty
                         ? null
                         : () {
-                            final provider = Provider.of<QuestionProvider>(context, listen: false);
+                            final provider = Provider.of<QuestionProvider>(
+                              context,
+                              listen: false,
+                            );
                             final nextQuestion = provider.getQuestionByIndex(2);
                             if (nextQuestion != null) {
                               Navigator.push(
@@ -107,6 +109,8 @@ class _GenderPageState extends State<GenderPage> {
                                 MaterialPageRoute(
                                   builder: (_) => HeightPage(
                                     question: nextQuestion,
+                                    fullname: widget.fullname,
+                                    gender: selectedGender,
                                   ),
                                 ),
                               );
@@ -122,4 +126,3 @@ class _GenderPageState extends State<GenderPage> {
     );
   }
 }
-
