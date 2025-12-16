@@ -5,11 +5,15 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 class HeightSlider extends StatefulWidget {
   final double height;                 // giá trị ban đầu
   final Function(double) onChanged;    // callback để trả kết quả
+  final String unit;
+  final String label;
 
   const HeightSlider({
     super.key,
     required this.height,
     required this.onChanged,
+    required this.unit,
+    this.label = "Chiều cao",
   });
 
   @override
@@ -41,7 +45,7 @@ class _HeightSliderState extends State<HeightSlider> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Chiều cao",
+              widget.label,
               style: GoogleFonts.baloo2(
                 fontSize: context.sp(7),
                 fontWeight: FontWeight.w900,
@@ -61,7 +65,7 @@ class _HeightSliderState extends State<HeightSlider> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("cm",
+                  Text(widget.unit,
                   style: GoogleFonts.baloo2(
                   fontSize: context.sp(6),
                   fontWeight: FontWeight.w900,
@@ -168,3 +172,4 @@ class _HeightSliderState extends State<HeightSlider> {
     );
   }
 }
+

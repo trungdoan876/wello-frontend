@@ -1,64 +1,60 @@
-// lib/screens/activity_level_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/domain/providers/question_provider.dart';
+import 'package:wello_frontend/data/models/question.dart';
+import 'package:wello_frontend/ui/question/activity_question/activity_level_screen.dart';
 import 'package:wello_frontend/ui/question/activity_question/widgets/activity_option_button.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
-import 'package:wello_frontend/ui/widgets/responsive.dart'; // Dùng responsive của bạn
-
-// Định nghĩa Enum cho các mức độ hoạt động
-enum TargetLevel {
-  gain_weight, // Ít vận động
-  lose_weight,     // Vận động nhẹ
-  keep_fit,  // Vận động vừa
-}
+import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class TargetLevelScreen extends StatefulWidget {
-  const TargetLevelScreen({super.key});
+  final Question question;
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  final int? weight;
+  final int? age;
+  const TargetLevelScreen({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+    this.weight,
+    this.age,
+  });
 
   @override
   State<TargetLevelScreen> createState() => _TargetLevelScreenState();
 }
 
 class _TargetLevelScreenState extends State<TargetLevelScreen> {
-  TargetLevel? _selectedLevel; // Biến lưu trữ mức độ được chọn
+  String? _selectedLevel;
 
-  final List<Map<String, dynamic>> _activityOptions = [
-    {
-      'level': TargetLevel.gain_weight,
-      'title': 'Tăng cân',
-      'subtitle': 'Ăn nhiều hơn, tăng cơ và cân nặng',
-    },
-    {
-      'level': TargetLevel.lose_weight,
-      'title': 'Giảm cân',
-      'subtitle': 'Ăn kiểm soát để giảm mỡ thừa',
-    },
-    {
-      'level': TargetLevel.keep_fit,
-      'title': 'Giữ dáng',
-      'subtitle': 'Giữ cân năng ổn định , sống khỏe',
-    },
-    
-  ];
+  // Mapping tạm thời cho Subtitle vì backend chưa trả về
+  final Map<String, String> _subtitleMap = {
+    "GAIN_WEIGHT": "Ăn nhiều hơn, tăng cơ và cân nặng",
+    "LOSE_WEIGHT": "Ăn kiểm soát để giảm mỡ thừa",
+    "KEEP_FIT": "Giữ cân năng ổn định , sống khỏe",
+  };
 
-  void _selectLevel(TargetLevel level) {
+  void _selectLevel(String level) {
     setState(() {
       _selectedLevel = level;
     });
-    // In ra lựa chọn để kiểm tra (hoặc chuyển trang)
-    print('Selected Activity Level: $level'); 
-    // Thêm logic Navigator.push ở đây sau khi chọn xong
+    print('Selected Target Level: $level');
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size; // Lấy kích thước màn hình
+    final size = MediaQuery.of(context).size;
     return Scaffold(
-  // ---- APP BAR ----
+      // ---- APP BAR ----
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.0)),
         child: Padding(
-         padding: EdgeInsets.only(top: context.h(0.0)),
+          padding: EdgeInsets.only(top: context.h(0.0)),
           child: AppBar(
             elevation: 0,
             backgroundColor: Color(0xFFFFFBEA),
@@ -76,11 +72,11 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
               ),
             ),
           ),
-       ),
+        ),
       ),
 
       extendBodyBehindAppBar: true,
-      
+
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Stack(
@@ -102,10 +98,9 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(height: context.h(0.08)), // đẩy xuống dưới AppBar
-
                   // --- Câu hỏi chính ---
                   Text(
-                    'Bạn vận động như thế\nnào?',
+                    widget.question.question,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.baloo2(
                       fontSize: context.sp(8.0),
@@ -118,41 +113,55 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                   SizedBox(height: context.h(0.03)),
 
                   // --- Các button lựa chọn ---
-                  ..._activityOptions.map((option) {
+                  ...widget.question.options.map((option) {
                     return ActivityOptionButton(
-                      title: option['title'],
-                      subtitle: option['subtitle'],
-                      isSelected: _selectedLevel == option['level'],
-                      onPressed: () => _selectLevel(option['level']),
+                      title: option.moTa,
+                      subtitle: _subtitleMap[option.answer] ?? "",
+                      isSelected: _selectedLevel == option.answer,
+                      onPressed: () => _selectLevel(option.answer),
                     );
                   }).toList(),
                   SizedBox(height: context.h(0.05)), // Khoảng cách dưới cùng
 
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
-                  child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed:_selectedLevel == null
-                        ? null
-                        : () {
-                      //  Navigator.push(
-                      //             context,
-                      //             MaterialPageRoute(
-                      //               builder: (_) => const ActivityLevelScreen(),
-                      //             ),
-                      //           );
-                    },
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
+                    child: AnimatedStartButton(
+                      text: "Tiếp tục",
+                      onPressed: _selectedLevel == null
+                          ? null
+                          : () {
+                              final provider = Provider.of<QuestionProvider>(
+                                context,
+                                listen: false,
+                              );
+                              final nextQuestion = provider.getQuestionByIndex(
+                                6,
+                              );
+                              if (nextQuestion != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ActivityLevelScreen(
+                                      question: nextQuestion,
+                                      fullname: widget.fullname,
+                                      gender: widget.gender,
+                                      height: widget.height,
+                                      weight: widget.weight,
+                                      age: widget.age,
+                                      goal: _selectedLevel,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                    ),
                   ),
-                ),
-                  
                 ],
-                
               ),
             ),
           ],
         ),
       ),
     );
-
   }
 }

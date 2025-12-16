@@ -1,0 +1,18 @@
+import '../models/question.dart';
+import '../data_source/question_remote_data_source.dart';
+
+class QuestionRepository {
+  final QuestionRemoteDataSource _dataSource;
+
+  QuestionRepository({QuestionRemoteDataSource? dataSource})
+      : _dataSource = dataSource ?? QuestionRemoteDataSource();
+
+  /// Fetch questions from backend
+  Future<List<Question>> getQuestions() async {
+    try {
+      return await _dataSource.fetchQuestions();
+    } catch (e) {
+      throw Exception('Failed to fetch questions: $e');
+    }
+  }
+}

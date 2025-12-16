@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/domain/providers/question_provider.dart';
+import 'package:wello_frontend/data/models/question.dart';
 import 'package:wello_frontend/ui/question/gender_question/gender_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class NamePage extends StatefulWidget {
-  const NamePage({super.key});
+  final Question? question;
+  const NamePage({super.key, this.question});
 
   @override
   State<NamePage> createState() => _NamePageState();
@@ -13,6 +17,7 @@ class NamePage extends StatefulWidget {
 
 class _NamePageState extends State<NamePage> {
   final TextEditingController nameController = TextEditingController();
+  Question? _currentQuestion;
 
   @override
   void initState() {
@@ -20,14 +25,114 @@ class _NamePageState extends State<NamePage> {
     nameController.addListener(() {
       setState(() {}); // cập nhật UI khi nhập
     });
+
+    // Load questions from backend if not already loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<QuestionProvider>(context, listen: false);
+      if (provider.questions.isEmpty && !provider.isLoading) {
+        provider.loadQuestions();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-   // final bool isEmpty = nameController.text.trim().isEmpty;
+    return Consumer<QuestionProvider>(
+      builder: (context, questionProvider, child) {
+        // Show loading state
+        if (questionProvider.isLoading) {
+          return _buildLoadingScreen();
+        }
 
+        // Show error state
+        if (questionProvider.hasError) {
+          return _buildErrorScreen(questionProvider);
+        }
+
+        // Get current question (from prop or from provider)
+        _currentQuestion =
+            widget.question ?? questionProvider.getQuestionByIndex(0);
+
+        if (_currentQuestion == null) {
+          return _buildErrorScreen(questionProvider);
+        }
+
+        return _buildNameQuestionScreen(questionProvider);
+      },
+    );
+  }
+
+  Widget _buildLoadingScreen() {
     return Scaffold(
+      backgroundColor: const Color(0xffFFF8E8),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: const Color(0xffEBCF23)),
+            SizedBox(height: 20),
+            Text(
+              'Đang tải câu hỏi...',
+              style: GoogleFonts.baloo2(
+                fontSize: 18,
+                color: const Color(0xffEBCF23),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  Widget _buildErrorScreen(QuestionProvider provider) {
+    return Scaffold(
+      backgroundColor: const Color(0xffFFF8E8),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 80, color: Colors.red),
+              SizedBox(height: 20),
+              Text(
+                'Không thể tải câu hỏi',
+                style: GoogleFonts.baloo2(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xffEBCF23),
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                provider.errorMessage ?? 'Đã xảy ra lỗi',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.baloo2(
+                  fontSize: 16,
+                  color: Colors.grey[700],
+                ),
+              ),
+              SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: () => provider.retry(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xffEBCF23),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                ),
+                child: Text(
+                  'Thử lại',
+                  style: GoogleFonts.baloo2(fontSize: 18, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNameQuestionScreen(QuestionProvider questionProvider) {
+    return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.05)),
         child: Padding(
@@ -38,7 +143,7 @@ class _NamePageState extends State<NamePage> {
             centerTitle: true,
             leadingWidth: context.w(0.2),
             iconTheme: IconThemeData(
-              color: const Color(0xffEBCF23), // màu icon back
+              color: const Color(0xffEBCF23),
               size: context.sp(10),
             ),
             title: Text(
@@ -70,10 +175,10 @@ class _NamePageState extends State<NamePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: context.h(0.18)), // tăng lên để tránh AppBar
+                SizedBox(height: context.h(0.18)),
 
                 Text(
-                  'Bạn tên là gì?',
+                  _currentQuestion!.question,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(8.0),
@@ -117,12 +222,20 @@ class _NamePageState extends State<NamePage> {
                     onPressed: nameController.text.trim().isEmpty
                         ? null
                         : () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const GenderPage(),
-                              ),
-                            );
+                            // Get next question from provider
+                            final nextQuestion = questionProvider
+                                .getQuestionByIndex(1);
+                            if (nextQuestion != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => GenderPage(
+                                    question: nextQuestion,
+                                    fullname: nameController.text.trim(),
+                                  ),
+                                ),
+                              );
+                            }
                           },
                   ),
                 ),
@@ -132,6 +245,5 @@ class _NamePageState extends State<NamePage> {
         ),
       ),
     );
-
   }
 }

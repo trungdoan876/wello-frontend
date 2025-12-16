@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/domain/providers/question_provider.dart';
+import 'package:wello_frontend/data/models/question.dart';
 import 'package:wello_frontend/ui/question/age_weight_question/age_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'widgets/number_box.dart';
 
 class WeightPage extends StatefulWidget {
-  const WeightPage({super.key});
+  final Question question;
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  const WeightPage({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+  });
 
   @override
   State<WeightPage> createState() => _WeightPageState();
@@ -51,7 +64,7 @@ class _WeightPageState extends State<WeightPage> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/bg_question_weight.png"), 
+            image: AssetImage("assets/images/bg_question_weight.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -70,7 +83,7 @@ class _WeightPageState extends State<WeightPage> {
 
                 // ----- TITLE -----
                 Text(
-                  "Cân nặng hiện tại của bạn ?",
+                  widget.question.question,
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(7),
                     fontWeight: FontWeight.w900,
@@ -89,7 +102,7 @@ class _WeightPageState extends State<WeightPage> {
                   ),
                   child: NumberBox(
                     title: "Cân nặng",
-                    unit: "kg",
+                    unit: widget.question.unit ?? "kg",
                     value: weight,
                     onMinus: () {
                       setState(() {
@@ -108,12 +121,25 @@ class _WeightPageState extends State<WeightPage> {
                   child: AnimatedStartButton(
                     text: "Tiếp tục",
                     onPressed: () {
-                       Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AgePage(),
-                                  ),
-                                );
+                      final provider = Provider.of<QuestionProvider>(
+                        context,
+                        listen: false,
+                      );
+                      final nextQuestion = provider.getQuestionByIndex(4);
+                      if (nextQuestion != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AgePage(
+                              question: nextQuestion,
+                              fullname: widget.fullname,
+                              gender: widget.gender,
+                              height: widget.height,
+                              weight: weight,
+                            ),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),

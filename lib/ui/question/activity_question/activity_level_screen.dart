@@ -1,59 +1,54 @@
 // lib/screens/activity_level_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wello_frontend/ui/question/target_question/target_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/domain/providers/question_provider.dart';
+import 'package:wello_frontend/data/models/question.dart';
 import 'package:wello_frontend/ui/question/activity_question/widgets/activity_option_button.dart';
+import 'package:wello_frontend/domain/providers/survey_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/data/models/requests/survey_request_model.dart';
+import 'package:wello_frontend/ui/summary/summary_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
-// --- Enum mức độ hoạt động ---
-enum ActivityLevel {
-  sedentary,
-  light,
-  moderate,
-  heavy,
-  veryHeavy,
-}
-
 class ActivityLevelScreen extends StatefulWidget {
-  const ActivityLevelScreen({super.key});
+  final Question question;
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  final int? weight;
+  final int? age;
+  final String? goal;
+
+  const ActivityLevelScreen({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+    this.weight,
+    this.age,
+    this.goal,
+  });
 
   @override
   State<ActivityLevelScreen> createState() => _ActivityLevelScreenState();
 }
 
 class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
-  ActivityLevel? _selectedLevel;
+  String? _selectedLevel;
 
-  final List<Map<String, dynamic>> _activityOptions = [
-    {
-      'level': ActivityLevel.sedentary,
-      'title': 'Ít vận động',
-      'subtitle': 'Chủ yếu ngồi, không tập thể dục.',
-    },
-    {
-      'level': ActivityLevel.light,
-      'title': 'Vận động nhẹ',
-      'subtitle': 'Tập nhẹ 1–3 buổi/tuần',
-    },
-    {
-      'level': ActivityLevel.moderate,
-      'title': 'Vận động vừa',
-      'subtitle': 'Tập đều 3–5 buổi/tuần',
-    },
-    {
-      'level': ActivityLevel.heavy,
-      'title': 'Vận động nặng',
-      'subtitle': 'Tập cường độ cao 6–7 buổi/tuần',
-    },
-    {
-      'level': ActivityLevel.veryHeavy,
-      'title': 'Rất nặng',
-      'subtitle': 'Lao động nặng/vận động viên',
-    },
-  ];
+  // Mapping tạm thời cho Title vì backend chưa trả về
+  final Map<String, String> _titleMap = {
+    "SEDENTARY": "Ít vận động",
+    "LIGHT_ACTIVE": "Vận động nhẹ",
+    "MODERATE_ACTIVE": "Vận động vừa",
+    "HEAVY_ACTIVE": "Vận động nặng",
+    "VERY_HEAVY_ACTIVE": "Rất nặng",
+  };
 
-  void _selectLevel(ActivityLevel level) {
+  void _selectLevel(String level) {
     setState(() => _selectedLevel = level);
     print("Selected Activity Level: $level");
   }
@@ -74,10 +69,7 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
             backgroundColor: Colors.transparent,
             centerTitle: true,
             leadingWidth: context.w(0.2),
-            iconTheme: IconThemeData(
-              color: mainYellow,
-              size: context.sp(10),
-            ),
+            iconTheme: IconThemeData(color: mainYellow, size: context.sp(10)),
             title: Text(
               "Wello",
               style: GoogleFonts.pacifico(
@@ -114,7 +106,7 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
 
                 // ---- CÂU HỎI ----
                 Text(
-                  'Bạn vận động như thế\nnào?',
+                  widget.question.question,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(8.0),
@@ -127,29 +119,74 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                 SizedBox(height: context.h(0.03)),
 
                 // --- DANH SÁCH LỰA CHỌN ---
-                ..._activityOptions.map((option) {
+                ...widget.question.options.map((option) {
                   return ActivityOptionButton(
-                    title: option['title'],
-                    subtitle: option['subtitle'],
-                    isSelected: _selectedLevel == option['level'],
-                    onPressed: () => _selectLevel(option['level']),
+                    title: _titleMap[option.answer] ?? option.answer,
+                    subtitle: option.moTa,
+                    isSelected: _selectedLevel == option.answer,
+                    onPressed: () => _selectLevel(option.answer),
                   );
                 }).toList(),
 
-               SizedBox(height: context.h(0.05)),
+                SizedBox(height: context.h(0.05)),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
-                  child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed:_selectedLevel == null
-                        ? null
-                        : () {
-                       Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const TargetLevelScreen(),
-                                  ),
+                  child: Consumer<SurveyProvider>(
+                    builder: (context, surveyProvider, child) {
+                      return AnimatedStartButton(
+                        text: surveyProvider.isLoading
+                            ? "Đang gửi..."
+                            : "Tiếp tục",
+                        onPressed:
+                            _selectedLevel == null || surveyProvider.isLoading
+                            ? null
+                            : () async {
+                                // Build request from collected answers
+                                final request = SurveyRequestModel(
+                                  userId: 1,
+                                  fullname: widget.fullname ?? 'No name',
+                                  gender: widget.gender ?? 'MALE',
+                                  age: widget.age ?? 25,
+                                  height: widget.height ?? 170,
+                                  weight: widget.weight ?? 65,
+                                  goal: widget.goal ?? 'KEEP_FIT',
+                                  activityLevel: _selectedLevel!,
                                 );
+
+                                try {
+                                  await surveyProvider.submitSurvey(request);
+                                  final result = surveyProvider.surveyResult;
+                                  if (result != null) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            SummaryPage(survey: result),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  // show simple dialog on error
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => AlertDialog(
+                                      title: const Text('Lỗi'),
+                                      content: Text(
+                                        surveyProvider.errorMessage ??
+                                            e.toString(),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Đóng'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              },
+                      );
                     },
                   ),
                 ),

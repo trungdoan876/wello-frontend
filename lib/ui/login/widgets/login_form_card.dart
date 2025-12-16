@@ -2,28 +2,52 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wello_frontend/data/repositories/auth_repository.dart';
 import 'package:wello_frontend/ui/login/widgets/login_textfields.dart';
+import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/register_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
-
+import 'package:wello_frontend/ui/widgets/beautiful_dialog.dart';
 
 class LoginFormContent extends StatelessWidget {
-  const LoginFormContent({super.key});
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+
+  const LoginFormContent({
+    super.key,
+    required this.emailController,
+    required this.passwordController,
+  });
+
+  // Show beautiful dialog
+  void showPopup(
+    BuildContext context, {
+    required String title,
+    required String message,
+    bool isError = true,
+  }) {
+    BeautifulDialog.show(
+      context,
+      title: title,
+      message: message,
+      isError: isError,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     // Màu sắc
-    const Color titleYellow = Color(0xFFEBCF23); 
+    const Color titleYellow = Color(0xFFEBCF23);
     return Padding(
       // Padding ngang tương đối 10% chiều rộng màn hình cho Form Card
-      padding: EdgeInsets.symmetric(horizontal: context.w(0.04)), 
+      padding: EdgeInsets.symmetric(horizontal: context.w(0.04)),
       child: Column(
         children: [
           // --- Tiêu đề "ĐĂNG NHẬP" ---
           Text(
             'ĐĂNG NHẬP',
-            style: GoogleFonts.baloo2( 
+            style: GoogleFonts.baloo2(
               fontSize: context.sp(10),
               fontWeight: FontWeight.w900,
               color: titleYellow,
@@ -33,7 +57,7 @@ class LoginFormContent extends StatelessWidget {
           // --- Chào mừng ---
           Text(
             'Chào mừng bạn trở lại!',
-           style: GoogleFonts.baloo2(
+            style: GoogleFonts.baloo2(
               fontSize: context.sp(4.3),
               fontWeight: FontWeight.w600,
               color: const Color.fromARGB(255, 143, 142, 142),
@@ -44,7 +68,11 @@ class LoginFormContent extends StatelessWidget {
           SizedBox(height: context.h(0.02)),
 
           // --- Input Fields ---
-          const LoginTextFields(),          
+          LoginTextFields(
+            emailController: emailController,
+            passwordController: passwordController,
+          ),
+
           // --- Quên mật khẩu ---
           Align(
             alignment: Alignment.centerRight,
@@ -57,7 +85,7 @@ class LoginFormContent extends StatelessWidget {
                   color: titleYellow,
                   fontWeight: FontWeight.w700,
                   decoration: TextDecoration.underline,
-                    decorationColor: titleYellow, 
+                  decorationColor: titleYellow,
                 ),
               ),
             ),
@@ -67,38 +95,87 @@ class LoginFormContent extends StatelessWidget {
 
           // --- Nút ĐĂNG NHẬP ---
           SizedBox(
-                  width: context.w(0.8), // responsive theo chiều ngang
-                  child: AnimatedStartButton(
-                    text: "Đăng nhập",
-                    onPressed: () {
-                      
-                      // TODO: Xử lý logic login
-                    },
-                  ),
-                ),
+            width: context.w(0.8), // responsive theo chiều ngang
+            child: AnimatedStartButton(
+              text: "Đăng nhập",
+              onPressed: () async {
+                final email = emailController.text.trim();
+                final password = passwordController.text;
 
-          SizedBox(height: context.h(0.03)),
-          
-          // --- Tạo tài khoản ---
-         TextButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const RegisterPage()),
-            );
-          },
-          child: Text(
-            'Tạo tài khoản',
-            style: TextStyle(
-              fontSize: context.sp(4.0),
-              color: Colors.grey.shade700,
-              decoration: TextDecoration.underline,
+                // Validation
+                if (email.isEmpty || password.isEmpty) {
+                  showPopup(
+                    context,
+                    title: "",
+                    message: "Vui lòng điền đầy đủ thông tin.",
+                  );
+                  return;
+                }
+
+                try {
+                  final repository = AuthRepositoryImpl();
+                  final response = await repository.login(
+                    email: email,
+                    password: password,
+                  );
+
+                  if (response.success) {
+                    // Route based on survey completion
+                    if (response.hasCompletedSurvey == false) {
+                      // Navigate to QuestionFlow (Khảo sát)
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => NamePage()),
+                      );
+                    } else {
+                      // TODO: Navigate to Home/Dashboard
+                      showPopup(
+                        context,
+                        title: "",
+                        message: "Đăng nhập thành công! (Home page chưa có)",
+                        isError: false,
+                      );
+                    }
+                  } else {
+                    showPopup(
+                      context,
+                      title: "",
+                      message: response.message ?? "Đăng nhập thất bại.",
+                    );
+                  }
+                } catch (e) {
+                  showPopup(
+                    context,
+                    title: "",
+                    message: "Không thể kết nối server: $e",
+                  );
+                }
+              },
             ),
           ),
-        ),
+
+          SizedBox(height: context.h(0.03)),
+
+          // --- Tạo tài khoản ---
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RegisterPage()),
+              );
+            },
+            child: Text(
+              'Tạo tài khoản',
+              style: TextStyle(
+                fontSize: context.sp(4.0),
+                color: Colors.grey.shade700,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
 
           SizedBox(height: context.h(0.02)),
-          
+
           // --- Hoặc tiếp tục với ---
           Text(
             'Hoặc tiếp tục với',
@@ -110,16 +187,15 @@ class LoginFormContent extends StatelessWidget {
           ),
 
           SizedBox(height: context.h(0.02)),
-          
+
           // --- Nút Google ---
           Container(
-           
             child: Center(
-              // Sử dụng icon Google nếu bạn đã cài gói font awesome hoặc tương đương
+              // Sử dụng icon Google
               child: Image.asset(
-                'assets/images/google.png', // Thay thế bằng đường dẫn icon Google thực tế
+                'assets/images/google.png',
                 width: context.w(0.08),
-              ), 
+              ),
             ),
           ),
         ],

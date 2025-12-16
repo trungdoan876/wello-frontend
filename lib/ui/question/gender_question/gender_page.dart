@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/domain/providers/question_provider.dart';
+import 'package:wello_frontend/data/models/question.dart';
 import 'package:wello_frontend/ui/question/gender_question/widgets/gender_selector.dart';
 import 'package:wello_frontend/ui/question/height_question/height_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class GenderPage extends StatefulWidget {
-  const GenderPage({super.key});
+  final Question question;
+  final String? fullname;
+  const GenderPage({super.key, required this.question, this.fullname});
 
   @override
   State<GenderPage> createState() => _GenderPageState();
@@ -18,7 +23,6 @@ class _GenderPageState extends State<GenderPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       // 👉 AppBar giống HeightPage
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.05)),
@@ -29,10 +33,10 @@ class _GenderPageState extends State<GenderPage> {
             backgroundColor: Colors.transparent,
             centerTitle: true,
 
-            leadingWidth: context.w(0.2), 
+            leadingWidth: context.w(0.2),
             iconTheme: IconThemeData(
               color: Color(0xffEBCF23), // màu icon back
-               size: context.sp(10),
+              size: context.sp(10),
             ),
 
             title: Text(
@@ -63,11 +67,10 @@ class _GenderPageState extends State<GenderPage> {
             padding: EdgeInsets.symmetric(horizontal: context.w(0.07)),
             child: Column(
               children: [
-
                 SizedBox(height: context.h(0.1)),
 
                 Text(
-                  "Giới tính của bạn là gì?",
+                  widget.question.question,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(8),
@@ -80,6 +83,7 @@ class _GenderPageState extends State<GenderPage> {
 
                 GenderSelector(
                   selected: selectedGender,
+                  options: widget.question.options,
                   onSelect: (value) {
                     setState(() => selectedGender = value);
                   },
@@ -94,12 +98,23 @@ class _GenderPageState extends State<GenderPage> {
                     onPressed: selectedGender.isEmpty
                         ? null
                         : () {
-                            Navigator.push(
+                            final provider = Provider.of<QuestionProvider>(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => const HeightPage(),
-                              ),
+                              listen: false,
                             );
+                            final nextQuestion = provider.getQuestionByIndex(2);
+                            if (nextQuestion != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => HeightPage(
+                                    question: nextQuestion,
+                                    fullname: widget.fullname,
+                                    gender: selectedGender,
+                                  ),
+                                ),
+                              );
+                            }
                           },
                   ),
                 ),

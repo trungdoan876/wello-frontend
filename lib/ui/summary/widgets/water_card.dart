@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import '../../../data/models/responses/survey_response_model.dart';
 
 class WaterCard extends StatelessWidget {
-  const WaterCard({super.key});
+  final SurveyResponseModel survey;
+  const WaterCard({super.key, required this.survey});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,7 @@ class WaterCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "1950.0 ml",
+                  "${survey.waterIntakeMl ?? ((survey.tdee * 0.92).round())} ml",
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(8),
                     color: Colors.red,
