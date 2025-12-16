@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
-import '../models/favorite_item.dart';
 
 class FavoritesTabBar extends StatelessWidget {
   final int selectedIndex;

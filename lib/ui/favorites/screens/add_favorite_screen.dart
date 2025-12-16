@@ -105,9 +105,9 @@ class _AddFavoriteScreenState extends State<AddFavoriteScreen> {
         title: Text(
           'Thêm yêu thích',
           style: GoogleFonts.baloo2(
-            fontSize: context.sp(6),
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF4ECDC4),
+            fontSize: context.sp(8),
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFFFFC107),
           ),
         ),
         centerTitle: true,

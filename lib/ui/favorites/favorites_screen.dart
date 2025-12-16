@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wello_frontend/ui/favorites/screens/add_favorite_screen.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'models/favorite_item.dart';
 import 'widgets/empty_favorite_state.dart';
 import 'widgets/favorites_tab_bar.dart';
 import 'widgets/favorite_item_card.dart';
-import 'screens/add_favorite_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
-  const FavoritesScreen({Key? key}) : super(key: key);
+  final Function(bool)? onQuickActionsChanged;
+
+  const FavoritesScreen({Key? key, this.onQuickActionsChanged})
+    : super(key: key);
 
   @override
   State<FavoritesScreen> createState() => _FavoritesScreenState();
@@ -17,11 +21,22 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   List<FavoriteItem> favorites = [];
   int _selectedTabIndex = 0;
+  bool _showQuickActions = false;
 
   @override
   void initState() {
     super.initState();
     // TODO: Lấy danh sách yêu thích từ API hoặc database
+  }
+
+  void _setQuickActionsVisible(bool show) {
+    setState(() => _showQuickActions = show);
+    widget.onQuickActionsChanged?.call(show);
+  }
+
+  void _handleQuickAction(String key) {
+    _setQuickActionsVisible(false);
+    // TODO: điều hướng theo key
   }
 
   void _addFavorite(FavoriteItem item) {
@@ -40,6 +55,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double navHeight = _showQuickActions ? 0 : context.h(0.05);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -59,7 +76,21 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             padding: EdgeInsets.symmetric(horizontal: context.w(0.08)),
             child: Row(
               children: [
-                Icon(Icons.add, size: context.sp(6), color: Colors.white),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddFavoriteScreen(),
+                      ),
+                    );
+                  },
+                  child: Icon(
+                    Icons.add,
+                    size: context.sp(6),
+                    color: Colors.white,
+                  ),
+                ),
                 SizedBox(width: context.w(0.03)),
                 Icon(Icons.search, size: context.sp(6), color: Colors.white),
               ],
@@ -67,35 +98,69 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          // Tab bar
-          FavoritesTabBar(
-            selectedIndex: _selectedTabIndex,
-            onTabChanged: (index) => setState(() => _selectedTabIndex = index),
+          Column(
+            children: [
+              // Tab bar
+              FavoritesTabBar(
+                selectedIndex: _selectedTabIndex,
+                onTabChanged: (index) =>
+                    setState(() => _selectedTabIndex = index),
+              ),
+              SizedBox(height: context.h(0.02)),
+              // Content
+              Expanded(
+                child: _selectedTabIndex == 0
+                    ? const EmptyFavoriteState()
+                    : _buildFavoritesContent(context),
+              ),
+            ],
           ),
-          SizedBox(height: context.h(0.02)),
-          // Content
-          Expanded(
-            child: _selectedTabIndex == 0
-                ? const EmptyFavoriteState()
-                : _buildFavoritesContent(context),
+          // Lớp phủ mờ khi mở quick actions
+          if (_showQuickActions)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _setQuickActionsVisible(false),
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: 0.45,
+                  child: Container(color: Colors.black),
+                ),
+              ),
+            ),
+          // Panel quick actions + nút dấu cộng
+          Positioned(
+            right: context.w(0.05),
+            bottom: _showQuickActions
+                ? context.h(0.015)
+                : navHeight + context.h(0.01),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                AnimatedSlide(
+                  offset: _showQuickActions
+                      ? const Offset(0, 0)
+                      : const Offset(0, 0.2),
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOut,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: _showQuickActions ? 1 : 0,
+                    child: QuickActionsPanel(onAction: _handleQuickAction),
+                  ),
+                ),
+                SizedBox(height: context.h(0.012)),
+                PlusBubble(
+                  onTap: () => _setQuickActionsVisible(!_showQuickActions),
+                  open: _showQuickActions,
+                ),
+              ],
+            ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddFavoriteScreen()),
-          ).then((addedItem) {
-            if (addedItem != null && addedItem is FavoriteItem) {
-              _addFavorite(addedItem);
-            }
-          });
-        },
-        backgroundColor: const Color(0xFF4ECDC4),
-        child: Icon(Icons.add, size: context.sp(8), color: Colors.white),
       ),
     );
   }
