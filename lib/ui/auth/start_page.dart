@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/login/login_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';// ignore: depend_on_referenced_packages
+import 'package:wello_frontend/ui/widgets/loading_page.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 class StartPage extends StatelessWidget {
   const StartPage({super.key});
@@ -89,11 +90,13 @@ class StartPage extends StatelessWidget {
                     text: "Let's Start",
                     onPressed: () {
                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginPage(), 
-                            ),
-                          );
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LoadingPage(
+                            nextPage: const LoginPage(),
+                          ),
+                        ),
+                      );
                       // TODO: Xử lý logic login
                     },
                   ),

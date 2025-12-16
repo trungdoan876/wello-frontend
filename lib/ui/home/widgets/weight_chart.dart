@@ -124,7 +124,7 @@ class WeightChart extends StatelessWidget {
           ),
         ),
 
-        SizedBox(height: context.h(0.015)),
+        SizedBox(height: context.h(0.02)),
 
         // X axis labels (first and last)
         Row(
@@ -133,15 +133,17 @@ class WeightChart extends StatelessWidget {
             Text(
               labels.first,
               style: TextStyle(
-                fontSize: context.sp(3.0),
-                color: Colors.grey.shade600,
+                fontSize: context.sp(4.0),
+                color: Color(0xff8B8989),
+                fontWeight: FontWeight.bold,
               ),
             ),
             Text(
               labels.last,
               style: TextStyle(
-                fontSize: context.sp(3.0),
-                color: Colors.grey.shade600,
+               fontSize: context.sp(4.0),
+                color: Color(0xff8B8989),
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -178,7 +180,7 @@ class _WeightChartPainter extends CustomPainter {
     final vRange = maxV - minV;
 
     final int n = data.length;
-    final double leftPadding = size.width * 0.04;
+    final double leftPadding = size.width * 0.12; //chỉnh chart qua phải 
     final double rightPadding = size.width * 0.04;
     final double topPadding = size.height * 0.08;
     final double bottomPadding = size.height * 0.08;
@@ -246,16 +248,18 @@ class _WeightChartPainter extends CustomPainter {
     _drawText(
       canvas,
       '${maxV.toStringAsFixed(1)}',
-      Offset(4, points[0].dy - 10),
-      12.0,
-      Colors.grey.shade600,
+      Offset(1, points[0].dy -25)  ,
+      15.0,
+      FontWeight.bold,
+      Color(0xff8B8989),
     );
     _drawText(
       canvas,
       '${minV.toStringAsFixed(1)}',
-      Offset(4, size.height - bottomPadding / 2 - 6),
-      12.0,
-      Colors.grey.shade600,
+      Offset(4, size.height - bottomPadding/2 - 10),
+      15.0,
+      FontWeight.bold,  
+      Color(0xff8B8989),
     );
   }
 
@@ -264,11 +268,12 @@ class _WeightChartPainter extends CustomPainter {
     String text,
     Offset offset,
     double fontSize,
+    FontWeight fontWeight,
     Color color,
   ) {
     final textSpan = TextSpan(
       text: text,
-      style: TextStyle(color: color, fontSize: fontSize),
+      style: TextStyle(color: color, fontSize: fontSize, fontWeight: fontWeight),
     );
     final tp = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
     tp.layout();

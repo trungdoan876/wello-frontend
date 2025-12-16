@@ -13,4 +13,7 @@ class RegisterUser {
     final user = User(email: email, password: password);
     return await repository.registerUser(user);
   }
+
+ 
 }
+

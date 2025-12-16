@@ -1,12 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
+import 'package:wello_frontend/data/services/api_service.dart';
 import 'package:wello_frontend/data/repositories/auth_repository.dart';
 import 'package:wello_frontend/ui/login/login_page.dart';
 import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/widgets/register_textfields.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
+
 
 class RegisterFormContent extends StatelessWidget {
   final TextEditingController emailController;
@@ -20,96 +24,7 @@ class RegisterFormContent extends StatelessWidget {
     required this.confirmPasswordController,
   });
 
-  // Hàm hiển thị popup
-  void showPopup(
-    BuildContext context, {
-    required String title,
-    required String message,
-  }) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: EdgeInsets.all(context.sp(5)),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header with icon
-              Container(
-                width: context.sp(15),
-                height: context.sp(15),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEBCF23).withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.info_outline_rounded,
-                  color: Color(0xFFEBCF23),
-                  size: 30,
-                ),
-              ),
 
-              SizedBox(height: context.h(0.02)),
-
-              // Message
-              Text(
-                message,
-                style: GoogleFonts.baloo2(
-                  fontSize: context.sp(4.5),
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              SizedBox(height: context.h(0.03)),
-
-              // OK Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFEBCF23),
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: context.h(0.015)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: Text(
-                    "OK",
-                    style: GoogleFonts.baloo2(
-                      fontSize: context.sp(5),
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -166,48 +81,53 @@ class RegisterFormContent extends StatelessWidget {
                 if (email.isEmpty ||
                     password.isEmpty ||
                     confirmPassword.isEmpty) {
-                  showPopup(
-                    context,
-                    title: "",
-                    message: "Vui lòng điền đầy đủ thông tin.",
-                  );
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    title: 'Lỗi',
+                    text: 'Vui lòng điền đầy đủ thông tin.',
+                    );
                   return;
                 }
+                
 
                 if (password != confirmPassword) {
-                  showPopup(
-                    context,
-                    title: "",
-                    message: "Password và Confirm Password không khớp",
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    title: "Lỗi",
+                    text: "Password và Confirm Password không khớp",
                   );
                   return;
                 }
 
                 try {
-                  final repository = AuthRepositoryImpl();
-                  final response = await repository.register(
+              
+                  bool success = await ApiService().register(
                     email: email,
                     password: password,
                   );
-
-                  if (response.success) {
-                    // Navigate to Question Flow (Onboarding)
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => NamePage()),
-                    );
+                  if (success) {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.success,
+                      title: 'Thành công',
+                      text: 'Bạn đã đăng ký thành công!',
+                      );
                   } else {
-                    showPopup(
-                      context,
-                      title: "",
-                      message: response.message ?? "Đăng ký thất bại.",
+                    QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    title: 'Lỗi',
+                    text: 'Đăng ký thất bại. Vui lòng thử lại.',
                     );
                   }
                 } catch (e) {
-                  showPopup(
-                    context,
-                    title: "",
-                    message: "Không thể kết nối server: $e",
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    title: "Lỗi",
+                    text: "Không thể kết nối server: $e",
                   );
                 }
               },

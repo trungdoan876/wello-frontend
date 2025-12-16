@@ -30,9 +30,10 @@ class _LoadingPageState extends State<LoadingPage>
       duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
 
-    _bounceAnimation = Tween<double>(begin: 0, end: -10).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _bounceAnimation = Tween<double>(
+      begin: 0,
+      end: -10,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     // Điều hướng sau khi chờ delay
     Future.delayed(widget.delay, () {
@@ -45,8 +46,10 @@ class _LoadingPageState extends State<LoadingPage>
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
             const curve = Curves.easeInOut;
-            final tween =
-                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            final tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
             return SlideTransition(
               position: animation.drive(tween),
               child: child,
@@ -66,17 +69,13 @@ class _LoadingPageState extends State<LoadingPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff47cbff),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Hình GIF chạy
-            Image.asset(
-              "assets/images/run.gif",
-              width: 300,
-              height: 300,
-            ),
+            Image.asset("assets/images/organe_run.gif", width: 300, height: 300),
             const SizedBox(height: 20),
 
             // 👇 Dòng chữ “Đang tải...” có hiệu ứng nhảy
@@ -92,7 +91,7 @@ class _LoadingPageState extends State<LoadingPage>
                 "Đang tải...",
                 style: GoogleFonts.beVietnamPro(
                   fontSize: 22,
-                  color: Color.fromARGB(255, 249, 249, 249),
+                  color: Color(0xFFEBCF23),
                   fontWeight: FontWeight.w700,
                 ),
               ),
