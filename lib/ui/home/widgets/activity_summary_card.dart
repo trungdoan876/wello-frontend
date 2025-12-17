@@ -30,20 +30,18 @@ class ActivitySummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color mainYellow = Color(0xFFFFC107);
-
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: context.w(0.05),
+        horizontal: context.w(0.06),
         vertical: context.h(0.02),
       ),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(context.sp(2.0)),
+        borderRadius: BorderRadius.circular(context.sp(4.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.2),
+                blurRadius: 15,
             offset: const Offset(0, 5),
           ),
         ],
@@ -56,24 +54,7 @@ class ActivitySummaryCard extends StatelessWidget {
           _buildActivityItem(context, 'Bước', '000'),
           Container(height: context.h(0.04), width: 1, color: Colors.grey.shade300),
           _buildActivityItem(context, 'Thời gian', '0 phút'),
-          
-          // Nút Cộng (Floating Action Button nhỏ)
-          Container(
-            width: context.w(0.12),
-            height: context.w(0.12),
-            decoration: BoxDecoration(
-              color: mainYellow,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: mainYellow.withOpacity(0.4),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
+
         ],
       ),
     );
