@@ -15,4 +15,7 @@ abstract class AuthRepository {
     required String email,
     required String password,
   });
+
+  /// Login with Google account
+  Future<LoginResponseModel> loginWithGoogle();
 }

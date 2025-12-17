@@ -6,6 +6,7 @@ import 'package:wello_frontend/data/repositories/auth_repository.dart';
 import 'package:wello_frontend/ui/login/widgets/login_textfields.dart';
 import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/register_page.dart';
+import 'package:wello_frontend/ui/home/home_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/beautiful_dialog.dart';
@@ -128,12 +129,10 @@ class LoginFormContent extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => NamePage()),
                       );
                     } else {
-                      // TODO: Navigate to Home/Dashboard
-                      showPopup(
+                      // Navigate to Home page
+                      Navigator.pushReplacement(
                         context,
-                        title: "",
-                        message: "Đăng nhập thành công! (Home page chưa có)",
-                        isError: false,
+                        MaterialPageRoute(builder: (_) => HomeScreen()),
                       );
                     }
                   } else {
@@ -189,12 +188,46 @@ class LoginFormContent extends StatelessWidget {
           SizedBox(height: context.h(0.02)),
 
           // --- Nút Google ---
-          Container(
-            child: Center(
-              // Sử dụng icon Google
-              child: Image.asset(
-                'assets/images/google.png',
-                width: context.w(0.08),
+          GestureDetector(
+            onTap: () async {
+              try {
+                final repository = AuthRepositoryImpl();
+                final response = await repository.loginWithGoogle();
+
+                if (response.success) {
+                  // Route based on survey completion (same as email login)
+                  if (response.hasCompletedSurvey == false) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => NamePage()),
+                    );
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => HomeScreen()),
+                    );
+                  }
+                } else {
+                  showPopup(
+                    context,
+                    title: "",
+                    message: response.message ?? "Google login failed",
+                  );
+                }
+              } catch (e) {
+                showPopup(
+                  context,
+                  title: "",
+                  message: "Cannot connect to server: $e",
+                );
+              }
+            },
+            child: Container(
+              child: Center(
+                child: Image.asset(
+                  'assets/images/google.png',
+                  width: context.w(0.08),
+                ),
               ),
             ),
           ),

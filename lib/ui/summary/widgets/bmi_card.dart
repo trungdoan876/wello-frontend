@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:intl/intl.dart';
 import '../../../data/models/responses/survey_response_model.dart';
 
 class BMICard extends StatelessWidget {
@@ -61,7 +62,7 @@ class BMICard extends StatelessWidget {
                       ),
                       SizedBox(width: 4),
                       Text(
-                        "16 tháng 11 - 10:04",
+                        DateFormat('d \'tháng\' M - HH:mm').format(DateTime.now()),
                         style: GoogleFonts.baloo2(
                           fontSize: context.sp(5.5),
                           color: Color(0xffA3A1A1),

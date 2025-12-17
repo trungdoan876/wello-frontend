@@ -10,6 +10,10 @@ class SurveyProvider extends ChangeNotifier {
   SurveyResponseModel? _surveyResult;
   bool _isLoading = false;
   String? _errorMessage;
+  
+  // Store request data for display
+  int? _height;
+  int? _weight;
 
   SurveyProvider({SurveyRepository? repository})
       : _repository = repository ?? SurveyRepositoryImpl();
@@ -20,11 +24,18 @@ class SurveyProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get hasError => _errorMessage != null;
   bool get hasResult => _surveyResult != null;
+  int? get height => _height;
+  int? get weight => _weight;
 
   /// Submit survey and get health metrics
   Future<void> submitSurvey(SurveyRequestModel request) async {
     _isLoading = true;
     _errorMessage = null;
+    
+    // Store height and weight for later display
+    _height = request.height;
+    _weight = request.weight;
+    
     notifyListeners();
 
     try {
@@ -44,6 +55,8 @@ class SurveyProvider extends ChangeNotifier {
   void clearResult() {
     _surveyResult = null;
     _errorMessage = null;
+    _height = null;
+    _weight = null;
     notifyListeners();
   }
 

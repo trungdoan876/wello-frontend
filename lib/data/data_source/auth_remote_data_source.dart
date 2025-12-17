@@ -87,4 +87,39 @@ class AuthRemoteDataSource {
       }
     }
   }
+
+  /// Login with Google ID token
+  Future<LoginResponseModel> loginWithGoogle({
+    required String idToken,
+  }) async {
+    final url = Uri.parse('$baseUrl/google-login');
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'idToken': idToken}),
+    );
+
+    if (response.statusCode == 200) {
+      try {
+        final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
+        return LoginResponseModel.fromJson(bodyJson);
+      } catch (e) {
+        return LoginResponseModel(success: true, message: response.body);
+      }
+    } else {
+      try {
+        final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
+        return LoginResponseModel(
+          success: false,
+          message: errorJson['message'] ?? 'Google login failed',
+        );
+      } catch (e) {
+        return LoginResponseModel(
+          success: false,
+          message: 'Error ${response.statusCode}',
+        );
+      }
+    }
+  }
 }

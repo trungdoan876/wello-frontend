@@ -8,6 +8,7 @@ import 'package:wello_frontend/ui/question/activity_question/widgets/activity_op
 import 'package:wello_frontend/domain/providers/survey_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/data/models/requests/survey_request_model.dart';
+import 'package:wello_frontend/data/models/responses/survey_response_model.dart';
 import 'package:wello_frontend/ui/summary/summary_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
@@ -157,11 +158,25 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                                   await surveyProvider.submitSurvey(request);
                                   final result = surveyProvider.surveyResult;
                                   if (result != null) {
+                                    // Update response model with height and weight
+                                    final updatedResult = SurveyResponseModel(
+                                      bmi: result.bmi,
+                                      bmiStatus: result.bmiStatus,
+                                      bmr: result.bmr,
+                                      tdee: result.tdee,
+                                      dailyCalories: result.dailyCalories,
+                                      proteinGram: result.proteinGram,
+                                      carbsGram: result.carbsGram,
+                                      fatGram: result.fatGram,
+                                      waterIntakeMl: result.waterIntakeMl,
+                                      height: surveyProvider.height?.toDouble(),
+                                      weight: surveyProvider.weight?.toDouble(),
+                                    );
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) =>
-                                            SummaryPage(survey: result),
+                                            SummaryPage(survey: updatedResult),
                                       ),
                                     );
                                   }
