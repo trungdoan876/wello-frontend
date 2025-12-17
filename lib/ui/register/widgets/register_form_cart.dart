@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
-import 'package:wello_frontend/data/services/api_service.dart';
 import 'package:wello_frontend/data/repositories/auth_repository.dart';
 import 'package:wello_frontend/ui/login/login_page.dart';
 import 'package:wello_frontend/ui/question/name_question/name_page.dart';
@@ -102,24 +101,31 @@ class RegisterFormContent extends StatelessWidget {
                 }
 
                 try {
-              
-                  bool success = await ApiService().register(
+                  final repository = AuthRepositoryImpl();
+                  final response = await repository.register(
                     email: email,
                     password: password,
                   );
-                  if (success) {
+                  
+                  if (response.success) {
                     QuickAlert.show(
                       context: context,
                       type: QuickAlertType.success,
                       title: 'Thành công',
                       text: 'Bạn đã đăng ký thành công!',
-                      );
+                      onConfirmBtnTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                        );
+                      },
+                    );
                   } else {
                     QuickAlert.show(
-                    context: context,
-                    type: QuickAlertType.error,
-                    title: 'Lỗi',
-                    text: 'Đăng ký thất bại. Vui lòng thử lại.',
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: 'Lỗi',
+                      text: response.message ?? 'Đăng ký thất bại. Vui lòng thử lại.',
                     );
                   }
                 } catch (e) {
