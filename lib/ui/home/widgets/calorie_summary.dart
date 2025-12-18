@@ -3,7 +3,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 
 class CalorieSummary extends StatelessWidget {
   const CalorieSummary({super.key});
@@ -13,73 +15,86 @@ class CalorieSummary extends StatelessWidget {
     const Color red = Colors.redAccent;
     const Color blue = Colors.blueAccent;
 
-    // Giả lập dữ liệu
-    final double caloriesConsumed = 1000;
-    final double targetCalories = 2000;
-    final double protein = 117;
-    final double carb = 150;
-    final double fat = 45;
+    return Consumer<NutritionProvider>(
+      builder: (context, provider, child) {
+        // Get data from provider with fallback values = 0
+        final dailySummary = provider.dailySummary;
+        final userProfile = provider.userProfile;
+        
+        final double caloriesConsumed = dailySummary?.caloriesConsumed.toDouble() ?? 0;
+        final double targetCalories = userProfile?.dailyCalorieTarget.toDouble() ?? 0;
+        final double caloriesBurned = dailySummary?.caloriesBurned.toDouble() ?? 0;
+        final double caloriesRemaining = dailySummary?.caloriesRemaining.toDouble() ?? 0;
+        
+        final double carbConsumed = dailySummary?.carb.consumed ?? 0;
+        final double carbTarget = dailySummary?.carb.target ?? 0;
+        final double proteinConsumed = dailySummary?.protein.consumed ?? 0;
+        final double proteinTarget = dailySummary?.protein.target ?? 0;
+        final double fatConsumed = dailySummary?.fat.consumed ?? 0;
+        final double fatTarget = dailySummary?.fat.target ?? 0;
 
-    final double progress = caloriesConsumed / targetCalories;
+        final double progress = targetCalories > 0 ? caloriesConsumed / targetCalories : 0;
 
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+        return Column(
           children: [
-            // Calo Đã nạp (Ăn vào)
-            _buildStatItem(context, '965', 'đã nạp', blue, Icons.restaurant),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                // Calo Đã nạp (Ăn vào)
+                _buildStatItem(context, '${caloriesConsumed.toInt()}', 'đã nạp', blue, Icons.restaurant),
 
-            // Vòng tròn Calo Nạp
-            _buildCalorieCircle(
-              context,
-              caloriesConsumed,
-              progress,
-            ), // updated calorie circle
-            // Calo Tiêu hao (Đốt)
-            _buildStatItem(
-              context,
-              '108',
-              'tiêu hao',
-              red,
-              Icons.local_fire_department,
+                // Vòng tròn Calo Nạp
+                _buildCalorieCircle(
+                  context,
+                  caloriesRemaining,
+                  progress,
+                ), // updated calorie circle
+                // Calo Tiêu hao (Đốt)
+                _buildStatItem(
+                  context,
+                  '${caloriesBurned.toInt()}',
+                  'tiêu hao',
+                  red,
+                  Icons.local_fire_department,
+                ),
+              ],
+            ),
+            SizedBox(height: context.h(0.03)),
+
+            // --- Thanh Dinh Dưỡng (Macro) ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildMacroBar(
+                  context,
+                  '${carbConsumed.toInt()}/${carbTarget.toInt()}g',
+                  'CARB',
+                  Color(0xff43B483),
+                  Color(0xffC5E1D5),
+                  carbTarget > 0 ? carbConsumed / carbTarget : 0,
+                  
+                ),
+                _buildMacroBar(
+                  context,
+                  '${proteinConsumed.toInt()}/${proteinTarget.toInt()}g',
+                  'Chất đạm',
+                 Color(0xffA581C7),
+                  Color(0xffDED4E7),
+                  proteinTarget > 0 ? proteinConsumed / proteinTarget : 0,
+                ),
+                _buildMacroBar(
+                  context,
+                  '${fatConsumed.toInt()}/${fatTarget.toInt()}g',
+                  'Chất béo',
+                   Color(0xff4880C6),
+                  Color(0xffC2D4EC),
+                  fatTarget > 0 ? fatConsumed / fatTarget : 0,
+                ),
+              ],
             ),
           ],
-        ),
-        SizedBox(height: context.h(0.03)),
-
-        // --- Thanh Dinh Dưỡng (Macro) ---
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildMacroBar(
-              context,
-              '100/${carb.toInt()}g',
-              'CARB',
-              Color(0xff43B483),
-              Color(0xffC5E1D5),
-              100 / carb,
-              
-            ),
-            _buildMacroBar(
-              context,
-              '30/${protein.toInt()}g',
-              'Chất đạm',
-             Color(0xffA581C7),
-              Color(0xffDED4E7),
-              30 / protein,
-            ),
-            _buildMacroBar(
-              context,
-              '10/${fat.toInt()}g',
-              'Chất béo',
-               Color(0xff4880C6),
-              Color(0xffC2D4EC),
-              10 / fat,
-            ),
-          ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -274,25 +289,36 @@ class _CalorieArcPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     canvas.drawCircle(center, radius, bg);
 
-    // foreground arc with gradient
-    final Rect rect = Rect.fromCircle(center: center, radius: radius);
-    final Gradient gradient = SweepGradient(
-      startAngle: -math.pi / 2,
-      endAngle: -math.pi / 2 + 2 * math.pi * progress,
-      colors: [
-        const Color.fromARGB(255, 232, 255, 79),
-        const Color(0xFFFFB300),
-      ],
-    );
+    // Only draw arc if progress > 0
+    if (progress > 0 && progress.isFinite) {
+      // foreground arc with gradient
+      final Rect rect = Rect.fromCircle(center: center, radius: radius);
+      
+      // Clamp progress to valid range
+      final double clampedProgress = progress.clamp(0.0, 1.0);
+      final double endAngle = -math.pi / 2 + 2 * math.pi * clampedProgress;
+      
+      // Only create gradient if we have a valid angle range
+      if (endAngle > -math.pi / 2) {
+        final Gradient gradient = SweepGradient(
+          startAngle: -math.pi / 2,
+          endAngle: endAngle,
+          colors: [
+            const Color.fromARGB(255, 232, 255, 79),
+            const Color(0xFFFFB300),
+          ],
+        );
 
-    final Paint arcPaint = Paint()
-      ..shader = gradient.createShader(rect)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
+        final Paint arcPaint = Paint()
+          ..shader = gradient.createShader(rect)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.round;
 
-    final double sweep = 2 * math.pi * progress;
-    canvas.drawArc(rect, -math.pi / 2, sweep, false, arcPaint);
+        final double sweep = 2 * math.pi * clampedProgress;
+        canvas.drawArc(rect, -math.pi / 2, sweep, false, arcPaint);
+      }
+    }
   }
 
   @override

@@ -2,13 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:wello_frontend/core/utils/user_session.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'widgets/water_tracking_card.dart';
 import 'package:wello_frontend/ui/summary/widgets/bmi_card.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:wello_frontend/data/data_source/user_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(bool)? onQuickActionsChanged;
@@ -26,7 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String lastTime = "16:30";
   bool _showQuickActions = false;
   File? _profileImage;
-  final ImagePicker _picker = ImagePicker();
+ // final ImagePicker _picker = ImagePicker();
   int? _userId;
 
   @override
@@ -37,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserId() async {
-    final userId = await UserPreferences.getUserId();
+    final userId = await UserSession.getUserId();
     setState(() {
       _userId = userId ?? 1; // Default to 1 if not found
     });
@@ -110,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    _pickImage(ImageSource.camera);
+                  //  _pickImage(ImageSource.camera);
                   },
                 ),
                 const Divider(),
@@ -129,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    _pickImage(ImageSource.gallery);
+                //    _pickImage(ImageSource.gallery);
                   },
                 ),
                 SizedBox(height: context.h(0.01)),
@@ -141,36 +140,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: source,
-        maxWidth: 512,
-        maxHeight: 512,
-        imageQuality: 85,
-      );
+  // Future<void> _pickImage(ImageSource source) async {
+  //   try {
+  //     final XFile? pickedFile = await _picker.pickImage(
+  //       source: source,
+  //       maxWidth: 512,
+  //       maxHeight: 512,
+  //       imageQuality: 85,
+  //     );
 
-      if (pickedFile != null) {
-        final imageFile = File(pickedFile.path);
-        setState(() {
-          _profileImage = imageFile;
-        });
+  //     if (pickedFile != null) {
+  //       final imageFile = File(pickedFile.path);
+  //       setState(() {
+  //         _profileImage = imageFile;
+  //       });
 
-        // Upload avatar after picking
-        if (_userId != null) {
-          _uploadAvatar(imageFile);
-        }
-      }
-    } catch (e) {
-      // Handle error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Không thể chọn ảnh: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  //       // Upload avatar after picking
+  //       if (_userId != null) {
+  //         _uploadAvatar(imageFile);
+  //       }
+  //     }
+  //   } catch (e) {
+  //     // Handle error
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Không thể chọn ảnh: $e'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
 
   Future<void> _uploadAvatar(File imageFile) async {
     // Get provider from nearest Consumer context
@@ -488,7 +487,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
 
-                        SizedBox(height: context.h(0.015)),
+                    SizedBox(height: context.h(0.015)),
+                   // const BMICard(),
 
                         //const BMICard(),
                         SizedBox(height: context.h(0.03)),

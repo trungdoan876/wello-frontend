@@ -7,11 +7,11 @@ import 'package:wello_frontend/ui/login/widgets/login_textfields.dart';
 import 'package:wello_frontend/ui/main_navigation_screen.dart';
 import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/register_page.dart';
-import 'package:wello_frontend/ui/home/home_screen.dart';
+import 'package:wello_frontend/ui/main_navigation_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/beautiful_dialog.dart';
-import 'package:wello_frontend/data/data_source/user_preferences.dart';
+import 'package:wello_frontend/core/utils/user_session.dart';
 
 class LoginFormContent extends StatelessWidget {
   final TextEditingController emailController;
@@ -127,12 +127,12 @@ class LoginFormContent extends StatelessWidget {
                   );
 
                   if (response.success) {
-                    // Save userId to SharedPreferences
+                    // Save userId and token for persistent auth
                     if (response.userId != null) {
-                      print('Saving userId: ${response.userId}');
-                      await UserPreferences.saveUserId(response.userId!);
-                    } else {
-                      print('WARNING: userId is null in response');
+                      await UserSession.saveUserId(response.userId!);
+                      // TODO: Backend should return actual token
+                      // For now, save userId as token for authentication
+                      await UserSession.saveToken(response.userId!.toString());
                     }
 
                     // Route based on survey completion
@@ -140,7 +140,10 @@ class LoginFormContent extends StatelessWidget {
                       // Navigate to QuestionFlow (Khảo sát)
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (_) => NamePage()),
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              NamePage(userId: response.userId ?? 1),
+                        ),
                       );
                     } else {
                       // Navigate to Home page
@@ -211,21 +214,25 @@ class LoginFormContent extends StatelessWidget {
                 final response = await repository.loginWithGoogle();
 
                 if (response.success) {
-                  // Save userId to SharedPreferences
+                  // Save userId and token for persistent auth
                   if (response.userId != null) {
-                    await UserPreferences.saveUserId(response.userId!);
+                    await UserSession.saveUserId(response.userId!);
+                    // TODO: Backend should return actual token
+                    // For now, save userId as token for authentication
+                    await UserSession.saveToken(response.userId!.toString());
                   }
-
                   // Route based on survey completion (same as email login)
                   if (response.hasCompletedSurvey == false) {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => NamePage()),
+                      MaterialPageRoute(
+                        builder: (_) => NamePage(userId: response.userId ?? 1),
+                      ),
                     );
                   } else {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => HomeScreen()),
+                      MaterialPageRoute(builder: (_) => MainNavigationScreen()),
                     );
                   }
                 } else {

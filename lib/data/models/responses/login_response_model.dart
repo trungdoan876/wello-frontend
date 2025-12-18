@@ -16,9 +16,7 @@ class LoginResponseModel {
       success: json['success'] ?? false,
       message: json['message'],
       hasCompletedSurvey: json['hasCompletedSurvey'],
-      userId: json['userId'] != null
-          ? int.tryParse(json['userId'].toString())
-          : null,
+      userId: json['id_user'], // Backend uses 'id_user' key
     );
   }
 }

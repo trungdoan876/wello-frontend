@@ -11,7 +11,8 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 class GenderPage extends StatefulWidget {
   final Question question;
   final String? fullname;
-  const GenderPage({super.key, required this.question, this.fullname});
+  final int? userId;
+  const GenderPage({super.key, required this.question, this.fullname, this.userId});
 
   @override
   State<GenderPage> createState() => _GenderPageState();
@@ -111,6 +112,7 @@ class _GenderPageState extends State<GenderPage> {
                                     question: nextQuestion,
                                     fullname: widget.fullname,
                                     gender: selectedGender,
+                                    userId: widget.userId,
                                   ),
                                 ),
                               );

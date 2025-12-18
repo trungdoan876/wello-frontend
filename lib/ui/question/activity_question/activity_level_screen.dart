@@ -23,6 +23,8 @@ class ActivityLevelScreen extends StatefulWidget {
   final int? age;
   final String? goal;
 
+  final int? userId;
+
   const ActivityLevelScreen({
     super.key,
     required this.question,
@@ -32,6 +34,7 @@ class ActivityLevelScreen extends StatefulWidget {
     this.weight,
     this.age,
     this.goal,
+    this.userId,
   });
 
   @override
@@ -149,9 +152,7 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
 
                                 // Build request from collected answers
                                 final request = SurveyRequestModel(
-                                  userId:
-                                      userId ??
-                                      1, // Use logged-in userId or default to 1
+                                  userId: widget.userId ?? 1, // Use real userId from login
                                   fullname: widget.fullname ?? 'No name',
                                   gender: widget.gender ?? 'MALE',
                                   age: widget.age ?? 25,

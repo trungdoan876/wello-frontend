@@ -9,7 +9,8 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class NamePage extends StatefulWidget {
   final Question? question;
-  const NamePage({super.key, this.question});
+  final int? userId;
+  const NamePage({super.key, this.question, this.userId});
 
   @override
   State<NamePage> createState() => _NamePageState();
@@ -232,6 +233,7 @@ class _NamePageState extends State<NamePage> {
                                   builder: (_) => GenderPage(
                                     question: nextQuestion,
                                     fullname: nameController.text.trim(),
+                                    userId: widget.userId,
                                   ),
                                 ),
                               );

@@ -54,7 +54,7 @@ class CenteredBottomNavBar extends StatelessWidget {
       onTap: onTap,
       backgroundColor: Colors.transparent,
       color: bgColor,
-      height: barHeight ?? 85.0, // chiều cao bottom navbar
+      height: barHeight ?? 75.0, // Max allowed by curved_navigation_bar
       animationDuration: const Duration(milliseconds: 300),
       items: [
         for (int i = 0; i < data.length; i++)

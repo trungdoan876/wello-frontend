@@ -15,6 +15,7 @@ class TargetLevelScreen extends StatefulWidget {
   final int? height;
   final int? weight;
   final int? age;
+  final int? userId;
   const TargetLevelScreen({
     super.key,
     required this.question,
@@ -23,6 +24,7 @@ class TargetLevelScreen extends StatefulWidget {
     this.height,
     this.weight,
     this.age,
+    this.userId,
   });
 
   @override
@@ -141,7 +143,7 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => ActivityLevelScreen(
+                                    builder:(_) => ActivityLevelScreen(
                                       question: nextQuestion,
                                       fullname: widget.fullname,
                                       gender: widget.gender,
@@ -149,6 +151,7 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                                       weight: widget.weight,
                                       age: widget.age,
                                       goal: _selectedLevel,
+                                      userId: widget.userId,
                                     ),
                                   ),
                                 );

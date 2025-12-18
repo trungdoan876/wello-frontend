@@ -12,11 +12,13 @@ class HeightPage extends StatefulWidget {
   final Question question;
   final String? fullname;
   final String? gender;
+  final int? userId;
   const HeightPage({
     super.key,
     required this.question,
     this.fullname,
     this.gender,
+    this.userId,
   });
 
   @override
@@ -129,6 +131,7 @@ class _HeightPageState extends State<HeightPage> {
                               fullname: widget.fullname,
                               gender: widget.gender,
                               height: height.toInt(),
+                              userId: widget.userId,
                             ),
                           ),
                         );
