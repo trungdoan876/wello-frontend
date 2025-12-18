@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/data/repositories/auth_repository.dart';
 import 'package:wello_frontend/ui/login/widgets/login_textfields.dart';
+import 'package:wello_frontend/ui/main_navigation_screen.dart';
 import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/register_page.dart';
 import 'package:wello_frontend/ui/home/home_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/beautiful_dialog.dart';
+import 'package:wello_frontend/data/data_source/user_preferences.dart';
 
 class LoginFormContent extends StatelessWidget {
   final TextEditingController emailController;
@@ -120,7 +122,19 @@ class LoginFormContent extends StatelessWidget {
                     password: password,
                   );
 
+                  print(
+                    'Login response: success=${response.success}, userId=${response.userId}, hasCompletedSurvey=${response.hasCompletedSurvey}',
+                  );
+
                   if (response.success) {
+                    // Save userId to SharedPreferences
+                    if (response.userId != null) {
+                      print('Saving userId: ${response.userId}');
+                      await UserPreferences.saveUserId(response.userId!);
+                    } else {
+                      print('WARNING: userId is null in response');
+                    }
+
                     // Route based on survey completion
                     if (response.hasCompletedSurvey == false) {
                       // Navigate to QuestionFlow (Khảo sát)
@@ -132,7 +146,9 @@ class LoginFormContent extends StatelessWidget {
                       // Navigate to Home page
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (_) => HomeScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => MainNavigationScreen(),
+                        ),
                       );
                     }
                   } else {
@@ -195,6 +211,11 @@ class LoginFormContent extends StatelessWidget {
                 final response = await repository.loginWithGoogle();
 
                 if (response.success) {
+                  // Save userId to SharedPreferences
+                  if (response.userId != null) {
+                    await UserPreferences.saveUserId(response.userId!);
+                  }
+
                   // Route based on survey completion (same as email login)
                   if (response.hasCompletedSurvey == false) {
                     Navigator.pushReplacement(

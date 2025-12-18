@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/providers/survey_provider.dart';
 import 'package:wello_frontend/ui/auth/start_page.dart';
+import 'package:wello_frontend/ui/profile/profile_screen.dart';
 import 'package:wello_frontend/ui/summary/summary_page.dart';
 
 void main() {

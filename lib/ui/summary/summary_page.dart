@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wello_frontend/ui/main_navigation_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import '../../data/models/responses/survey_response_model.dart';
@@ -65,7 +66,7 @@ class SummaryPage extends StatelessWidget {
                   text: "Tiếp tục",
                   onPressed: () {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      MaterialPageRoute(builder: (context) => MainNavigationScreen()),
                     );
                   },
                 ),

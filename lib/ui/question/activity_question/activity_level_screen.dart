@@ -12,6 +12,7 @@ import 'package:wello_frontend/data/models/responses/survey_response_model.dart'
 import 'package:wello_frontend/ui/summary/summary_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/data/data_source/user_preferences.dart';
 
 class ActivityLevelScreen extends StatefulWidget {
   final Question question;
@@ -142,9 +143,15 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                             _selectedLevel == null || surveyProvider.isLoading
                             ? null
                             : () async {
+                                // Get userId from SharedPreferences
+                                final userId =
+                                    await UserPreferences.getUserId();
+
                                 // Build request from collected answers
                                 final request = SurveyRequestModel(
-                                  userId: 1,
+                                  userId:
+                                      userId ??
+                                      1, // Use logged-in userId or default to 1
                                   fullname: widget.fullname ?? 'No name',
                                   gender: widget.gender ?? 'MALE',
                                   age: widget.age ?? 25,
@@ -152,6 +159,10 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                                   weight: widget.weight ?? 65,
                                   goal: widget.goal ?? 'KEEP_FIT',
                                   activityLevel: _selectedLevel!,
+                                );
+
+                                print(
+                                  'Submitting survey with userId: ${userId ?? 1}',
                                 );
 
                                 try {
