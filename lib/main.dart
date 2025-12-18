@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/providers/survey_provider.dart';
-import 'package:wello_frontend/ui/auth/start_page.dart';
-import 'package:wello_frontend/ui/summary/summary_page.dart';
+import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
+import 'package:wello_frontend/ui/auth/initial_page.dart';
 
 void main() {
   runApp(
@@ -11,6 +11,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => QuestionProvider()),
         ChangeNotifierProvider(create: (_) => SurveyProvider()),
+        ChangeNotifierProvider(create: (_) => NutritionProvider()),
       ],
       child: MyApp(),
     ),
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      home: StartPage(),
+      home: const InitialPage(), // Wrapper that uses LoadingPage
     );
   }
 }

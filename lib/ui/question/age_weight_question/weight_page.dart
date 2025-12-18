@@ -13,12 +13,14 @@ class WeightPage extends StatefulWidget {
   final String? fullname;
   final String? gender;
   final int? height;
+  final int? userId;
   const WeightPage({
     super.key,
     required this.question,
     this.fullname,
     this.gender,
     this.height,
+    this.userId,
   });
 
   @override
@@ -136,6 +138,7 @@ class _WeightPageState extends State<WeightPage> {
                               gender: widget.gender,
                               height: widget.height,
                               weight: weight,
+                              userId: widget.userId,
                             ),
                           ),
                         );

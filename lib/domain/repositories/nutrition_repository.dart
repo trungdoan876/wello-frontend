@@ -1,0 +1,29 @@
+import '../../data/models/nutrition_summary.dart';
+import '../../data/models/user_profile.dart';
+import '../../data/models/week_overview.dart';
+
+/// Repository interface for nutrition and fitness data
+abstract class NutritionRepository {
+  /// Get user profile with fitness goals and targets
+  Future<UserProfile> getUserProfile(String token, String userId);
+
+  /// Get daily nutrition summary for a specific date
+  /// @param userId - User ID
+  /// @param date - Format: YYYY-MM-DD (e.g., "2024-12-18")
+  Future<NutritionSummary> getDailySummary(String token, String userId, String date);
+
+  /// Get weekly overview for calendar
+  /// @param userId - User ID
+  /// @param startDate - Start date of the week (Format: YYYY-MM-DD)
+  Future<WeekOverview> getWeekOverview(String token, String userId, String startDate);
+
+  /// Get daily water intake
+  /// @param userId - User ID
+  /// @param date - Format: YYYY-MM-DD
+  Future<WaterIntake> getWaterIntake(String token, String userId, String date);
+
+  /// Add a glass of water
+  /// @param userId - User ID
+  /// @param glassSize - Size of glass in ml (default: 325ml)
+  Future<WaterIntake> addWaterGlass(String token, String userId, String date, {int glassSize});
+}

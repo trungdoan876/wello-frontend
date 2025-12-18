@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import '../../data/models/responses/survey_response_model.dart';
-import '../home/home_screen.dart';
+import '../main_navigation_screen.dart';
 import 'widgets/calorie_card.dart';
 import 'widgets/bmi_card.dart';
 import 'widgets/section_title.dart';
@@ -65,7 +65,7 @@ class SummaryPage extends StatelessWidget {
                   text: "Tiếp tục",
                   onPressed: () {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      MaterialPageRoute(builder: (context) => MainNavigationScreen()),
                     );
                   },
                 ),

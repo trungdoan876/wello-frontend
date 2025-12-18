@@ -4,6 +4,7 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'widgets/water_tracking_card.dart';
 import 'package:wello_frontend/ui/summary/widgets/bmi_card.dart';
+import 'package:wello_frontend/data/models/responses/survey_response_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(bool)? onQuickActionsChanged;
@@ -87,7 +88,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
 
                     SizedBox(height: context.h(0.015)),
-                    const BMICard(),
+                    // TODO: Fetch real survey data from API/provider
+                    BMICard(
+                      survey: SurveyResponseModel(
+                        bmi: 22.5,
+                        bmiStatus: 'Normal',
+                        bmr: 1500,
+                        tdee: 2000,
+                        dailyCalories: 1800,
+                        proteinGram: 120,
+                        carbsGram: 200,
+                        fatGram: 60,
+                        height: 170,
+                        weight: 65,
+                      ),
+                    ),
 
                     SizedBox(height: context.h(0.03)),
                     Align(

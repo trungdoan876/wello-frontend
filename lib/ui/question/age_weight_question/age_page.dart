@@ -15,6 +15,7 @@ class AgePage extends StatefulWidget {
   final String? gender;
   final int? height;
   final int? weight;
+  final int? userId;
   const AgePage({
     super.key,
     required this.question,
@@ -22,6 +23,7 @@ class AgePage extends StatefulWidget {
     this.gender,
     this.height,
     this.weight,
+    this.userId,
   });
 
   @override
@@ -145,6 +147,7 @@ class _AgePageState extends State<AgePage> {
                               height: widget.height,
                               weight: widget.weight,
                               age: age,
+                              userId: widget.userId,
                             ),
                           ),
                         );

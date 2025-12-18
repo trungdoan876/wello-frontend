@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/home/widgets/date_selector.dart';
 import 'package:wello_frontend/ui/home/widgets/calorie_summary.dart';
@@ -7,6 +9,8 @@ import 'package:wello_frontend/ui/home/widgets/water_tracker.dart';
 import 'package:wello_frontend/ui/home/widgets/weight_chart.dart';
 import 'package:wello_frontend/ui/home/widgets/activity_summary_card.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
+import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
+import 'package:wello_frontend/core/utils/auth_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   final ValueChanged<bool>? onQuickActionsChanged;
@@ -19,6 +23,20 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _showQuickActions = false; // trạng thái mở panel
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNutritionData();
+  }
+
+  Future<void> _loadNutritionData() async {
+    final credentials = await AuthHelper.getCredentials();
+    if (credentials == null) return;
+
+    final provider = context.read<NutritionProvider>();
+    await provider.loadHomeData(credentials.token, credentials.userIdString);
+  }
 
   void _setQuickActionsVisible(bool show) {
     setState(() => _showQuickActions = show);
@@ -53,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: double.infinity,
                     child: _buildHeaderSection(context, headerHeight),
                   ),
+
                   Padding(
                     padding: EdgeInsets.only(
                       left: context.w(0.05),
@@ -146,14 +165,65 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              'Home',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.baloo2(
-                fontSize: context.sp(10.0),
-                fontWeight: FontWeight.bold,
-                color: Color(0xffEBCF23),
-              ),
+            // Header with title and calendar icon
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Empty space on left for balance
+                SizedBox(width: context.sp(6)),
+                // Title centered
+                Text(
+                  'Nhật ký',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.baloo2(
+                    fontSize: context.sp(10.0),
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xffEBCF23),
+                  ),
+                ),
+                // Calendar icon on the far right
+                GestureDetector(
+                  onTap: () async {
+                    final selectedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: ColorScheme.light(
+                              primary: Color(0xffEBCF23),
+                              onPrimary: Colors.white,
+                              surface: Colors.white,
+                              onSurface: Colors.black,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    
+                    if (selectedDate != null) {
+                      final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate);
+                      final credentials = await AuthHelper.getCredentials();
+                      if (credentials != null && mounted) {
+                        final provider = context.read<NutritionProvider>();
+                        await provider.changeDate(
+                          credentials.token,
+                          credentials.userIdString,
+                          dateStr,
+                        );
+                      }
+                    }
+                  },
+                  child: Icon(
+                    Icons.calendar_today,
+                    color: Color(0xffEBCF23),
+                    size: context.sp(6),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: context.h(0.02)),
             const DateSelector(),
