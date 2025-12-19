@@ -3,6 +3,10 @@ import 'package:http/http.dart' as http;
 import '../../domain/entities/nutrition_summary.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/week_overview.dart';
+import '../models/requests/log_food_request.dart';
+import '../models/responses/log_food_response.dart';
+import '../../domain/entities/food_history_item.dart';
+
 
 /// Remote data source for nutrition and fitness data
 /// Handles API calls related to nutrition tracking, user profile, and weekly overview
@@ -217,6 +221,65 @@ class NutritionRemoteDataSource {
       return getWaterIntake(token, userId, date);
     } else {
       throw Exception('Failed to delete water: ${response.statusCode}');
+    }
+  }
+
+  /// Log food intake
+  /// @param token - Auth token
+  /// @param request - LogFoodRequest object
+  Future<LogFoodResponse> logFood(String token, LogFoodRequest request) async {
+    final url = Uri.parse('$baseUrl/nutrition/log-food');
+
+    print('🌐 Making POST request to: $url');
+    print('📦 Request body: ${jsonEncode(request.toJson())}');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    print('📥 Response status: ${response.statusCode}');
+    print('📥 Response body: ${utf8.decode(response.bodyBytes)}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final bodyJson = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      return LogFoodResponse.fromJson(bodyJson);
+    } else {
+      throw Exception('Failed to log food: ${response.statusCode}');
+    }
+  }
+
+  /// Get food intake history for a specific date
+  /// @param userId - User ID
+  /// @param date - Format: YYYY-MM-DD
+  Future<List<FoodHistoryItem>> getFoodHistory(
+    String token,
+    String userId,
+    String date,
+  ) async {
+    final url = Uri.parse('$baseUrl/nutrition/history?userId=$userId&date=$date');
+
+    print('🌐 Making GET request to: $url');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print('📥 Response status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> bodyJson = jsonDecode(utf8.decode(response.bodyBytes));
+      return bodyJson.map((item) => FoodHistoryItem.fromJson(item)).toList();
+    } else {
+      throw Exception('Failed to load food history: ${response.statusCode}');
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
+import 'package:wello_frontend/ui/widgets/info_bottom_sheet.dart';
 
 class WaterTracker extends StatelessWidget {
   const WaterTracker({super.key});
@@ -49,13 +50,26 @@ class WaterTracker extends StatelessWidget {
 
                 SizedBox(width: context.w(0.02)),
 
-                Text(
-                  '${consumedMl}ml/$targetMlString',
-                  style: GoogleFonts.baloo2(
-                    fontSize: context.sp(4.5),
-                    color: const Color(0xff6177D0),
-                    fontWeight: FontWeight.bold,
-                    decoration: TextDecoration.underline,
+                GestureDetector(
+                  onTap: () => InfoBottomSheet.show(
+                    context,
+                      title: 'Theo dõi nước - Hydrating your body',
+                      description: 'Uống đủ nước là yếu tố then chốt để duy trì năng lượng và hỗ trợ trao đổi chất.',
+                      details: [
+                        'Mục tiêu của bạn là **$targetMlString ml** mỗi ngày.',
+                        'Mỗi ly nước bạn thêm vào ứng dụng tương đương với **250ml**.'
+                      ],
+                      note: 'Nhu cầu nước có thể tăng lên nếu bạn **tập luyện cường độ cao** hoặc ở trong môi trường nóng.',
+                      tip: 'Hãy uống nước ngay cả khi bạn chưa thấy khát để duy trì trạng thái tốt nhất!',
+                  ),
+                  child: Text(
+                    '${consumedMl}ml/$targetMlString',
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(4.5),
+                      color: const Color(0xff6177D0),
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
               ],

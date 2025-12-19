@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/food.dart';
+import '../models/requests/food_preview_request.dart';
+
 
 /// Remote data source for food API calls
 class FoodRemoteDataSource {
@@ -31,6 +33,34 @@ class FoodRemoteDataSource {
       return jsonList.map((json) => Food.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load foods: ${response.statusCode}');
+    }
+  }
+
+  /// Preview food nutrition for a specific amount
+  /// POST /food/preview
+  Future<Food> previewFood(String token, FoodPreviewRequest request) async {
+    final url = Uri.parse('$baseUrl/food/preview');
+
+    print('🔍 Previewing food nutrition - URL: $url');
+    print('📦 Request: ${jsonEncode(request.toJson())}');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    print('📡 Preview response status: ${response.statusCode}');
+    print('📡 Preview response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonMap = jsonDecode(response.body) as Map<String, dynamic>;
+      return Food.fromJson(jsonMap);
+    } else {
+      throw Exception('Failed to preview food: ${response.statusCode}');
     }
   }
 }

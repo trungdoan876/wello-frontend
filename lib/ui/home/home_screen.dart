@@ -9,6 +9,7 @@ import 'package:wello_frontend/ui/home/widgets/water_tracker.dart';
 import 'package:wello_frontend/ui/home/widgets/weight_chart.dart';
 import 'package:wello_frontend/ui/home/widgets/activity_summary_card.dart';
 import 'package:wello_frontend/ui/home/widgets/workout_history_card.dart';
+import 'package:wello_frontend/ui/home/widgets/food_history_card.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
@@ -109,6 +110,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         const WeightGoalCard(),
                         SizedBox(height: context.h(0.04)),
                         const WorkoutHistoryCard(), // ← Workout history
+                        SizedBox(height: context.h(0.04)),
+                        const FoodHistoryCard(), // ← Food history
                         SizedBox(height: context.h(0.04)),
                         const ActivitySummaryCard(),
                         SizedBox(height: context.h(0.02)),
