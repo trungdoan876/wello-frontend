@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/data/data_source/exercise_remote_data_source.dart';
 import 'package:wello_frontend/data/repositories/exercise_repository_impl.dart';
 import 'package:wello_frontend/domain/entities/exercise.dart';
+import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:intl/intl.dart';
 
 /// Bottom sheet for selecting exercise duration and logging workout
@@ -45,6 +47,8 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
       final credentials = await AuthHelper.getCredentials();
       if (credentials == null) throw Exception('Not authenticated');
 
+      print('🔄 Calculating calories for exercise ${widget.exerciseId}, duration: ${_durationMinutes.toInt()}');
+
       final repository = ExerciseRepositoryImpl(
         remoteDataSource: ExerciseRemoteDataSource(),
       );
@@ -56,11 +60,14 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
         _durationMinutes.toInt(),
       );
 
+      print('✅ Calories calculated: ${preview.estimatedCalories}');
+
       setState(() {
         _estimatedCalories = preview.estimatedCalories;
         _isCalculating = false;
       });
     } catch (e) {
+      print('❌ Error calculating calories: $e');
       setState(() {
         _errorMessage = e.toString();
         _isCalculating = false;
@@ -95,6 +102,16 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
       await repository.logWorkout(credentials.token, workoutLog);
 
       if (!mounted) return;
+      
+      // Reload nutrition data to update calories burned on HomeScreen
+      print('🔄 Reloading nutrition data after workout log...');
+      final nutritionProvider = context.read<NutritionProvider>();
+      await nutritionProvider.loadDailySummary(
+        credentials.token,
+        credentials.userIdString,
+        DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      );
+      print('✅ Nutrition data reloaded successfully');
       
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -255,6 +272,38 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
                 ),
               ),
             ],
+          ),
+          SizedBox(height: context.h(0.02)),
+
+          // Info note
+          Container(
+            padding: EdgeInsets.all(context.sp(4)),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(context.sp(2.5)),
+              border: Border.all(color: Colors.blue.shade200, width: 1),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: Colors.blue.shade600,
+                  size: context.sp(5),
+                ),
+                SizedBox(width: context.w(0.02)),
+                Expanded(
+                  child: Text(
+                    'Lượng calo bạn đốt qua tập luyện sẽ không ảnh hưởng vào lượng calo mà bạn đã ăn',
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(4),
+                      color: Colors.blue.shade800,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           SizedBox(height: context.h(0.02)),
 
