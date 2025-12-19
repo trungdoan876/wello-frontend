@@ -1,5 +1,5 @@
 class ProfileResponseModel {
-  final int idProfile;
+  final int? idProfile;
   final int userId;
   final String fullname;
   final String gender;
@@ -12,7 +12,7 @@ class ProfileResponseModel {
   final String surveyDate;
 
   ProfileResponseModel({
-    required this.idProfile,
+    this.idProfile,
     required this.userId,
     required this.fullname,
     required this.gender,
@@ -27,7 +27,7 @@ class ProfileResponseModel {
 
   factory ProfileResponseModel.fromJson(Map<String, dynamic> json) {
     return ProfileResponseModel(
-      idProfile: json['idProfile'] as int,
+      idProfile: json['idProfile'] as int?,
       userId: json['userId'] as int,
       fullname: json['fullname'] as String,
       gender: json['gender'] as String,
