@@ -7,8 +7,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:wello_frontend/core/utils/user_session.dart';
 import 'package:wello_frontend/data/repositories/profile_repository.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
+import 'package:wello_frontend/domain/providers/survey_provider.dart';
+import 'package:wello_frontend/data/models/requests/survey_request_model.dart';
+import 'package:wello_frontend/data/models/responses/survey_response_model.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
+import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
+import 'package:wello_frontend/core/utils/auth_helper.dart';
+import 'package:intl/intl.dart';
 import 'widgets/water_tracking_card.dart';
 import 'package:wello_frontend/ui/summary/widgets/bmi_card.dart';
 
@@ -22,14 +28,12 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int goal = 1950;
-  int current = 500; // ml đã uống
-  bool notif = false;
-  String lastTime = "16:30";
   bool _showQuickActions = false;
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
   int? _userId;
+  bool _surveyRequested = false;
+  bool _nutritionDataLoaded = false;
 
   @override
   void initState() {
@@ -55,20 +59,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // TODO: điều hướng theo key
   }
 
-  void _increase() {
-    setState(() {
-      current = (current + 200).clamp(0, goal);
-    });
+  Future<void> _increase() async {
+    final credentials = await AuthHelper.getCredentials();
+    if (credentials != null && mounted) {
+      final nutritionProvider = Provider.of<NutritionProvider>(
+        context,
+        listen: false,
+      );
+      try {
+        await nutritionProvider.addWaterGlass(
+          credentials.token,
+          credentials.userIdString,
+          glassSize: 250,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.water_drop, color: Colors.white),
+                    const SizedBox(width: 10),
+                    const Expanded(child: Text('Đã thêm 250ml nước! 💧')),
+                  ],
+                ),
+                backgroundColor: const Color(0xff61C8F5),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Lỗi: Không thể thêm nước'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
-  void _decrease() {
-    setState(() {
-      current = (current - 200).clamp(0, goal);
-    });
+  Future<void> _decrease() async {
+    // Backend không hỗ trợ giảm nước, chỉ hiển thị thông báo
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không thể giảm lượng nước đã uống')),
+      );
+    }
   }
 
   void _toggleNotif() {
-    setState(() => notif = !notif);
+    // TODO: Implement notification toggle
   }
 
   Future<void> _showImageSourceDialog() async {
@@ -186,17 +231,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
         imageFile: imageFile,
       );
 
-      if (mounted) {
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cập nhật ảnh đại diện thành công!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Reload profile to get updated avatar URL
-          setState(() {});
-        }
+      if (mounted && success) {
+        final snack = SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 10),
+              const Expanded(child: Text('Cập nhật ảnh đại diện thành công!')),
+            ],
+          ),
+          backgroundColor: const Color(0xFF22C55E),
+          behavior: SnackBarBehavior.floating,
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'Đóng',
+            textColor: const Color(0xFF064E3B),
+            onPressed: () {},
+          ),
+        );
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(snack);
+        // Reload profile to get updated avatar URL
+        setState(() {});
       }
     } catch (e) {
       if (mounted) {
@@ -242,8 +304,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ProfileProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => SurveyProvider()),
+      ],
       child: _buildProfileContent(),
     );
   }
@@ -317,6 +382,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             final profileData = profileProvider.profileData;
 
+            // Trigger BMI survey API when profile is available (once)
+            if (profileData != null && !_surveyRequested) {
+              _surveyRequested = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final surveyProvider = Provider.of<SurveyProvider>(
+                  context,
+                  listen: false,
+                );
+                final req = SurveyRequestModel(
+                  userId: profileData.userId,
+                  fullname: profileData.fullname,
+                  gender: profileData.gender,
+                  age: profileData.age,
+                  height: profileData.height,
+                  weight: profileData.weight.toInt(),
+                  goal: profileData.goal,
+                  activityLevel: profileData.activityLevel,
+                );
+                surveyProvider.submitSurvey(req);
+              });
+            }
+
+            // Load nutrition data (water) when profile is available (once)
+            if (profileData != null && !_nutritionDataLoaded) {
+              _nutritionDataLoaded = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                final credentials = await AuthHelper.getCredentials();
+                if (credentials != null && mounted) {
+                  final nutritionProvider = Provider.of<NutritionProvider>(
+                    context,
+                    listen: false,
+                  );
+                  final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+                  await nutritionProvider.loadDailySummary(
+                    credentials.token,
+                    credentials.userIdString,
+                    today,
+                  );
+                }
+              });
+            }
+
             return Stack(
               children: [
                 SingleChildScrollView(
@@ -330,8 +437,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Text(
                           'Hồ sơ cá nhân',
                           style: GoogleFonts.baloo2(
-                            fontSize: context.sp(8),
-                            fontWeight: FontWeight.w700,
+                            fontSize: context.sp(8.5),
+                            fontWeight: FontWeight.w900,
                             color: const Color(0xFFEBCF23),
                           ),
                         ),
@@ -510,7 +617,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
 
                         SizedBox(height: context.h(0.015)),
-                        //const BMICard(),
+                        Consumer<SurveyProvider>(
+                          builder: (context, surveyProvider, _) {
+                            if (surveyProvider.isLoading &&
+                                !surveyProvider.hasResult) {
+                              return Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: context.h(0.02),
+                                  ),
+                                  child: CircularProgressIndicator(
+                                    color: const Color(0xFFEBCF23),
+                                  ),
+                                ),
+                              );
+                            }
+                            if (surveyProvider.hasError &&
+                                !surveyProvider.hasResult) {
+                              return Column(
+                                children: [
+                                  Text(
+                                    surveyProvider.errorMessage ??
+                                        'Không tải được BMI',
+                                    style: GoogleFonts.baloo2(
+                                      color: Colors.red,
+                                      fontSize: context.sp(5),
+                                    ),
+                                  ),
+                                  SizedBox(height: context.h(0.01)),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      final p = profileProvider.profileData!;
+                                      final req = SurveyRequestModel(
+                                        userId: p.userId,
+                                        fullname: p.fullname,
+                                        gender: p.gender,
+                                        age: p.age,
+                                        height: p.height,
+                                        weight: p.weight.toInt(),
+                                        goal: p.goal,
+                                        activityLevel: p.activityLevel,
+                                      );
+                                      surveyProvider.submitSurvey(req);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFEBCF23),
+                                    ),
+                                    child: Text(
+                                      'Thử lại',
+                                      style: GoogleFonts.baloo2(
+                                        color: Colors.white,
+                                        fontSize: context.sp(5),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                            if (surveyProvider.surveyResult != null) {
+                              final r = surveyProvider.surveyResult!;
+                              final p = profileProvider.profileData;
+                              final merged = SurveyResponseModel(
+                                bmi: r.bmi,
+                                bmiStatus: r.bmiStatus,
+                                bmr: r.bmr,
+                                tdee: r.tdee,
+                                dailyCalories: r.dailyCalories,
+                                proteinGram: r.proteinGram,
+                                carbsGram: r.carbsGram,
+                                fatGram: r.fatGram,
+                                waterIntakeMl: r.waterIntakeMl,
+                                height: p?.height.toDouble() ?? r.height,
+                                weight: p?.weight ?? r.weight,
+                              );
+                              return BMICard(survey: merged);
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
 
                         //const BMICard(),
                         SizedBox(height: context.h(0.03)),
@@ -528,14 +712,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         SizedBox(height: context.h(0.015)),
 
-                        WaterTrackingCard(
-                          amount: current,
-                          goal: goal,
-                          lastTime: lastTime,
-                          isNotificationOn: notif,
-                          onIncrease: _increase,
-                          onDecrease: _decrease,
-                          onToggleNotification: _toggleNotif,
+                        Consumer<NutritionProvider>(
+                          builder: (context, nutritionProvider, _) {
+                            final waterIntake =
+                                nutritionProvider.dailySummary?.waterIntake;
+                            final consumed = waterIntake?.consumed ?? 0;
+                            final target = waterIntake?.target ?? 2000;
+
+                            return WaterTrackingCard(
+                              amount: consumed,
+                              goal: target,
+                              lastTime: '',
+                              isNotificationOn: false,
+                              onIncrease: _increase,
+                              onDecrease: _decrease,
+                              onToggleNotification: _toggleNotif,
+                            );
+                          },
                         ),
                         SizedBox(height: navHeight + context.h(0.05)),
                       ],
@@ -574,8 +767,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 200),
                           opacity: _showQuickActions ? 1 : 0,
-                          child: QuickActionsPanel(
-                            onAction: _handleQuickAction,
+                          child: IgnorePointer(
+                            ignoring: !_showQuickActions,
+                            child: QuickActionsPanel(
+                              onAction: _handleQuickAction,
+                            ),
                           ),
                         ),
                       ),

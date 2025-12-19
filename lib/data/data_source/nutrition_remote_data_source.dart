@@ -40,9 +40,7 @@ class NutritionRemoteDataSource {
 
     final response = await http.get(
       url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
@@ -59,8 +57,14 @@ class NutritionRemoteDataSource {
   /// Get daily nutrition summary for a specific date
   /// @param userId - User ID
   /// @param date - Format: YYYY-MM-DD (e.g., "2024-12-18")
-  Future<NutritionSummary> getDailySummary(String token, String userId, String date) async {
-    final url = Uri.parse('$baseUrl/nutrition/daily-summary?userId=$userId&date=$date');
+  Future<NutritionSummary> getDailySummary(
+    String token,
+    String userId,
+    String date,
+  ) async {
+    final url = Uri.parse(
+      '$baseUrl/nutrition/daily-summary?userId=$userId&date=$date',
+    );
 
     final response = await http.get(
       url,
@@ -81,8 +85,14 @@ class NutritionRemoteDataSource {
   /// Get weekly overview for calendar
   /// @param userId - User ID
   /// @param startDate - Start date of the week (Format: YYYY-MM-DD)
-  Future<WeekOverview> getWeekOverview(String token, String userId, String startDate) async {
-    final url = Uri.parse('$baseUrl/nutrition/week-overview?userId=$userId&startDate=$startDate');
+  Future<WeekOverview> getWeekOverview(
+    String token,
+    String userId,
+    String startDate,
+  ) async {
+    final url = Uri.parse(
+      '$baseUrl/nutrition/week-overview?userId=$userId&startDate=$startDate',
+    );
 
     final response = await http.get(
       url,
@@ -103,8 +113,14 @@ class NutritionRemoteDataSource {
   /// Get daily water intake
   /// @param userId - User ID
   /// @param date - Format: YYYY-MM-DD
-  Future<WaterIntake> getWaterIntake(String token, String userId, String date) async {
-    final url = Uri.parse('$baseUrl/water-intake/daily?userId=$userId&date=$date');
+  Future<WaterIntake> getWaterIntake(
+    String token,
+    String userId,
+    String date,
+  ) async {
+    final url = Uri.parse(
+      '$baseUrl/water-intake/daily?userId=$userId&date=$date',
+    );
 
     final response = await http.get(
       url,
@@ -126,26 +142,29 @@ class NutritionRemoteDataSource {
   /// @param userId - User ID
   /// @param date - Date (Format: YYYY-MM-DD)
   /// @param glassSize - Size of glass in ml (default: 250ml)
-  Future<WaterIntake> addWaterGlass(String token, String userId, String date, {int glassSize = 250}) async {
+  Future<WaterIntake> addWaterGlass(
+    String token,
+    String userId,
+    String date, {
+    int glassSize = 250,
+  }) async {
     final url = Uri.parse('$baseUrl/water-intake/add');
-    
+
     final requestBody = {
       'userId': int.parse(userId),
       'amountMl': glassSize,
       'date': date,
     };
-    
+
     print('🌐 Making POST request to: $url');
     print('📦 Request body: $requestBody');
 
     final response = await http.post(
       url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode(requestBody),
     );
-    
+
     print('📥 Response status: ${response.statusCode}');
     print('📥 Response body: ${response.body}');
 
@@ -155,6 +174,49 @@ class NutritionRemoteDataSource {
       return getWaterIntake(token, userId, date);
     } else {
       throw Exception('Failed to add water: ${response.statusCode}');
+    }
+  }
+
+  /// Subtract water intake (remove a glass of water)
+  /// @param userId - User ID
+  /// @param date - Date (Format: YYYY-MM-DD)
+  /// @param glassSize - Size of glass in ml (default: 250ml)
+  Future<WaterIntake> subtractWaterGlass(
+    String token,
+    String userId,
+    String date, {
+    int glassSize = 250,
+  }) async {
+    // Backend expects DELETE with JSON body { userId, amountMl, date }
+    final url = Uri.parse('$baseUrl/water-intake/delete');
+
+    final requestBody = {
+      'userId': int.parse(userId),
+      'amountMl': glassSize,
+      'date': date,
+    };
+
+    print('🌐 Making POST request to: $url (delete water)');
+    print('📦 Request body: $requestBody');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        // Include auth if backend requires; remove if not used
+        // 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    print('📥 Response status: ${response.statusCode}');
+    print('📥 Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      // Refresh daily water intake after delete
+      return getWaterIntake(token, userId, date);
+    } else {
+      throw Exception('Failed to delete water: ${response.statusCode}');
     }
   }
 }

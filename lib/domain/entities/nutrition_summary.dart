@@ -4,11 +4,7 @@ class MacroData {
   final double target;
   final String unit;
 
-  MacroData({
-    required this.consumed,
-    required this.target,
-    this.unit = 'g',
-  });
+  MacroData({required this.consumed, required this.target, this.unit = 'g'});
 
   factory MacroData.fromJson(Map<String, dynamic> json) {
     return MacroData(
@@ -19,11 +15,7 @@ class MacroData {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'consumed': consumed,
-      'target': target,
-      'unit': unit,
-    };
+    return {'consumed': consumed, 'target': target, 'unit': unit};
   }
 
   double get percentage => target > 0 ? (consumed / target * 100) : 0;
@@ -37,7 +29,10 @@ class WaterIntake {
   final String unit;
   final int glasses;
 
+  final int? id;
+
   WaterIntake({
+    this.id,
     required this.consumed,
     required this.target,
     this.unit = 'ml',
@@ -46,6 +41,7 @@ class WaterIntake {
 
   factory WaterIntake.fromJson(Map<String, dynamic> json) {
     return WaterIntake(
+      id: json['id'] as int?,
       consumed: json['consumed'] ?? 0,
       target: json['target'] ?? 1950,
       unit: json['unit'] ?? 'ml',
@@ -55,6 +51,7 @@ class WaterIntake {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'consumed': consumed,
       'target': target,
       'unit': unit,
@@ -120,6 +117,6 @@ class NutritionSummary {
   }
 
   int get totalCalories => caloriesConsumed + caloriesRemaining;
-  double get caloriesPercentage => 
+  double get caloriesPercentage =>
       totalCalories > 0 ? (caloriesConsumed / totalCalories * 100) : 0;
 }

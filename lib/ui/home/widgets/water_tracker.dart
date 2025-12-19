@@ -18,11 +18,15 @@ class WaterTracker extends StatelessWidget {
         final int consumedMl = waterIntake?.consumed ?? 0;
         final int targetMl = waterIntake?.target ?? 0;
         final String targetMlString = targetMl > 0 ? '${targetMl}ml' : '0ml';
-        
+
         // Calculate cups dynamically based on target
         const int glassSize = 250; // ml per glass
-        final int totalCups = targetMl > 0 ? (targetMl / glassSize).ceil() : 6; // Default 6 if no data
-        final int cupsDrunk = consumedMl > 0 ? (consumedMl / glassSize).floor() : 0;
+        final int totalCups = targetMl > 0
+            ? (targetMl / glassSize).ceil()
+            : 6; // Default 6 if no data
+        final int cupsDrunk = consumedMl > 0
+            ? (consumedMl / glassSize).floor()
+            : 0;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +60,7 @@ class WaterTracker extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             // Label showing glass size
             Padding(
               padding: EdgeInsets.only(top: context.h(0.005)),
@@ -95,66 +99,95 @@ class WaterTracker extends StatelessWidget {
 
                   return GestureDetector(
                     onTap: () async {
-                      print('🔵 Water glass tapped! Index: $index, isFilled: $isFilled, cupsDrunk: $cupsDrunk');
-                      
-                      // Only allow adding water, not removing
-                      if (!isFilled) {
-                        print('🟡 Getting credentials...');
-                        final credentials = await AuthHelper.getCredentials();
-                        
-                        if (credentials != null) {
-                          print('🟢 Credentials found! Calling API...');
-                          print('   Token: ${credentials.token}');
-                          print('   UserId: ${credentials.userIdString}');
-                          
-                          try {
-                            await provider.addWaterGlass(
-                              credentials.token,
-                              credentials.userIdString,
-                            );
-                            print('✅ Water added successfully!');
-                            
-                            // Show success feedback
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Row(
-                                    children: [
-                                      const Icon(Icons.water_drop, color: Colors.white),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Đã thêm 250ml nước! 💧',
-                                        style: GoogleFonts.baloo2(
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                      print(
+                        '🔵 Water glass tapped! Index: $index, isFilled: $isFilled, cupsDrunk: $cupsDrunk',
+                      );
+
+                      final credentials = await AuthHelper.getCredentials();
+                      if (credentials == null) {
+                        print('❌ No credentials found! User not logged in?');
+                        return;
+                      }
+
+                      try {
+                        if (!isFilled) {
+                          // Add water
+                          print('🟢 Adding water...');
+                          await provider.addWaterGlass(
+                            credentials.token,
+                            credentials.userIdString,
+                          );
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.water_drop,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Đã thêm 250ml nước! 💧',
+                                      style: GoogleFonts.baloo2(
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                    ],
-                                  ),
-                                  backgroundColor: const Color(0xff61C8F5),
-                                  duration: const Duration(seconds: 2),
-                                  behavior: SnackBarBehavior.floating,
+                                    ),
+                                  ],
                                 ),
-                              );
-                            }
-                          } catch (e) {
-                            print('❌ Error adding water: $e');
-                            
-                            // Show error feedback
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Lỗi: Không thể thêm nước'),
-                                  backgroundColor: Colors.red,
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            }
+                                backgroundColor: const Color(0xff61C8F5),
+                                duration: const Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
                           }
                         } else {
-                          print('❌ No credentials found! User not logged in?');
+                          // Remove water via DELETE endpoint
+                          print('🟠 Removing water...');
+                          await provider.subtractWaterGlass(
+                            credentials.token,
+                            credentials.userIdString,
+                            glassSize: glassSize,
+                          );
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.water_drop,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Đã giảm 250ml nước',
+                                      style: GoogleFonts.baloo2(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: Colors.orange,
+                                duration: const Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
                         }
-                      } else {
-                        print('⚠️ Glass already filled, cannot add more');
+                      } catch (e) {
+                        print('❌ Error handling water tap: $e');
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Lỗi: Không thể cập nhật nước'),
+                              backgroundColor: Colors.red,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
                       }
                     },
                     child: SizedBox(
@@ -225,13 +258,17 @@ class GlassCup extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                width: (width - borderWidth * 2) < 0 ? 0.0 : (width - borderWidth * 2),
+                width: (width - borderWidth * 2) < 0
+                    ? 0.0
+                    : (width - borderWidth * 2),
                 height: isFilled ? height * 0.55 : 0,
                 margin: EdgeInsets.only(bottom: borderWidth),
                 decoration: BoxDecoration(
                   color: fillColor,
                   borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(radius > borderWidth ? radius - borderWidth : radius),
+                    top: Radius.circular(
+                      radius > borderWidth ? radius - borderWidth : radius,
+                    ),
                   ),
                 ),
               ),
