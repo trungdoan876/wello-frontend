@@ -3,6 +3,10 @@ import '../data_source/nutrition_remote_data_source.dart';
 import '../../domain/entities/nutrition_summary.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/week_overview.dart';
+import '../../domain/entities/food_log_result.dart';
+import '../models/requests/log_food_request.dart';
+import '../../domain/entities/food_history_item.dart';
+
 
 /// Implementation of NutritionRepository
 class NutritionRepositoryImpl implements NutritionRepository {
@@ -70,5 +74,40 @@ class NutritionRepositoryImpl implements NutritionRepository {
       date,
       glassSize: glassSize,
     );
+  }
+
+  @override
+  Future<FoodLogResult> logFood({
+    required String token,
+    required int userId,
+    required int foodId,
+    required int amountGrams,
+    required String date,
+    required String mealType,
+  }) async {
+    final response = await remoteDataSource.logFood(
+      token,
+      LogFoodRequest(
+        userId: userId,
+        foodId: foodId,
+        amountGrams: amountGrams,
+        date: date,
+        mealType: mealType,
+      ),
+    );
+
+    return FoodLogResult(
+      foodName: response.foodName,
+      calories: response.calories,
+      protein: response.protein,
+      carbs: response.carbs,
+      fat: response.fat,
+      message: response.message,
+    );
+  }
+
+  @override
+  Future<List<FoodHistoryItem>> getFoodHistory(String token, String userId, String date) async {
+    return await remoteDataSource.getFoodHistory(token, userId, date);
   }
 }

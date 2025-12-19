@@ -1,6 +1,9 @@
 import '../entities/nutrition_summary.dart';
 import '../entities/user_profile.dart';
 import '../entities/week_overview.dart';
+import '../entities/food_log_result.dart';
+import '../entities/food_history_item.dart';
+
 
 /// Repository interface for nutrition and fitness data
 abstract class NutritionRepository {
@@ -49,4 +52,21 @@ abstract class NutritionRepository {
     String date, {
     int glassSize,
   });
+
+  /// Log food intake
+  Future<FoodLogResult> logFood({
+    required String token,
+    required int userId,
+    required int foodId,
+    required int amountGrams,
+    required String date,
+    required String mealType,
+  });
+
+  /// Get food intake history
+  Future<List<FoodHistoryItem>> getFoodHistory(
+    String token,
+    String userId,
+    String date,
+  );
 }

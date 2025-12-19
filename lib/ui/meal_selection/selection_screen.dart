@@ -10,18 +10,22 @@ import 'package:wello_frontend/data/repositories/food_repository_impl.dart';
 import 'widgets/meal_search_bar.dart';
 import 'widgets/meal_item_card.dart';
 import 'widgets/exercise_detail_sheet.dart';
+import 'widgets/food_detail_sheet.dart';
+
 
 class MealItem {
   final String name;
   final String description;
   final int calories;
   final int? exerciseId; // For exercises
+  final int? foodId; // For foods
 
   const MealItem({
     required this.name,
     required this.description,
     required this.calories,
     this.exerciseId,
+    this.foodId,
   });
 }
 
@@ -116,6 +120,7 @@ class _SelectionScreenState extends State<SelectionScreen> {
         name: food.name,
         description: '${food.protein.toInt()}g protein, ${food.carbs.toInt()}g carbs',
         calories: food.calories,
+        foodId: food.id,
       );
     }).toList();
   }
@@ -304,15 +309,26 @@ class _SelectionScreenState extends State<SelectionScreen> {
                                         // Trigger a rebuild by updating parent if needed
                                         // For now, just show success - the card will auto-reload on lifecycle
                                       }
-                                    } else {
-                                      // Simple add for meals (placeholder)
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Đã thêm ${item.name}'),
-                                          duration: const Duration(seconds: 1),
-                                        ),
-                                      );
-                                    }
+                                      } else {
+                                        // Show food detail sheet
+                                        final result = await showModalBottomSheet<bool>(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (context) => FoodDetailSheet(
+                                            foodId: item.foodId!,
+                                            foodName: item.name,
+                                            baseCalories: item.calories,
+                                            mealType: _mapMealType(widget.mealType),
+                                          ),
+                                        );
+
+                                        if (result == true && mounted) {
+                                          // Success! SnackBar is already shown in the sheet
+                                          // The main_navigation_screen or home_screen should refresh
+                                          // because logFood calls loadDailySummary
+                                        }
+                                      }
                                   },
                                 ),
                               );
@@ -322,5 +338,20 @@ class _SelectionScreenState extends State<SelectionScreen> {
         ],
       ),
     );
+  }
+
+  String _mapMealType(String rawType) {
+    switch (rawType) {
+      case 'bua_sang':
+        return 'BREAKFAST';
+      case 'bua_trua':
+        return 'LUNCH';
+      case 'bua_toi':
+        return 'DINNER';
+      case 'bua_phu':
+        return 'SNACK';
+      default:
+        return 'SNACK';
+    }
   }
 }
