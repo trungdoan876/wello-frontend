@@ -12,35 +12,40 @@ import '../repositories/nutrition_repository.dart';
 /// Provider for managing nutrition and fitness data state
 class NutritionProvider extends ChangeNotifier {
   final NutritionRepository _repository;
-  
+
   UserProfile? _userProfile;
   NutritionSummary? _dailySummary;
   WeekOverview? _weekOverview;
-  
+
   bool _isLoadingProfile = false;
   bool _isLoadingSummary = false;
   bool _isLoadingWeek = false;
   bool _isAddingWater = false;
-  
+  bool _isSubtractingWater = false;
+
   String? _errorMessage;
   String _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   NutritionProvider({NutritionRepository? repository})
-      : _repository = repository ?? NutritionRepositoryImpl(
-          remoteDataSource: NutritionRemoteDataSource(),
-        );
+    : _repository =
+          repository ??
+          NutritionRepositoryImpl(
+            remoteDataSource: NutritionRemoteDataSource(),
+          );
 
   // Getters
   UserProfile? get userProfile => _userProfile;
   NutritionSummary? get dailySummary => _dailySummary;
   WeekOverview? get weekOverview => _weekOverview;
-  
+
   bool get isLoadingProfile => _isLoadingProfile;
   bool get isLoadingSummary => _isLoadingSummary;
   bool get isLoadingWeek => _isLoadingWeek;
   bool get isAddingWater => _isAddingWater;
-  bool get isLoading => _isLoadingProfile || _isLoadingSummary || _isLoadingWeek;
-  
+  bool get isSubtractingWater => _isSubtractingWater;
+  bool get isLoading =>
+      _isLoadingProfile || _isLoadingSummary || _isLoadingWeek;
+
   String? get errorMessage => _errorMessage;
   bool get hasError => _errorMessage != null;
   String get selectedDate => _selectedDate;
@@ -75,7 +80,11 @@ class NutritionProvider extends ChangeNotifier {
   }
 
   /// Load daily nutrition summary
-  Future<void> loadDailySummary(String token, String userId, String date) async {
+  Future<void> loadDailySummary(
+    String token,
+    String userId,
+    String date,
+  ) async {
     _isLoadingSummary = true;
     _errorMessage = null;
     _selectedDate = date;
@@ -83,15 +92,15 @@ class NutritionProvider extends ChangeNotifier {
 
     try {
       _dailySummary = await _repository.getDailySummary(token, userId, date);
-      
+
       // Cache successful data to SharedPreferences
       await _cacheDailySummary(_dailySummary!, date);
-      
+
       _isLoadingSummary = false;
       notifyListeners();
     } catch (e) {
       print('⚠️ Failed to load daily summary: ${e.toString()}');
-      
+
       // Try to load from cache when offline
       final cachedSummary = await _loadCachedDailySummary(date);
       if (cachedSummary != null) {
@@ -101,7 +110,7 @@ class NutritionProvider extends ChangeNotifier {
       } else {
         _errorMessage = 'Failed to load daily summary: ${e.toString()}';
       }
-      
+
       _isLoadingSummary = false;
       notifyListeners();
     }
@@ -118,8 +127,12 @@ class NutritionProvider extends ChangeNotifier {
       final now = DateTime.now();
       final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
       final startDate = DateFormat('yyyy-MM-dd').format(startOfWeek);
-      
-      _weekOverview = await _repository.getWeekOverview(token, userId, startDate);
+
+      _weekOverview = await _repository.getWeekOverview(
+        token,
+        userId,
+        startDate,
+      );
       _isLoadingWeek = false;
       notifyListeners();
     } catch (e) {
@@ -130,9 +143,13 @@ class NutritionProvider extends ChangeNotifier {
   }
 
   /// Add a glass of water
-  Future<void> addWaterGlass(String token, String userId, {int glassSize = 250}) async {
+  Future<void> addWaterGlass(
+    String token,
+    String userId, {
+    int glassSize = 250,
+  }) async {
     if (_isAddingWater) return; // Prevent multiple simultaneous requests
-    
+
     _isAddingWater = true;
     _errorMessage = null;
     notifyListeners();
@@ -144,7 +161,7 @@ class NutritionProvider extends ChangeNotifier {
         _selectedDate,
         glassSize: glassSize,
       );
-      
+
       // Update the daily summary with new water intake
       if (_dailySummary != null) {
         _dailySummary = NutritionSummary(
@@ -158,10 +175,10 @@ class NutritionProvider extends ChangeNotifier {
           waterIntake: updatedWaterIntake,
         );
       }
-      
+
       _isAddingWater = false;
       notifyListeners();
-      
+
       // Reload daily summary to get fresh data from backend
       await loadDailySummary(token, userId, _selectedDate);
     } catch (e) {
@@ -172,10 +189,54 @@ class NutritionProvider extends ChangeNotifier {
     }
   }
 
+  /// Subtract water glass from daily intake
+  Future<void> subtractWaterGlass(
+    String token,
+    String userId, {
+    int glassSize = 250,
+  }) async {
+    _isSubtractingWater = true;
+    notifyListeners();
+
+    try {
+      final updatedWaterIntake = await _repository.subtractWaterGlass(
+        token,
+        userId,
+        _selectedDate,
+        glassSize: glassSize,
+      );
+
+      // Update the daily summary with new water intake
+      if (_dailySummary != null) {
+        _dailySummary = NutritionSummary(
+          date: _dailySummary!.date,
+          caloriesConsumed: _dailySummary!.caloriesConsumed,
+          caloriesBurned: _dailySummary!.caloriesBurned,
+          caloriesRemaining: _dailySummary!.caloriesRemaining,
+          carb: _dailySummary!.carb,
+          protein: _dailySummary!.protein,
+          fat: _dailySummary!.fat,
+          waterIntake: updatedWaterIntake,
+        );
+      }
+
+      _isSubtractingWater = false;
+      notifyListeners();
+
+      // Reload daily summary to get fresh data from backend
+      await loadDailySummary(token, userId, _selectedDate);
+    } catch (e) {
+      _errorMessage = 'Failed to subtract water: ${e.toString()}';
+      _isSubtractingWater = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   /// Change selected date and reload data
   Future<void> changeDate(String token, String userId, String newDate) async {
     if (_selectedDate == newDate) return;
-    
+
     _selectedDate = newDate;
     await loadDailySummary(token, userId, newDate);
   }
@@ -200,7 +261,7 @@ class NutritionProvider extends ChangeNotifier {
     _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
     notifyListeners();
   }
-  
+
   /// Cache daily summary to SharedPreferences
   Future<void> _cacheDailySummary(NutritionSummary summary, String date) async {
     try {
@@ -212,7 +273,7 @@ class NutritionProvider extends ChangeNotifier {
       print('❌ Failed to cache data: $e');
     }
   }
-  
+
   /// Load cached daily summary from SharedPreferences
   Future<NutritionSummary?> _loadCachedDailySummary(String date) async {
     try {

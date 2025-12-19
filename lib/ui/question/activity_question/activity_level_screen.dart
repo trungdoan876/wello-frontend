@@ -1,15 +1,12 @@
-// lib/screens/activity_level_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
-import 'package:wello_frontend/ui/question/activity_question/widgets/activity_option_button.dart';
 import 'package:wello_frontend/domain/providers/survey_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:wello_frontend/data/models/requests/survey_request_model.dart';
 import 'package:wello_frontend/data/models/responses/survey_response_model.dart';
 import 'package:wello_frontend/ui/summary/summary_page.dart';
+import 'package:wello_frontend/ui/question/activity_question/widgets/activity_option_button.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/data/data_source/user_preferences.dart';
@@ -66,27 +63,24 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
     return Scaffold(
       // ---- APP BAR ----
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.05)),
-        child: Padding(
-          padding: EdgeInsets.only(top: context.h(0.05)),
-          child: AppBar(
-            elevation: 0,
-            backgroundColor: const Color(0xFFFFF7DA), // Pastel cream color
-            centerTitle: true,
-            leadingWidth: context.w(0.2),
-            iconTheme: IconThemeData(color: mainYellow, size: context.sp(10)),
-            title: Text(
-              "Wello",
-              style: GoogleFonts.pacifico(
-                fontSize: context.sp(12.0),
-                color: mainYellow,
-              ),
+        preferredSize: Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          elevation: 0,
+          backgroundColor: const Color(0xFFFFF7DA), // Pastel cream color
+          centerTitle: true,
+          leadingWidth: context.w(0.2),
+          iconTheme: IconThemeData(color: mainYellow, size: context.sp(10)),
+          title: Text(
+            "Wello",
+            style: GoogleFonts.pacifico(
+              fontSize: context.sp(12.0),
+              color: mainYellow,
             ),
           ),
         ),
       ),
 
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       backgroundColor: Colors.transparent,
 
       body: Stack(
@@ -103,11 +97,16 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
 
           // --- Nội dung chính ---
           SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: context.w(0.08)),
+            padding: EdgeInsets.fromLTRB(
+              context.w(0.08),
+              0,
+              context.w(0.08),
+              context.h(0.04),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: context.h(0.15)),
+                SizedBox(height: context.h(0.02)),
 
                 // ---- CÂU HỎI ----
                 Text(
@@ -155,7 +154,9 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
 
                                 // Build request from collected answers
                                 final request = SurveyRequestModel(
-                                  userId: widget.userId ?? 1, // Use real userId from login
+                                  userId:
+                                      widget.userId ??
+                                      1, // Use real userId from login
                                   fullname: widget.fullname ?? 'No name',
                                   gender: widget.gender ?? 'MALE',
                                   age: widget.age ?? 25,

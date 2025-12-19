@@ -16,22 +16,59 @@ class NutritionRepositoryImpl implements NutritionRepository {
   }
 
   @override
-  Future<NutritionSummary> getDailySummary(String token, String userId, String date) async {
+  Future<NutritionSummary> getDailySummary(
+    String token,
+    String userId,
+    String date,
+  ) async {
     return await remoteDataSource.getDailySummary(token, userId, date);
   }
 
   @override
-  Future<WeekOverview> getWeekOverview(String token, String userId, String startDate) async {
+  Future<WeekOverview> getWeekOverview(
+    String token,
+    String userId,
+    String startDate,
+  ) async {
     return await remoteDataSource.getWeekOverview(token, userId, startDate);
   }
 
   @override
-  Future<WaterIntake> getWaterIntake(String token, String userId, String date) async {
+  Future<WaterIntake> getWaterIntake(
+    String token,
+    String userId,
+    String date,
+  ) async {
     return await remoteDataSource.getWaterIntake(token, userId, date);
   }
 
   @override
-  Future<WaterIntake> addWaterGlass(String token, String userId, String date, {int glassSize = 325}) async {
-    return await remoteDataSource.addWaterGlass(token, userId, date, glassSize: glassSize);
+  Future<WaterIntake> addWaterGlass(
+    String token,
+    String userId,
+    String date, {
+    int glassSize = 325,
+  }) async {
+    return await remoteDataSource.addWaterGlass(
+      token,
+      userId,
+      date,
+      glassSize: glassSize,
+    );
+  }
+
+  @override
+  Future<WaterIntake> subtractWaterGlass(
+    String token,
+    String userId,
+    String date, {
+    int glassSize = 325,
+  }) async {
+    return await remoteDataSource.subtractWaterGlass(
+      token,
+      userId,
+      date,
+      glassSize: glassSize,
+    );
   }
 }

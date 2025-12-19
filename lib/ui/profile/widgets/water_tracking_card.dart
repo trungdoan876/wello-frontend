@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
+import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'dart:math' as math;
 
 class WaterTrackingCard extends StatefulWidget {
@@ -44,6 +47,130 @@ class _WaterTrackingCardState extends State<WaterTrackingCard>
   void dispose() {
     _waveController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleIncrease(BuildContext context) async {
+    final credentials = await AuthHelper.getCredentials();
+    if (credentials == null) return;
+
+    final nutritionProvider = Provider.of<NutritionProvider>(
+      context,
+      listen: false,
+    );
+
+    try {
+      await nutritionProvider.addWaterGlass(
+        credentials.token,
+        credentials.userIdString,
+        glassSize: 250,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: const Color(0xFF4FC3F7),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              content: Row(
+                children: [
+                  const Icon(Icons.water_drop, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Đã thêm 250ml nước! 💧',
+                      style: GoogleFonts.baloo2(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: Không thể thêm nước'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleDecrease(BuildContext context) async {
+    try {
+      final credentials = await AuthHelper.getCredentials();
+      if (credentials == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Không tìm thấy thông tin đăng nhập')),
+          );
+        }
+        return;
+      }
+
+      final nutritionProvider = Provider.of<NutritionProvider>(
+        context,
+        listen: false,
+      );
+
+      // Gọi API để giảm nước
+      await nutritionProvider.subtractWaterGlass(
+        credentials.token,
+        credentials.userIdString,
+        glassSize: 250,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: const Color(0xFFFFB74D),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              content: Row(
+                children: [
+                  const Icon(Icons.water_drop, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Đã giảm 250ml nước',
+                      style: GoogleFonts.baloo2(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -158,9 +285,17 @@ class _WaterTrackingCardState extends State<WaterTrackingCard>
             children: [
               Column(
                 children: [
-                  _roundButton(context, Icons.add, widget.onIncrease),
+                  _roundButton(
+                    context,
+                    Icons.add,
+                    () => _handleIncrease(context),
+                  ),
                   SizedBox(height: context.h(0.015)),
-                  _roundButton(context, Icons.remove, widget.onDecrease),
+                  _roundButton(
+                    context,
+                    Icons.remove,
+                    () => _handleDecrease(context),
+                  ),
                 ],
               ),
               SizedBox(width: context.w(0.03)),
