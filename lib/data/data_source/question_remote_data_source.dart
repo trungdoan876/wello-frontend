@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/question.dart';
+import '../../domain/entities/question.dart';
 
 /// Remote data source for questions
 /// Handles direct API calls related to questions

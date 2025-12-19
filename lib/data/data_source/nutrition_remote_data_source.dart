@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/nutrition_summary.dart';
-import '../models/user_profile.dart';
-import '../models/week_overview.dart';
+import '../../domain/entities/nutrition_summary.dart';
+import '../../domain/entities/user_profile.dart';
+import '../../domain/entities/week_overview.dart';
 
 /// Remote data source for nutrition and fitness data
 /// Handles API calls related to nutrition tracking, user profile, and weekly overview

@@ -44,8 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleQuickAction(String key) {
+    // Close panel immediately
     _setQuickActionsVisible(false);
-    // TODO: điều hướng theo key
   }
 
   @override
@@ -121,16 +121,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  AnimatedSlide(
-                    offset: _showQuickActions
-                        ? const Offset(0, 0)
-                        : const Offset(0, 0.2),
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeOut,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: _showQuickActions ? 1 : 0,
-                      child: QuickActionsPanel(onAction: _handleQuickAction),
+                  IgnorePointer(
+                    ignoring: !_showQuickActions,
+                    child: AnimatedSlide(
+                      offset: _showQuickActions
+                          ? const Offset(0, 0)
+                          : const Offset(0, 0.2),
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: _showQuickActions ? 1 : 0,
+                        child: QuickActionsPanel(onAction: _handleQuickAction),
+                      ),
                     ),
                   ),
                   SizedBox(height: context.h(0.012)),

@@ -1,6 +1,6 @@
-import '../../data/models/nutrition_summary.dart';
-import '../../data/models/user_profile.dart';
-import '../../data/models/week_overview.dart';
+import '../entities/nutrition_summary.dart';
+import '../entities/user_profile.dart';
+import '../entities/week_overview.dart';
 
 /// Repository interface for nutrition and fitness data
 abstract class NutritionRepository {

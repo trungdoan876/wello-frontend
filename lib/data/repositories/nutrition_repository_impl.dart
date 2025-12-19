@@ -1,8 +1,8 @@
 import '../../domain/repositories/nutrition_repository.dart';
 import '../data_source/nutrition_remote_data_source.dart';
-import '../models/nutrition_summary.dart';
-import '../models/user_profile.dart';
-import '../models/week_overview.dart';
+import '../../domain/entities/nutrition_summary.dart';
+import '../../domain/entities/user_profile.dart';
+import '../../domain/entities/week_overview.dart';
 
 /// Implementation of NutritionRepository
 class NutritionRepositoryImpl implements NutritionRepository {

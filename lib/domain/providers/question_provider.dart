@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../../data/models/question.dart';
+import '../entities/question.dart';
 import '../../data/repositories/question_repository.dart';
 
 class QuestionProvider extends ChangeNotifier {
