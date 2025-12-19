@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
+import 'package:wello_frontend/core/utils/workout_event_notifier.dart';
 import 'package:wello_frontend/data/data_source/exercise_remote_data_source.dart';
 import 'package:wello_frontend/data/repositories/exercise_repository_impl.dart';
 import 'package:wello_frontend/domain/entities/exercise.dart';
@@ -113,7 +114,10 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
       );
       print('✅ Nutrition data reloaded successfully');
       
-      Navigator.pop(context);
+      // Notify workout history to reload
+      WorkoutEventNotifier.notifyWorkoutAdded();
+      
+      Navigator.pop(context, true); // Return true to indicate success
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('✅ Đã lưu bài tập ${widget.exerciseName}'),

@@ -286,10 +286,10 @@ class _SelectionScreenState extends State<SelectionScreen> {
                                 padding: EdgeInsets.only(bottom: context.h(0.015)),
                                 child: MealItemCard(
                                   item: item,
-                                  onAdd: () {
+                                  onAdd: () async {
                                     if (widget.mealType == 'tap_luyen') {
                                       // Show duration picker for exercises
-                                      showModalBottomSheet(
+                                      final result = await showModalBottomSheet<bool>(
                                         context: context,
                                         isScrollControlled: true,
                                         backgroundColor: Colors.transparent,
@@ -298,6 +298,12 @@ class _SelectionScreenState extends State<SelectionScreen> {
                                           exerciseName: item.name,
                                         ),
                                       );
+                                      
+                                      // Reload workout history if success
+                                      if (result == true && mounted) {
+                                        // Trigger a rebuild by updating parent if needed
+                                        // For now, just show success - the card will auto-reload on lifecycle
+                                      }
                                     } else {
                                       // Simple add for meals (placeholder)
                                       ScaffoldMessenger.of(context).showSnackBar(
