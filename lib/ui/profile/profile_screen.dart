@@ -1,8 +1,11 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:wello_frontend/core/utils/user_session.dart';
+import 'package:wello_frontend/data/repositories/profile_repository.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
@@ -25,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String lastTime = "16:30";
   bool _showQuickActions = false;
   File? _profileImage;
- // final ImagePicker _picker = ImagePicker();
+  final ImagePicker _picker = ImagePicker();
   int? _userId;
 
   @override
@@ -109,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                  //  _pickImage(ImageSource.camera);
+                    _pickImage(ImageSource.camera);
                   },
                 ),
                 const Divider(),
@@ -128,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                //    _pickImage(ImageSource.gallery);
+                    _pickImage(ImageSource.gallery);
                   },
                 ),
                 SizedBox(height: context.h(0.01)),
@@ -140,65 +143,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Future<void> _pickImage(ImageSource source) async {
-  //   try {
-  //     final XFile? pickedFile = await _picker.pickImage(
-  //       source: source,
-  //       maxWidth: 512,
-  //       maxHeight: 512,
-  //       imageQuality: 85,
-  //     );
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
 
-  //     if (pickedFile != null) {
-  //       final imageFile = File(pickedFile.path);
-  //       setState(() {
-  //         _profileImage = imageFile;
-  //       });
+      if (pickedFile != null) {
+        final imageFile = File(pickedFile.path);
+        setState(() {
+          _profileImage = imageFile;
+        });
 
-  //       // Upload avatar after picking
-  //       if (_userId != null) {
-  //         _uploadAvatar(imageFile);
-  //       }
-  //     }
-  //   } catch (e) {
-  //     // Handle error
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Không thể chọn ảnh: $e'),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   }
-  // }
+        // Upload avatar after picking
+        if (_userId != null && mounted) {
+          _uploadAvatar(imageFile);
+        }
+      }
+    } catch (e) {
+      // Handle error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Không thể chọn ảnh: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   Future<void> _uploadAvatar(File imageFile) async {
-    // Get provider from nearest Consumer context
-    final profileProvider = Provider.of<ProfileProvider>(
-      context,
-      listen: false,
-    );
+    try {
+      // Use repository directly instead of provider to avoid context issues
+      final repository = ProfileRepository();
 
-    final success = await profileProvider.uploadProfileAvatar(
-      userId: _userId!,
-      imageFile: imageFile,
-    );
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Avatar uploaded successfully!'),
-          backgroundColor: Colors.green,
-        ),
+      final success = await repository.uploadAvatar(
+        userId: _userId!,
+        imageFile: imageFile,
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to upload avatar: ${profileProvider.errorMessage}',
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cập nhật ảnh đại diện thành công!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Reload profile to get updated avatar URL
+          setState(() {});
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi tải ảnh lên: $e'),
+            backgroundColor: Colors.red,
           ),
-          backgroundColor: Colors.red,
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -352,9 +360,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         )
                                       : (profileData?.avatarUrl != null
                                             ? DecorationImage(
-                                                image: NetworkImage(
-                                                  profileData!.avatarUrl!,
-                                                ),
+                                                image:
+                                                    profileData!.avatarUrl!
+                                                        .startsWith(
+                                                          'data:image',
+                                                        )
+                                                    ? MemoryImage(
+                                                        base64Decode(
+                                                          profileData.avatarUrl!
+                                                              .split(',')
+                                                              .last,
+                                                        ),
+                                                      )
+                                                    : NetworkImage(
+                                                            profileData
+                                                                .avatarUrl!,
+                                                          )
+                                                          as ImageProvider,
                                                 fit: BoxFit.cover,
                                               )
                                             : null),
@@ -487,8 +509,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
 
-                    SizedBox(height: context.h(0.015)),
-                   // const BMICard(),
+                        SizedBox(height: context.h(0.015)),
+                        //const BMICard(),
 
                         //const BMICard(),
                         SizedBox(height: context.h(0.03)),
