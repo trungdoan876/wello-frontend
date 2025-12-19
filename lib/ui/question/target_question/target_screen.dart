@@ -16,6 +16,9 @@ class TargetLevelScreen extends StatefulWidget {
   final int? weight;
   final int? age;
   final int? userId;
+  final String? initialGoal;
+  final String? buttonText;
+  final Future<bool> Function(String goal)? onUpdate;
   const TargetLevelScreen({
     super.key,
     required this.question,
@@ -25,6 +28,9 @@ class TargetLevelScreen extends StatefulWidget {
     this.weight,
     this.age,
     this.userId,
+    this.initialGoal,
+    this.buttonText,
+    this.onUpdate,
   });
 
   @override
@@ -32,7 +38,13 @@ class TargetLevelScreen extends StatefulWidget {
 }
 
 class _TargetLevelScreenState extends State<TargetLevelScreen> {
-  String? _selectedLevel;
+  late String? _selectedLevel;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLevel = widget.initialGoal;
+  }
 
   // Mapping tạm thời cho Subtitle vì backend chưa trả về
   final Map<String, String> _subtitleMap = {
@@ -128,33 +140,47 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
                     child: AnimatedStartButton(
-                      text: "Tiếp tục",
+                      text: widget.buttonText ?? "Tiếp tục",
                       onPressed: _selectedLevel == null
                           ? null
-                          : () {
-                              final provider = Provider.of<QuestionProvider>(
-                                context,
-                                listen: false,
-                              );
-                              final nextQuestion = provider.getQuestionByIndex(
-                                6,
-                              );
-                              if (nextQuestion != null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:(_) => ActivityLevelScreen(
-                                      question: nextQuestion,
-                                      fullname: widget.fullname,
-                                      gender: widget.gender,
-                                      height: widget.height,
-                                      weight: widget.weight,
-                                      age: widget.age,
-                                      goal: _selectedLevel,
-                                      userId: widget.userId,
-                                    ),
-                                  ),
+                          : () async {
+                              if (widget.onUpdate != null) {
+                                // Update mode
+                                print(
+                                  '[TargetScreen] Update mode - calling onUpdate with $_selectedLevel',
                                 );
+                                final success = await widget.onUpdate!(
+                                  _selectedLevel!,
+                                );
+                                if (!mounted) return;
+                                if (success) {
+                                  Navigator.pop(context, _selectedLevel);
+                                }
+                              } else {
+                                // Normal onboarding flow
+                                final provider = Provider.of<QuestionProvider>(
+                                  context,
+                                  listen: false,
+                                );
+                                final nextQuestion = provider
+                                    .getQuestionByIndex(6);
+                                if (nextQuestion != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ActivityLevelScreen(
+                                        question: nextQuestion,
+                                        fullname: widget.fullname,
+                                        gender: widget.gender,
+                                        height: widget.height,
+                                        weight: widget.weight,
+                                        age: widget.age,
+                                        goal: _selectedLevel,
+                                        userId: widget.userId,
+                                      ),
+                                    ),
+                                  );
+                                }
                               }
                             },
                     ),

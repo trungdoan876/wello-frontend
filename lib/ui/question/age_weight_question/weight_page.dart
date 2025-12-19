@@ -13,14 +13,22 @@ class WeightPage extends StatefulWidget {
   final String? fullname;
   final String? gender;
   final int? height;
+  final int? weight;
   final int? userId;
+  final int? initialWeight;
+  final String? buttonText;
+  final Future<bool> Function(int weight)? onUpdate;
   const WeightPage({
     super.key,
     required this.question,
     this.fullname,
     this.gender,
     this.height,
+    this.weight,
     this.userId,
+    this.initialWeight,
+    this.buttonText,
+    this.onUpdate,
   });
 
   @override
@@ -28,7 +36,13 @@ class WeightPage extends StatefulWidget {
 }
 
 class _WeightPageState extends State<WeightPage> {
-  int weight = 60;
+  late int weight;
+
+  @override
+  void initState() {
+    super.initState();
+    weight = widget.initialWeight ?? 60;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,27 +135,40 @@ class _WeightPageState extends State<WeightPage> {
                 SizedBox(
                   width: context.w(0.5),
                   child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed: () {
-                      final provider = Provider.of<QuestionProvider>(
-                        context,
-                        listen: false,
-                      );
-                      final nextQuestion = provider.getQuestionByIndex(4);
-                      if (nextQuestion != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AgePage(
-                              question: nextQuestion,
-                              fullname: widget.fullname,
-                              gender: widget.gender,
-                              height: widget.height,
-                              weight: weight,
-                              userId: widget.userId,
-                            ),
-                          ),
+                    text: widget.buttonText ?? "Tiếp tục",
+                    onPressed: () async {
+                      if (widget.onUpdate != null) {
+                        // Update mode
+                        print(
+                          '[WeightPage] Update mode - calling onUpdate with $weight',
                         );
+                        final success = await widget.onUpdate!(weight);
+                        if (!mounted) return;
+                        if (success) {
+                          Navigator.pop(context, weight);
+                        }
+                      } else {
+                        // Normal onboarding flow
+                        final provider = Provider.of<QuestionProvider>(
+                          context,
+                          listen: false,
+                        );
+                        final nextQuestion = provider.getQuestionByIndex(4);
+                        if (nextQuestion != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AgePage(
+                                question: nextQuestion,
+                                fullname: widget.fullname,
+                                gender: widget.gender,
+                                height: widget.height,
+                                weight: weight,
+                                userId: widget.userId,
+                              ),
+                            ),
+                          );
+                        }
                       }
                     },
                   ),

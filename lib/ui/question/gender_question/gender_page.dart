@@ -12,7 +12,19 @@ class GenderPage extends StatefulWidget {
   final Question question;
   final String? fullname;
   final int? userId;
-  const GenderPage({super.key, required this.question, this.fullname, this.userId});
+  final String? initialGender;
+  final String? buttonText;
+  final Future<bool> Function(String gender)? onUpdate;
+
+  const GenderPage({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.userId,
+    this.initialGender,
+    this.buttonText,
+    this.onUpdate,
+  });
 
   @override
   State<GenderPage> createState() => _GenderPageState();
@@ -20,6 +32,14 @@ class GenderPage extends StatefulWidget {
 
 class _GenderPageState extends State<GenderPage> {
   String selectedGender = "";
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialGender != null) {
+      selectedGender = widget.initialGender!;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,27 +115,48 @@ class _GenderPageState extends State<GenderPage> {
                 SizedBox(
                   width: context.w(0.5),
                   child: AnimatedStartButton(
-                    text: "Tiếp tục",
+                    text: widget.buttonText ?? "Tiếp tục",
                     onPressed: selectedGender.isEmpty
                         ? null
-                        : () {
-                            final provider = Provider.of<QuestionProvider>(
-                              context,
-                              listen: false,
-                            );
-                            final nextQuestion = provider.getQuestionByIndex(2);
-                            if (nextQuestion != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => HeightPage(
-                                    question: nextQuestion,
-                                    fullname: widget.fullname,
-                                    gender: selectedGender,
-                                    userId: widget.userId,
-                                  ),
-                                ),
+                        : () async {
+                            print('[GenderPage] onUpdate: ${widget.onUpdate}');
+                            if (widget.onUpdate != null) {
+                              // Update mode
+                              print(
+                                '[GenderPage] Update mode - calling onUpdate with $selectedGender',
                               );
+                              final success = await widget.onUpdate!(
+                                selectedGender,
+                              );
+                              if (!mounted) return;
+                              if (success) {
+                                // Only return the result; parent shows a single top banner
+                                Navigator.pop(context, selectedGender);
+                              } else {
+                                // Stay on page; parent will decide how to notify
+                              }
+                            } else {
+                              // Normal onboarding flow
+                              final provider = Provider.of<QuestionProvider>(
+                                context,
+                                listen: false,
+                              );
+                              final nextQuestion = provider.getQuestionByIndex(
+                                2,
+                              );
+                              if (nextQuestion != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => HeightPage(
+                                      question: nextQuestion,
+                                      fullname: widget.fullname,
+                                      gender: selectedGender,
+                                      userId: widget.userId,
+                                    ),
+                                  ),
+                                );
+                              }
                             }
                           },
                   ),

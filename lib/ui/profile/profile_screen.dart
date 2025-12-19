@@ -17,6 +17,7 @@ import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:intl/intl.dart';
 import 'widgets/water_tracking_card.dart';
 import 'package:wello_frontend/ui/summary/widgets/bmi_card.dart';
+import 'widgets/physical_profile_page.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(bool)? onQuickActionsChanged;
@@ -40,6 +41,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     // Load user ID from SharedPreferences
     _loadUserId();
+    // Load profile data when entering screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProfileData();
+    });
   }
 
   Future<void> _loadUserId() async {
@@ -47,6 +52,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _userId = userId ?? 1; // Default to 1 if not found
     });
+  }
+
+  Future<void> _loadProfileData() async {
+    if (_userId == null) return;
+
+    try {
+      final profileProvider = Provider.of<ProfileProvider>(
+        context,
+        listen: false,
+      );
+      await profileProvider.loadProfile(_userId!);
+    } catch (e) {
+      print('[ProfileScreen] Error loading profile: $e');
+    }
   }
 
   void _setQuickActionsVisible(bool show) {
@@ -580,7 +599,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Physical profile button
                         ElevatedButton(
                           onPressed: () {
-                            // TODO: Navigate to physical profile
+                            if (profileData != null) {
+                              final profileProvider =
+                                  Provider.of<ProfileProvider>(
+                                    context,
+                                    listen: false,
+                                  );
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => PhysicalProfilePage(
+                                    profile: profileData,
+                                    onUpdateFullname: (userId, fullname) async {
+                                      return await profileProvider
+                                          .updateFullname(
+                                            userId: userId,
+                                            fullname: fullname,
+                                          );
+                                    },
+                                    onUpdateGender: (userId, gender) async {
+                                      return await profileProvider.updateGender(
+                                        userId: userId,
+                                        gender: gender,
+                                      );
+                                    },
+                                    onUpdateAge: (userId, age) async {
+                                      return await profileProvider.updateAge(
+                                        userId: userId,
+                                        age: age,
+                                      );
+                                    },
+                                    onUpdateHeight: (userId, height) async {
+                                      return await profileProvider.updateHeight(
+                                        userId: userId,
+                                        height: height,
+                                      );
+                                    },
+                                    onUpdateWeight: (userId, weight) async {
+                                      return await profileProvider.updateWeight(
+                                        userId: userId,
+                                        weight: weight,
+                                      );
+                                    },
+                                    onUpdateGoal: (userId, goal) async {
+                                      return await profileProvider.updateGoal(
+                                        userId: userId,
+                                        goal: goal,
+                                      );
+                                    },
+                                    onUpdateActivityLevel:
+                                        (userId, activityLevel) async {
+                                          return await profileProvider
+                                              .updateActivityLevel(
+                                                userId: userId,
+                                                activityLevel: activityLevel,
+                                              );
+                                        },
+                                    onRefreshProfile: () async {
+                                      await profileProvider.loadProfile(
+                                        _userId!,
+                                      );
+                                      return profileProvider.profileData;
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFFE066),
