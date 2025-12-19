@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
-import '../meal_selection/meal_selection_screen.dart';
+import '../meal_selection/selection_screen.dart';
 
 class QAData {
   final String key;
@@ -34,7 +34,7 @@ class QuickActionsPanel extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) =>
-            MealSelectionScreen(mealType: key, mealTitle: title),
+            SelectionScreen(mealType: key, mealTitle: title),
       ),
     );
   }

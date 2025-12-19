@@ -1,6 +1,7 @@
 /// Model for user profile and fitness goals
 class UserProfile {
   final String userId;
+  final String? startDate; // User registration/start date (yyyy-MM-dd)
   final double currentWeight;
   final String goalType; // "gain_weight", "lose_weight", "maintain"
   final int dailyCalorieTarget;
@@ -10,6 +11,7 @@ class UserProfile {
 
   UserProfile({
     required this.userId,
+    this.startDate,
     required this.currentWeight,
     required this.goalType,
     required this.dailyCalorieTarget,
@@ -20,12 +22,13 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      userId: json['userId'] ?? '',
+      userId: json['userId']?.toString() ?? '', // Handle both int and string
+      startDate: json['startDate']?.toString(), // Ensure string
       currentWeight: (json['currentWeight'] ?? 0).toDouble(),
       goalType: json['goalType'] ?? 'maintain',
-      dailyCalorieTarget: json['dailyCalorieTarget'] ?? 2000,
-      dailyCalorieBurned: json['dailyCalorieBurned'] ?? 0,
-      dailyWaterTarget: json['dailyWaterTarget'] ?? 1950,
+      dailyCalorieTarget: (json['dailyCalorieTarget'] ?? 2000).toInt(),
+      dailyCalorieBurned: (json['dailyCalorieBurned'] ?? 0).toInt(),
+      dailyWaterTarget: (json['dailyWaterTarget'] ?? 1950).toInt(),
       macroTargets: MacroTargets.fromJson(json['macroTargets'] ?? {}),
     );
   }
@@ -33,6 +36,7 @@ class UserProfile {
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,
+      'startDate': startDate,
       'currentWeight': currentWeight,
       'goalType': goalType,
       'dailyCalorieTarget': dailyCalorieTarget,
@@ -70,9 +74,9 @@ class MacroTargets {
 
   factory MacroTargets.fromJson(Map<String, dynamic> json) {
     return MacroTargets(
-      carb: json['carb'] ?? 150,
-      protein: json['protein'] ?? 117,
-      fat: json['fat'] ?? 45,
+      carb: (json['carb'] as num?)?.toInt() ?? 150,
+      protein: (json['protein'] as num?)?.toInt() ?? 117,
+      fat: (json['fat'] as num?)?.toInt() ?? 45,
     );
   }
 

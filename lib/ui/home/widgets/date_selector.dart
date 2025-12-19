@@ -152,10 +152,31 @@ class _DateSelectorState extends State<DateSelector> {
                   final DateTime d = weekStart.add(Duration(days: i));
                   final String dateStr = DateFormat('yyyy-MM-dd').format(d);
                   final bool isActive = dateStr == selectedDate;
-                  final Color color = isActive ? activeColor : inactiveColor;
+                  final bool isFuture = d.isAfter(DateTime.now());
+                  
+                  // Check if date is before user's start date
+                  bool isBeforeStart = false;
+                  if (provider.userProfile?.startDate != null) {
+                    try {
+                      final startDate = DateFormat('yyyy-MM-dd').parse(provider.userProfile!.startDate!);
+                      isBeforeStart = d.isBefore(startDate);
+                      if (i == 0) { // Log once per week
+                        print('🔍 StartDate: ${provider.userProfile!.startDate}, Current: $dateStr, isBeforeStart: $isBeforeStart');
+                      }
+                    } catch (e) {
+                      print('⚠️ Error parsing startDate: $e');
+                    }
+                  } else {
+                    if (i == 0) print('⚠️ UserProfile or startDate is null');
+                  }
+                  
+                  final bool isDisabled = isFuture || isBeforeStart;
+                  final Color color = isDisabled
+                      ? inactiveColor.withOpacity(0.3) // Dim disabled dates
+                      : (isActive ? activeColor : inactiveColor);
 
                   return GestureDetector(
-                    onTap: () async {
+                    onTap: isDisabled ? null : () async {
                       print('📅 Date tapped: $dateStr');
                       
                       final credentials = await AuthHelper.getCredentials();

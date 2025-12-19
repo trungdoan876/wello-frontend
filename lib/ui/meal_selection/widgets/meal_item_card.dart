@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
-import '../meal_selection_screen.dart'; // hoặc đường dẫn chứa MealItem
+import '../selection_screen.dart'; // MealItem definition
 
 class MealItemCard extends StatelessWidget {
   final MealItem item;

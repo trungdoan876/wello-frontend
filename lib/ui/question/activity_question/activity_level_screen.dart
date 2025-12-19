@@ -66,12 +66,12 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
     return Scaffold(
       // ---- APP BAR ----
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.0)),
+        preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.05)),
         child: Padding(
-          padding: EdgeInsets.only(top: context.h(0.0)),
+          padding: EdgeInsets.only(top: context.h(0.05)),
           child: AppBar(
             elevation: 0,
-            backgroundColor: Colors.transparent,
+            backgroundColor: const Color(0xFFFFF7DA), // Pastel cream color
             centerTitle: true,
             leadingWidth: context.w(0.2),
             iconTheme: IconThemeData(color: mainYellow, size: context.sp(10)),
@@ -107,7 +107,7 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: context.h(0.12)),
+                SizedBox(height: context.h(0.15)),
 
                 // ---- CÂU HỎI ----
                 Text(
@@ -135,7 +135,10 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
 
                 SizedBox(height: context.h(0.05)),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.w(0.08),
+                    vertical: context.h(0.02),
+                  ),
                   child: Consumer<SurveyProvider>(
                     builder: (context, surveyProvider, child) {
                       return AnimatedStartButton(

@@ -61,10 +61,13 @@ class NutritionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      print('🔄 Loading user profile for userId: $userId');
       _userProfile = await _repository.getUserProfile(token, userId);
+      print('✅ UserProfile loaded: startDate=${_userProfile?.startDate}');
       _isLoadingProfile = false;
       notifyListeners();
     } catch (e) {
+      print('❌ Failed to load profile: ${e.toString()}');
       _errorMessage = 'Failed to load profile: ${e.toString()}';
       _isLoadingProfile = false;
       notifyListeners();
