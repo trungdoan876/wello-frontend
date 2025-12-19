@@ -5,6 +5,8 @@ import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/data/data_source/exercise_remote_data_source.dart';
 import 'package:wello_frontend/data/repositories/exercise_repository_impl.dart';
 import 'package:wello_frontend/domain/entities/exercise.dart';
+import 'package:wello_frontend/data/data_source/food_remote_data_source.dart';
+import 'package:wello_frontend/data/repositories/food_repository_impl.dart';
 import 'widgets/meal_search_bar.dart';
 import 'widgets/meal_item_card.dart';
 import 'widgets/exercise_detail_sheet.dart';
@@ -61,7 +63,7 @@ class _SelectionScreenState extends State<SelectionScreen> {
       if (widget.mealType == 'tap_luyen') {
         await _loadExercises();
       } else {
-        _loadMealItems();
+        await _loadFoods(); // Changed from _loadMealItems
       }
       _filterItems('');
     } catch (e) {
@@ -97,15 +99,25 @@ class _SelectionScreenState extends State<SelectionScreen> {
     }).toList();
   }
 
-  void _loadMealItems() {
-    _allItems = [
-      const MealItem(name: 'Cơm ếch', description: '1 khẩu phần ăn - 203 calo', calories: 203),
-      const MealItem(name: 'Cơm gà', description: '1 khẩu phần ăn - 250 calo', calories: 250),
-      const MealItem(name: 'Cơm bò', description: '1 khẩu phần ăn - 280 calo', calories: 280),
-      const MealItem(name: 'Canh chua', description: '1 tô - 50 calo', calories: 50),
-      const MealItem(name: 'Salad rau', description: '1 bát - 80 calo', calories: 80),
-      const MealItem(name: 'Xúc xích', description: '1 cái - 150 calo', calories: 150),
-    ];
+  Future<void> _loadFoods() async {
+    final credentials = await AuthHelper.getCredentials();
+    if (credentials == null) {
+      throw Exception('Not authenticated');
+    }
+
+    final foodRepository = FoodRepositoryImpl(
+      remoteDataSource: FoodRemoteDataSource(),
+    );
+
+    final foods = await foodRepository.getAllFoods(credentials.token);
+
+    _allItems = foods.map((food) {
+      return MealItem(
+        name: food.name,
+        description: '${food.protein.toInt()}g protein, ${food.carbs.toInt()}g carbs',
+        calories: food.calories,
+      );
+    }).toList();
   }
 
   void _filterItems(String query) {
@@ -170,7 +182,7 @@ class _SelectionScreenState extends State<SelectionScreen> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Bạn có thể thích',
+                'Gợi ý',
                 style: GoogleFonts.baloo2(
                   fontSize: context.sp(6),
                   fontWeight: FontWeight.w800,
@@ -274,10 +286,10 @@ class _SelectionScreenState extends State<SelectionScreen> {
                                 padding: EdgeInsets.only(bottom: context.h(0.015)),
                                 child: MealItemCard(
                                   item: item,
-                                  onAdd: () {
+                                  onAdd: () async {
                                     if (widget.mealType == 'tap_luyen') {
                                       // Show duration picker for exercises
-                                      showModalBottomSheet(
+                                      final result = await showModalBottomSheet<bool>(
                                         context: context,
                                         isScrollControlled: true,
                                         backgroundColor: Colors.transparent,
@@ -286,6 +298,12 @@ class _SelectionScreenState extends State<SelectionScreen> {
                                           exerciseName: item.name,
                                         ),
                                       );
+                                      
+                                      // Reload workout history if success
+                                      if (result == true && mounted) {
+                                        // Trigger a rebuild by updating parent if needed
+                                        // For now, just show success - the card will auto-reload on lifecycle
+                                      }
                                     } else {
                                       // Simple add for meals (placeholder)
                                       ScaffoldMessenger.of(context).showSnackBar(

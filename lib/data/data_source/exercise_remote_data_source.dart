@@ -41,6 +41,8 @@ class ExerciseRemoteDataSource {
       '$baseUrl/workout/calculate?userId=$userId&exerciseId=$exerciseId&durationMinutes=$durationMinutes',
     );
 
+    print('🔍 Calculating calories - URL: $url');
+
     final response = await http.get(
       url,
       headers: {
@@ -48,6 +50,9 @@ class ExerciseRemoteDataSource {
         'Authorization': 'Bearer $token',
       },
     );
+
+    print('📡 Calculate response status: ${response.statusCode}');
+    print('📡 Calculate response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
@@ -73,6 +78,36 @@ class ExerciseRemoteDataSource {
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Failed to log workout: ${response.statusCode}');
+    }
+  }
+
+  /// Get daily workout history
+  /// GET /workout/daily?userId=1&date=2024-12-19
+  Future<DailyWorkoutLog> getDailyWorkoutLog(
+    String token,
+    String userId,
+    String date,
+  ) async {
+    final url = Uri.parse('$baseUrl/workout/daily?userId=$userId&date=$date');
+
+    print('🔍 Fetching daily workout log - URL: $url');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print('📡 Daily workout response status: ${response.statusCode}');
+    print('📡 Daily workout response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
+      return DailyWorkoutLog.fromJson(bodyJson);
+    } else {
+      throw Exception('Failed to load daily workout log: ${response.statusCode}');
     }
   }
 }

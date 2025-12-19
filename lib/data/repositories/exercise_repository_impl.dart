@@ -32,4 +32,13 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
   Future<void> logWorkout(String token, WorkoutLog workoutLog) async {
     return await remoteDataSource.logWorkout(token, workoutLog);
   }
+
+  @override
+  Future<DailyWorkoutLog> getDailyWorkoutLog(
+    String token,
+    String userId,
+    String date,
+  ) async {
+    return await remoteDataSource.getDailyWorkoutLog(token, userId, date);
+  }
 }

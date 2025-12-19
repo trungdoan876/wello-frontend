@@ -21,4 +21,14 @@ abstract class ExerciseRepository {
   /// @param token - Authentication token
   /// @param workoutLog - Workout log data
   Future<void> logWorkout(String token, WorkoutLog workoutLog);
+
+  /// Get daily workout history
+  /// @param token - Authentication token
+  /// @param userId - User ID
+  /// @param date - Date in yyyy-MM-dd format
+  Future<DailyWorkoutLog> getDailyWorkoutLog(
+    String token,
+    String userId,
+    String date,
+  );
 }

@@ -58,8 +58,58 @@ class CaloriePreview {
   CaloriePreview({required this.estimatedCalories});
 
   factory CaloriePreview.fromJson(Map<String, dynamic> json) {
+    print('🔍 CaloriePreview.fromJson - raw json: $json');
+    // Backend returns 'caloriesBurned' not 'estimatedCalories'
+    final calories = (json['caloriesBurned'] as num?)?.toInt() ?? 0;
+    print('✅ Parsed calories: $calories');
     return CaloriePreview(
-      estimatedCalories: json['estimatedCalories'] as int,
+      estimatedCalories: calories,
     );
   }
 }
+
+/// Single workout history item
+class WorkoutHistoryItem {
+  final int id;
+  final String exerciseName;
+  final int durationMinutes;
+  final int caloriesBurned;
+
+  WorkoutHistoryItem({
+    required this.id,
+    required this.exerciseName,
+    required this.durationMinutes,
+    required this.caloriesBurned,
+  });
+
+  factory WorkoutHistoryItem.fromJson(Map<String, dynamic> json) {
+    return WorkoutHistoryItem(
+      id: json['id'] as int,
+      exerciseName: json['exerciseName'] as String,
+      durationMinutes: json['durationMinutes'] as int,
+      caloriesBurned: json['caloriesBurned'] as int,
+    );
+  }
+}
+
+/// Daily workout log containing all workouts for a day
+class DailyWorkoutLog {
+  final int totalCaloriesBurned;
+  final List<WorkoutHistoryItem> workouts;
+
+  DailyWorkoutLog({
+    required this.totalCaloriesBurned,
+    required this.workouts,
+  });
+
+  factory DailyWorkoutLog.fromJson(Map<String, dynamic> json) {
+    final workoutsJson = json['workouts'] as List<dynamic>? ?? [];
+    return DailyWorkoutLog(
+      totalCaloriesBurned: json['totalCaloriesBurned'] as int? ?? 0,
+      workouts: workoutsJson
+          .map((item) => WorkoutHistoryItem.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
