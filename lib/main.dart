@@ -17,6 +17,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Setup background message handler TRƯỚC KHI app chạy
+  FirebaseMessaging.onBackgroundMessage(NotificationService.firebaseMessagingBackgroundHandler);
+
+  // Setup foreground message listener NGAY TẠI ĐÂY
+  NotificationService.setupForegroundListener();
+
   runApp(
     MultiProvider(
       providers: [

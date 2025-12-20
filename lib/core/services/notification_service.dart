@@ -16,6 +16,45 @@ class NotificationService {
   static final ProfileRepository _profileRepository = ProfileRepository();
   static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
+  /// Setup foreground message listener (call this in main.dart)
+  static void setupForegroundListener() {
+    print('Ὠ0 Setting up foreground FCM listener...');
+    
+    // Setup foreground message handler to show local notification
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('========================================');
+      print('὎c FOREGROUND MESSAGE RECEIVED!');
+      print('Notification: ${message.notification}');
+      print('Title: ${message.notification?.title}');
+      print('Body: ${message.notification?.body}');
+      print('Data: ${message.data}');
+      print('========================================');
+      
+      // Get title and body from notification or data
+      final title = message.notification?.title ?? 
+                   message.data['title'] ?? 
+                   'Thông báo';
+      final body = message.notification?.body ?? 
+                  message.data['body'] ?? 
+                  '';
+      
+      print('ὑ4 Showing local notification: $title - $body');
+      
+      // Show local notification
+      _showLocalNotification(title, body);
+    });
+
+    // Handle notification tap when app is in background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('὎c Notification tapped (app was in background)');
+      print('Data: ${message.data}');
+      // Handle navigation based on notification data
+    });
+    
+    print('✅ Foreground FCM listener setup complete!');
+  }
+
+  /// Initialize notification service (call this after user login)
   static Future<void> initialize(int userId) async {
     // Initialize local notifications
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -126,6 +165,14 @@ class NotificationService {
       body,
       notificationDetails,
     );
+  }
+
+  /// Background message handler (must be top-level function)
+  static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+    print('🌙 Background message received!');
+    print('Title: ${message.notification?.title}');
+    print('Body: ${message.notification?.body}');
+    // Background messages are automatically shown by FCM
   }
 
   /// Setup foreground notification listener (deprecated - now using local notifications)
