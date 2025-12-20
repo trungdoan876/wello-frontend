@@ -433,6 +433,9 @@ class ProfileRemoteDataSource {
       );
     } catch (e) {
       throw Exception('Error updating activityLevel: $e');
+    }
+  }
+
   /// Update FCM Token for user
   /// POST /api/profile/{userId}/fcm-token?fcmToken=...
   Future<bool> updateFcmToken({

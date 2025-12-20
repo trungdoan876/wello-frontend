@@ -36,15 +36,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Listen to profile changes and reload data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final profileProvider = context.read<ProfileProvider>();
-      profileProvider.addListener(_onProfileChanged);
+      try {
+        final profileProvider = context.read<ProfileProvider>();
+        profileProvider.addListener(_onProfileChanged);
+      } catch (e) {
+        // ProfileProvider not available, skip
+      }
     });
   }
 
   @override
   void dispose() {
-    final profileProvider = context.read<ProfileProvider>();
-    profileProvider.removeListener(_onProfileChanged);
+    try {
+      final profileProvider = context.read<ProfileProvider>();
+      profileProvider.removeListener(_onProfileChanged);
+    } catch (e) {
+      // ProfileProvider not available
+    }
     super.dispose();
   }
 

@@ -107,6 +107,9 @@ class ProfileRepository {
       );
     } catch (e) {
       throw Exception('Failed to update activity level: $e');
+    }
+  }
+
   /// Update FCM Token
   Future<bool> updateFcmToken({
     required int userId,

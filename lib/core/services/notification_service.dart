@@ -21,6 +21,21 @@ class NotificationService {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidSettings);
     await _localNotifications.initialize(initSettings);
+
+    // Create notification channel for Android 8+
+    const androidChannel = AndroidNotificationChannel(
+      'water_reminder_channel',
+      'Nhắc nhở uống nước',
+      description: 'Thông báo nhắc nhở uống nước',
+      importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(androidChannel);
+
     // Request permission for Android 13+ and iOS
     await _messaging.requestPermission(
       alert: true,
@@ -55,15 +70,26 @@ class NotificationService {
 
     // Setup foreground message handler to show local notification
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('📬 Foreground message received!');
+      print('========================================');
+      print('📬 FOREGROUND MESSAGE RECEIVED!');
+      print('Notification: ${message.notification}');
       print('Title: ${message.notification?.title}');
       print('Body: ${message.notification?.body}');
+      print('Data: ${message.data}');
+      print('========================================');
+      
+      // Get title and body from notification or data
+      final title = message.notification?.title ?? 
+                   message.data['title'] ?? 
+                   'Thông báo';
+      final body = message.notification?.body ?? 
+                  message.data['body'] ?? 
+                  '';
+      
+      print('🔔 Showing local notification: $title - $body');
       
       // Show local notification
-      _showLocalNotification(
-        message.notification?.title ?? 'Thông báo',
-        message.notification?.body ?? '',
-      );
+      _showLocalNotification(title, body);
     });
 
     // Handle notification tap when app is in background
@@ -76,6 +102,8 @@ class NotificationService {
 
   /// Show local notification in system tray
   static Future<void> _showLocalNotification(String title, String body) async {
+    print('὎2 _showLocalNotification called with: $title - $body');
+    
     const androidDetails = AndroidNotificationDetails(
       'water_reminder_channel',
       'Nhắc nhở uống nước',
