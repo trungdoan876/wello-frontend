@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/ui/question/activity_question/activity_level_screen.dart';
+import 'package:wello_frontend/ui/question/age_weight_question/weight_page.dart';
 import 'package:wello_frontend/ui/question/activity_question/widgets/activity_option_button.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
@@ -14,6 +15,7 @@ class TargetLevelScreen extends StatefulWidget {
   final String? gender;
   final int? height;
   final int? weight;
+  final int? targetWeight;
   final int? age;
   final int? userId;
   final String? initialGoal;
@@ -26,6 +28,7 @@ class TargetLevelScreen extends StatefulWidget {
     this.gender,
     this.height,
     this.weight,
+    this.targetWeight,
     this.age,
     this.userId,
     this.initialGoal,
@@ -162,18 +165,16 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                                   context,
                                   listen: false,
                                 );
-                                final nextQuestion = provider
-                                    .getQuestionByIndex(6);
+                                final nextQuestion = provider.getQuestionByIndex(5);
                                 if (nextQuestion != null) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => ActivityLevelScreen(
+                                      builder: (_) => WeightPage(
                                         question: nextQuestion,
                                         fullname: widget.fullname,
                                         gender: widget.gender,
                                         height: widget.height,
-                                        weight: widget.weight,
                                         age: widget.age,
                                         goal: _selectedLevel,
                                         userId: widget.userId,

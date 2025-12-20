@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/ui/question/target_question/target_screen.dart';
+import 'package:wello_frontend/ui/question/height_question/height_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
@@ -15,6 +16,7 @@ class AgePage extends StatefulWidget {
   final String? gender;
   final int? height;
   final int? weight;
+  final int? targetWeight;
   final int? userId;
   final int? initialAge;
   final String? buttonText;
@@ -27,6 +29,7 @@ class AgePage extends StatefulWidget {
     this.gender,
     this.height,
     this.weight,
+    this.targetWeight,
     this.userId,
     this.initialAge,
     this.buttonText,
@@ -164,18 +167,15 @@ class _AgePageState extends State<AgePage> {
                           context,
                           listen: false,
                         );
-                        final nextQuestion = provider.getQuestionByIndex(5);
+                        final nextQuestion = provider.getQuestionByIndex(3);
                         if (nextQuestion != null) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => TargetLevelScreen(
+                              builder: (_) => HeightPage(
                                 question: nextQuestion,
                                 fullname: widget.fullname,
                                 gender: widget.gender,
-                                height: widget.height,
-                                weight: widget.weight,
-                                age: age,
                                 userId: widget.userId,
                               ),
                             ),

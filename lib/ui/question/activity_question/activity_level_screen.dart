@@ -17,6 +17,7 @@ class ActivityLevelScreen extends StatefulWidget {
   final String? gender;
   final int? height;
   final int? weight;
+  final int? targetWeight;
   final int? age;
   final String? goal;
   final int? userId;
@@ -31,6 +32,7 @@ class ActivityLevelScreen extends StatefulWidget {
     this.gender,
     this.height,
     this.weight,
+    this.targetWeight,
     this.age,
     this.goal,
     this.userId,
@@ -187,6 +189,7 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                                     weight: widget.weight ?? 65,
                                     goal: widget.goal ?? 'KEEP_FIT',
                                     activityLevel: _selectedLevel!,
+                                    targetWeight: widget.targetWeight,
                                   );
 
                                   print(

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/ui/question/gender_question/widgets/gender_selector.dart';
-import 'package:wello_frontend/ui/question/height_question/height_page.dart';
+import 'package:wello_frontend/ui/question/age_weight_question/age_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
@@ -148,7 +148,7 @@ class _GenderPageState extends State<GenderPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => HeightPage(
+                                    builder: (_) => AgePage(
                                       question: nextQuestion,
                                       fullname: widget.fullname,
                                       gender: selectedGender,

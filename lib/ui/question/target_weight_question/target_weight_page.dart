@@ -3,17 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
-import 'package:wello_frontend/ui/question/age_weight_question/age_page.dart';
+import 'package:wello_frontend/ui/question/activity_question/activity_level_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/data/data_source/survey_remote_data_source.dart';
 import 'package:wello_frontend/data/models/responses/calculate_bmi_response_model.dart';
-import 'package:wello_frontend/ui/question/activity_question/activity_level_screen.dart';
-import 'package:wello_frontend/ui/question/target_weight_question/target_weight_page.dart';
-import 'widgets/number_box.dart';
-import 'widgets/bmi_display_card.dart';
+import '../age_weight_question/widgets/number_box.dart';
+import '../age_weight_question/widgets/bmi_display_card.dart';
 
-class WeightPage extends StatefulWidget {
+class TargetWeightPage extends StatefulWidget {
   final Question question;
   final String? fullname;
   final String? gender;
@@ -22,10 +20,9 @@ class WeightPage extends StatefulWidget {
   final int? age;
   final String? goal;
   final int? userId;
-  final int? initialWeight;
-  final String? buttonText;
-  final Future<bool> Function(int weight)? onUpdate;
-  const WeightPage({
+  final int? initialTargetWeight;
+
+  const TargetWeightPage({
     super.key,
     required this.question,
     this.fullname,
@@ -35,24 +32,22 @@ class WeightPage extends StatefulWidget {
     this.age,
     this.goal,
     this.userId,
-    this.initialWeight,
-    this.buttonText,
-    this.onUpdate,
+    this.initialTargetWeight,
   });
 
   @override
-  State<WeightPage> createState() => _WeightPageState();
+  State<TargetWeightPage> createState() => _TargetWeightPageState();
 }
 
-class _WeightPageState extends State<WeightPage> {
-  late int weight;
-  CalculateBmiResponse? bmiData;
+class _TargetWeightPageState extends State<TargetWeightPage> {
+  late int targetWeight;
+  CalculateBmiResponse? targetBmiData;
   final SurveyRemoteDataSource _surveyDataSource = SurveyRemoteDataSource();
 
   @override
   void initState() {
     super.initState();
-    weight = widget.initialWeight ?? 60;
+    targetWeight = widget.initialTargetWeight ?? widget.weight ?? 60;
     _calculateBmi();
   }
 
@@ -61,14 +56,14 @@ class _WeightPageState extends State<WeightPage> {
     
     try {
       final response = await _surveyDataSource.calculateBmi(
-        weight: weight,
+        weight: targetWeight,
         height: widget.height!,
         goal: widget.goal,
       );
       
       if (mounted) {
         setState(() {
-          bmiData = response;
+          targetBmiData = response;
         });
       }
     } catch (e) {
@@ -76,7 +71,7 @@ class _WeightPageState extends State<WeightPage> {
     }
   }
 
-  void _onWeightChanged() {
+  void _onTargetWeightChanged() {
     _calculateBmi();
   }
 
@@ -147,7 +142,7 @@ class _WeightPageState extends State<WeightPage> {
 
                 SizedBox(height: context.h(0.05)),
 
-                // ----- WEIGHT BOX -----
+                // ----- TARGET WEIGHT BOX -----
                 Container(
                   padding: EdgeInsets.all(context.w(0.05)),
                   decoration: BoxDecoration(
@@ -155,28 +150,28 @@ class _WeightPageState extends State<WeightPage> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: NumberBox(
-                    title: "Cân nặng",
+                    title: "Mục tiêu",
                     unit: widget.question.unit ?? "kg",
-                    value: weight,
+                    value: targetWeight,
                     onMinus: () {
                       setState(() {
-                        if (weight > 1) weight--;
+                        if (targetWeight > 1) targetWeight--;
                       });
-                      _onWeightChanged();
+                      _onTargetWeightChanged();
                     },
                     onPlus: () {
-                      setState(() => weight++);
-                      _onWeightChanged();
+                      setState(() => targetWeight++);
+                      _onTargetWeightChanged();
                     },
                   ),
                 ),
 
                 SizedBox(height: context.h(0.02)),
 
-                // ----- BMI DISPLAY -----
+                // ----- TARGET BMI DISPLAY -----
                 if (widget.height != null)
                   BmiDisplayCard(
-                    bmiData: bmiData,
+                    bmiData: targetBmiData,
                   ),
 
                 SizedBox(height: context.h(0.05)),
@@ -185,42 +180,31 @@ class _WeightPageState extends State<WeightPage> {
                 SizedBox(
                   width: context.w(0.5),
                   child: AnimatedStartButton(
-                    text: widget.buttonText ?? "Tiếp tục",
+                    text: "Tiếp tục",
                     onPressed: () async {
-                      if (widget.onUpdate != null) {
-                        // Update mode
-                        print(
-                          '[WeightPage] Update mode - calling onUpdate with $weight',
-                        );
-                        final success = await widget.onUpdate!(weight);
-                        if (!mounted) return;
-                        if (success) {
-                          Navigator.pop(context, weight);
-                        }
-                      } else {
-                        // Normal onboarding flow
-                        final provider = Provider.of<QuestionProvider>(
+                      // Navigate to Activity Level Screen
+                      final provider = Provider.of<QuestionProvider>(
+                        context,
+                        listen: false,
+                      );
+                      final nextQuestion = provider.getQuestionByIndex(7);
+                      if (nextQuestion != null) {
+                        Navigator.push(
                           context,
-                          listen: false,
-                        );
-                        final nextQuestion = provider.getQuestionByIndex(6);
-                        if (nextQuestion != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TargetWeightPage(
-                                question: nextQuestion,
-                                fullname: widget.fullname,
-                                gender: widget.gender,
-                                height: widget.height,
-                                weight: weight,
-                                age: widget.age,
-                                goal: widget.goal,
-                                userId: widget.userId,
-                              ),
+                          MaterialPageRoute(
+                            builder: (_) => ActivityLevelScreen(
+                              question: nextQuestion,
+                              fullname: widget.fullname,
+                              gender: widget.gender,
+                              height: widget.height,
+                              weight: widget.weight,
+                              targetWeight: targetWeight,
+                              age: widget.age,
+                              goal: widget.goal,
+                              userId: widget.userId,
                             ),
-                          );
-                        }
+                          ),
+                        );
                       }
                     },
                   ),
@@ -229,7 +213,7 @@ class _WeightPageState extends State<WeightPage> {
             ),
           ),
         ),
-        ),
+      ),
       ),
     );
   }

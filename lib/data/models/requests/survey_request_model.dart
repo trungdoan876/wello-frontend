@@ -7,6 +7,7 @@ class SurveyRequestModel {
   final int weight;
   final String goal;
   final String activityLevel;
+  final int? targetWeight; // Target weight for LOSE_WEIGHT or GAIN_WEIGHT goals
 
   SurveyRequestModel({
     required this.userId,
@@ -17,6 +18,7 @@ class SurveyRequestModel {
     required this.weight,
     required this.goal,
     required this.activityLevel,
+    this.targetWeight,
   });
 
   Map<String, dynamic> toJson() {
@@ -29,6 +31,7 @@ class SurveyRequestModel {
       'weight': weight,
       'goal': goal,
       'activityLevel': activityLevel,
+      if (targetWeight != null) 'targetWeight': targetWeight,
     };
   }
 }

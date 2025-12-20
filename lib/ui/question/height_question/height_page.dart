@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
-import 'package:wello_frontend/ui/question/age_weight_question/weight_page.dart';
+import 'package:wello_frontend/ui/question/target_question/target_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'widgets/height_slider.dart';
@@ -165,12 +165,12 @@ class _HeightPageState extends State<HeightPage> {
                           context,
                           listen: false,
                         );
-                        final nextQuestion = provider.getQuestionByIndex(3);
+                        final nextQuestion = provider.getQuestionByIndex(4);
                         if (nextQuestion != null) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => WeightPage(
+                              builder: (_) => TargetLevelScreen(
                                 question: nextQuestion,
                                 fullname: widget.fullname,
                                 gender: widget.gender,
