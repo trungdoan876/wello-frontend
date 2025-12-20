@@ -2,20 +2,101 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/core/utils/auth_helper.dart';
+import 'package:wello_frontend/data/repositories/nutrition_repository_impl.dart';
+import 'package:wello_frontend/data/data_source/nutrition_remote_data_source.dart';
+import 'package:wello_frontend/domain/entities/weight_history_item.dart';
+import 'package:wello_frontend/data/repositories/profile_repository.dart';
 
 /// Complete weight goal card widget containing header, title, chart, and labels.
-class WeightGoalCard extends StatelessWidget {
-  final List<double> data;
-  final String targetWeight;
+class WeightGoalCard extends StatefulWidget {
+  final List<double>? data;
+  final String? targetWeight;
   final List<String>? xLabels;
 
-  const WeightGoalCard({
-    Key? key,
-    this.data = const [59.9, 59.8, 60.1, 60.3, 58.8],
-    this.targetWeight = '60kg',
-    this.xLabels,
-  }) : super(key: key);
+  const WeightGoalCard({Key? key, this.data, this.targetWeight, this.xLabels})
+    : super(key: key);
+
+  @override
+  State<WeightGoalCard> createState() => _WeightGoalCardState();
+}
+
+class _WeightGoalCardState extends State<WeightGoalCard> {
+  List<double> _data = const [59.9, 59.8, 60.1, 60.3, 58.8];
+  List<String>? _labels;
+  String _target = '60kg';
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFromProps();
+    _loadFromApi();
+  }
+
+  void _initFromProps() {
+    if (widget.data != null && widget.data!.isNotEmpty) {
+      _data = widget.data!;
+    }
+    if (widget.xLabels != null && widget.xLabels!.length >= 2) {
+      _labels = widget.xLabels!;
+    }
+    if (widget.targetWeight != null) {
+      _target = widget.targetWeight!;
+    }
+  }
+
+  Future<void> _loadFromApi() async {
+    try {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+      final creds = await AuthHelper.getCredentials();
+      final userId = creds?.userId;
+      if (userId == null) {
+        throw Exception('No user session');
+      }
+
+      final repo = NutritionRepositoryImpl(
+        remoteDataSource: NutritionRemoteDataSource(),
+      );
+      final List<WeightHistoryItem> history = await repo.getWeightHistory(
+        userId.toString(),
+      );
+
+      if (history.isEmpty) {
+        setState(() {
+          _loading = false;
+          _error = 'Chưa có lịch sử cân nặng';
+        });
+        return;
+      }
+
+      history.sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
+      final weights = history.map((e) => e.weight).toList();
+      final fmt = DateFormat("dd 'thg' MM");
+      final labels = [
+        fmt.format(history.first.recordedAt),
+        fmt.format(history.last.recordedAt),
+      ];
+
+      setState(() {
+        _data = weights;
+        _labels = labels;
+        _target = '${weights.last.toStringAsFixed(1)}kg';
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +105,6 @@ class WeightGoalCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Mục tiêu section (outside the box)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -37,7 +117,7 @@ class WeightGoalCard extends StatelessWidget {
               ),
             ),
             Text(
-              '(gợi ý) ' + targetWeight,
+              '(gợi ý) ' + _target,
               style: GoogleFonts.baloo2(
                 fontSize: context.sp(4.5),
                 color: const Color(0xff6177D0),
@@ -48,7 +128,6 @@ class WeightGoalCard extends StatelessWidget {
           ],
         ),
         SizedBox(height: context.h(0.015)),
-        // Chart box (inside BoxDecoration, includes Cân nặng + chart)
         Container(
           padding: EdgeInsets.all(context.w(0.04)),
           decoration: BoxDecoration(
@@ -77,19 +156,220 @@ class WeightGoalCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: context.w(0.02)),
-                  Icon(
-                    Icons.add_circle_outline,
-                    color: mainYellow,
-                    size: context.sp(7.0),
+                  InkWell(
+                    onTap: _showUpdateWeightSheet,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Icon(
+                      Icons.add_circle_outline,
+                      color: mainYellow,
+                      size: context.sp(7.0),
+                    ),
                   ),
                 ],
               ),
               SizedBox(height: context.h(0.02)),
-              WeightChart(data: data, xLabels: xLabels),
+              if (_loading)
+                SizedBox(
+                  height: context.h(0.12),
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Color(0xffEBCF23)),
+                  ),
+                )
+              else if (_error != null)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: context.h(0.02)),
+                  child: Text(
+                    _error!,
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(5),
+                      color: Colors.red,
+                    ),
+                  ),
+                )
+              else
+                WeightChart(data: _data, xLabels: _labels),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _showUpdateWeightSheet() async {
+    int editWeight = _data.isNotEmpty ? _data.last.toInt() : 60;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: context.w(0.06),
+            right: context.w(0.06),
+            top: context.h(0.02),
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + context.h(0.02),
+          ),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: context.h(0.008)),
+                  Container(
+                    width: 42,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E0E0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  SizedBox(height: context.h(0.02)),
+                  Text(
+                    'Cập nhật cân nặng',
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(7),
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF4C494C),
+                    ),
+                  ),
+                  SizedBox(height: context.h(0.02)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _circleButton(Icons.remove, () {
+                        setModalState(() {
+                          editWeight = (editWeight - 1).clamp(1, 400);
+                        });
+                      }),
+                      SizedBox(width: context.w(0.08)),
+                      Text(
+                        editWeight.toString(),
+                        style: GoogleFonts.baloo2(
+                          fontSize: context.sp(8),
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF4C494C),
+                        ),
+                      ),
+                      SizedBox(width: context.w(0.08)),
+                      _circleButton(Icons.add, () {
+                        setModalState(() {
+                          editWeight = (editWeight + 1).clamp(1, 400);
+                        });
+                      }),
+                    ],
+                  ),
+                  SizedBox(height: context.h(0.015)),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.w(0.03),
+                      vertical: context.h(0.008),
+                    ),
+                    decoration: BoxDecoration(
+                      color: const ui.Color.fromARGB(255, 127, 226, 162),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'kg',
+                      style: GoogleFonts.baloo2(
+                        fontSize: context.sp(5.5),
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: context.h(0.02)),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          final creds = await AuthHelper.getCredentials();
+                          if (creds == null) {
+                            throw Exception('Không tìm thấy phiên đăng nhập');
+                          }
+                          final userId = creds.userId;
+                          final int intWeight = editWeight;
+
+                          final repo = ProfileRepository();
+                          final ok = await repo.updateWeight(
+                            userId: userId,
+                            weight: intWeight,
+                          );
+                          if (!mounted) return;
+                          if (ok) {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Đã cập nhật cân nặng'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            // Reload chart data
+                            await _loadFromApi();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Cập nhật thất bại'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Lỗi: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFC107),
+                        padding: EdgeInsets.symmetric(
+                          vertical: context.h(0.016),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Cập nhật',
+                        style: GoogleFonts.baloo2(
+                          fontSize: context.sp(6),
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: context.h(0.01)),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _circleButton(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: const Color(0xFF6B6B6B)),
+      ),
     );
   }
 }
@@ -141,7 +421,7 @@ class WeightChart extends StatelessWidget {
             Text(
               labels.last,
               style: TextStyle(
-               fontSize: context.sp(4.0),
+                fontSize: context.sp(4.0),
                 color: Color(0xff8B8989),
                 fontWeight: FontWeight.bold,
               ),
@@ -180,7 +460,7 @@ class _WeightChartPainter extends CustomPainter {
     final vRange = maxV - minV;
 
     final int n = data.length;
-    final double leftPadding = size.width * 0.12; //chỉnh chart qua phải 
+    final double leftPadding = size.width * 0.12; //chỉnh chart qua phải
     final double rightPadding = size.width * 0.04;
     final double topPadding = size.height * 0.08;
     final double bottomPadding = size.height * 0.08;
@@ -221,14 +501,20 @@ class _WeightChartPainter extends CustomPainter {
       );
     canvas.drawPath(areaPath, fillPaint);
 
-    // thin horizontal grid lines (top and mid)
+    // thin horizontal grid line at max value level
     final gridPaint = Paint()
       ..color = Colors.grey.withOpacity(0.18)
       ..strokeWidth = 1;
-    // top grid at first point's y (approx top of data)
+    double yForValue(double val) {
+      final double normalized = (val - minV) / vRange;
+      return topPadding + (1 - normalized) * chartH;
+    }
+
+    final double yMax = yForValue(maxV);
+    final double yMin = yForValue(minV);
     canvas.drawLine(
-      Offset(leftPadding, points.first.dy),
-      Offset(size.width - rightPadding, points.first.dy),
+      Offset(leftPadding, yMax),
+      Offset(size.width - rightPadding, yMax),
       gridPaint,
     );
 
@@ -248,18 +534,18 @@ class _WeightChartPainter extends CustomPainter {
     _drawText(
       canvas,
       '${maxV.toStringAsFixed(1)}',
-      Offset(1, points[0].dy -25)  ,
+      Offset(1, yMax - 10),
       15.0,
       FontWeight.bold,
-      Color(0xff8B8989),
+      const Color(0xff8B8989),
     );
     _drawText(
       canvas,
       '${minV.toStringAsFixed(1)}',
-      Offset(4, size.height - bottomPadding/2 - 10),
+      Offset(4, yMin - 10),
       15.0,
-      FontWeight.bold,  
-      Color(0xff8B8989),
+      FontWeight.bold,
+      const Color(0xff8B8989),
     );
   }
 
@@ -273,9 +559,13 @@ class _WeightChartPainter extends CustomPainter {
   ) {
     final textSpan = TextSpan(
       text: text,
-      style: TextStyle(color: color, fontSize: fontSize, fontWeight: fontWeight),
+      style: TextStyle(
+        color: color,
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+      ),
     );
-    final tp = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
+    final tp = TextPainter(text: textSpan, textDirection: ui.TextDirection.ltr);
     tp.layout();
     tp.paint(canvas, offset);
   }
