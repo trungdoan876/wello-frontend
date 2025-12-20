@@ -3,6 +3,8 @@ import 'package:wello_frontend/ui/favorites/favorites_screen.dart';
 import 'package:wello_frontend/ui/home/home_screen.dart';
 import 'package:wello_frontend/ui/profile/profile_screen.dart';
 import 'package:wello_frontend/ui/widgets/centered_bottom_nav_bar.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/domain/providers/profile_provider.dart';
 
 //màn hình điều hướng chính với bottom navbar tùy chỉnh
 class MainNavigationScreen extends StatefulWidget {
@@ -30,42 +32,45 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          HomeScreen(
-            key: ValueKey('home_$_homeReloadId'),
-            onQuickActionsChanged: (show) {
-              setState(() {
-                _hideBottomNav = show;
-              });
-            },
-          ),
-          FavoritesScreen(
-            key: ValueKey('fav_$_favoritesReloadId'),
-            onQuickActionsChanged: (show) {
-              setState(() {
-                _hideBottomNav = show;
-              });
-            },
-          ),
-          ProfileScreen(
-            key: ValueKey('profile_$_profileReloadId'),
-            onQuickActionsChanged: (show) {
-              setState(() {
-                _hideBottomNav = show;
-              });
-            },
-          ),
-        ],
-      ),
-      bottomNavigationBar: _hideBottomNav
-          ? null
-          : CenteredBottomNavBar(
-              currentIndex: _currentIndex,
-              onTap: _onTabSelected,
+    return ChangeNotifierProvider(
+      create: (_) => ProfileProvider(),
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: [
+            HomeScreen(
+              key: ValueKey('home_$_homeReloadId'),
+              onQuickActionsChanged: (show) {
+                setState(() {
+                  _hideBottomNav = show;
+                });
+              },
             ),
+            FavoritesScreen(
+              key: ValueKey('fav_$_favoritesReloadId'),
+              onQuickActionsChanged: (show) {
+                setState(() {
+                  _hideBottomNav = show;
+                });
+              },
+            ),
+            ProfileScreen(
+              key: ValueKey('profile_$_profileReloadId'),
+              onQuickActionsChanged: (show) {
+                setState(() {
+                  _hideBottomNav = show;
+                });
+              },
+            ),
+          ],
+        ),
+        bottomNavigationBar: _hideBottomNav
+            ? null
+            : CenteredBottomNavBar(
+                currentIndex: _currentIndex,
+                onTap: _onTabSelected,
+              ),
+      ),
     );
   }
 }

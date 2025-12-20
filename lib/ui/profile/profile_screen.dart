@@ -15,6 +15,7 @@ import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:intl/intl.dart';
+import 'package:wello_frontend/core/navigation/route_observer.dart';
 import 'widgets/water_tracking_card.dart';
 import 'package:wello_frontend/ui/summary/widgets/bmi_card.dart';
 import 'widgets/physical_profile_page.dart';
@@ -28,13 +29,14 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
   bool _showQuickActions = false;
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
   int? _userId;
   bool _surveyRequested = false;
   bool _nutritionDataLoaded = false;
+  bool _routeSubscribed = false;
 
   @override
   void initState() {
@@ -46,6 +48,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
       _loadProfileData();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (!_routeSubscribed && route is PageRoute) {
+      appRouteObserver.subscribe(this, route);
+      _routeSubscribed = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_routeSubscribed) {
+      final route = ModalRoute.of(context);
+      if (route is PageRoute) {
+        appRouteObserver.unsubscribe(this);
+      }
+    }
+    super.dispose();
   }
 
   Future<void> _loadUserId() async {
@@ -67,6 +90,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await profileProvider.loadProfile(_userId!);
     } catch (e) {
       print('[ProfileScreen] Error loading profile: $e');
+    }
+  }
+
+  Future<void> _reloadOnReturn() async {
+    if (!mounted || _userId == null) return;
+    try {
+      debugPrint('[ProfileScreen] didPopNext → Reloading data');
+      final profileProvider = context.read<ProfileProvider>();
+      await profileProvider.loadProfile(_userId!);
+
+      // Recompute BMI survey using latest profile
+      final p = profileProvider.profileData;
+      if (p != null) {
+        final surveyProvider = context.read<SurveyProvider>();
+        final req = SurveyRequestModel(
+          userId: p.userId,
+          fullname: p.fullname,
+          gender: p.gender,
+          age: p.age,
+          height: p.height,
+          weight: p.weight.toInt(),
+          goal: p.goal,
+          activityLevel: p.activityLevel,
+        );
+        await surveyProvider.submitSurvey(req);
+      }
+
+      // Reload today's water summary
+      final credentials = await AuthHelper.getCredentials();
+      if (credentials != null) {
+        final nutritionProvider = context.read<NutritionProvider>();
+        final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        await nutritionProvider.loadDailySummary(
+          credentials.token,
+          credentials.userIdString,
+          today,
+        );
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Đã làm mới hồ sơ, BMI và nước uống'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+      }
+    } catch (e) {
+      // ignore errors silently for back refresh
     }
   }
 
@@ -135,6 +209,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _toggleNotif() {
     // TODO: Implement notification toggle
+  }
+
+  @override
+  void didPopNext() {
+    // Called when navigating back to this screen
+    _reloadOnReturn();
   }
 
   Future<void> _showImageSourceDialog() async {
@@ -325,13 +405,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ProfileProvider()),
-        ChangeNotifierProvider(create: (_) => SurveyProvider()),
-      ],
-      child: _buildProfileContent(),
-    );
+    return _buildProfileContent();
   }
 
   Widget _buildProfileContent() {
@@ -610,64 +684,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     context,
                                     listen: false,
                                   );
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => PhysicalProfilePage(
-                                    profile: profileData,
-                                    onUpdateFullname: (userId, fullname) async {
-                                      return await profileProvider
-                                          .updateFullname(
-                                            userId: userId,
-                                            fullname: fullname,
-                                          );
-                                    },
-                                    onUpdateGender: (userId, gender) async {
-                                      return await profileProvider.updateGender(
-                                        userId: userId,
-                                        gender: gender,
-                                      );
-                                    },
-                                    onUpdateAge: (userId, age) async {
-                                      return await profileProvider.updateAge(
-                                        userId: userId,
-                                        age: age,
-                                      );
-                                    },
-                                    onUpdateHeight: (userId, height) async {
-                                      return await profileProvider.updateHeight(
-                                        userId: userId,
-                                        height: height,
-                                      );
-                                    },
-                                    onUpdateWeight: (userId, weight) async {
-                                      return await profileProvider.updateWeight(
-                                        userId: userId,
-                                        weight: weight,
-                                      );
-                                    },
-                                    onUpdateGoal: (userId, goal) async {
-                                      return await profileProvider.updateGoal(
-                                        userId: userId,
-                                        goal: goal,
-                                      );
-                                    },
-                                    onUpdateActivityLevel:
-                                        (userId, activityLevel) async {
+                              Navigator.of(context)
+                                  .push(
+                                    MaterialPageRoute(
+                                      builder: (_) => PhysicalProfilePage(
+                                        profile: profileData,
+                                        onUpdateFullname:
+                                            (userId, fullname) async {
+                                              return await profileProvider
+                                                  .updateFullname(
+                                                    userId: userId,
+                                                    fullname: fullname,
+                                                  );
+                                            },
+                                        onUpdateGender: (userId, gender) async {
                                           return await profileProvider
-                                              .updateActivityLevel(
+                                              .updateGender(
                                                 userId: userId,
-                                                activityLevel: activityLevel,
+                                                gender: gender,
                                               );
                                         },
-                                    onRefreshProfile: () async {
-                                      await profileProvider.loadProfile(
-                                        _userId!,
-                                      );
-                                      return profileProvider.profileData;
-                                    },
-                                  ),
-                                ),
-                              );
+                                        onUpdateAge: (userId, age) async {
+                                          return await profileProvider
+                                              .updateAge(
+                                                userId: userId,
+                                                age: age,
+                                              );
+                                        },
+                                        onUpdateHeight: (userId, height) async {
+                                          return await profileProvider
+                                              .updateHeight(
+                                                userId: userId,
+                                                height: height,
+                                              );
+                                        },
+                                        onUpdateWeight: (userId, weight) async {
+                                          return await profileProvider
+                                              .updateWeight(
+                                                userId: userId,
+                                                weight: weight,
+                                              );
+                                        },
+                                        onUpdateGoal: (userId, goal) async {
+                                          return await profileProvider
+                                              .updateGoal(
+                                                userId: userId,
+                                                goal: goal,
+                                              );
+                                        },
+                                        onUpdateActivityLevel:
+                                            (userId, activityLevel) async {
+                                              return await profileProvider
+                                                  .updateActivityLevel(
+                                                    userId: userId,
+                                                    activityLevel:
+                                                        activityLevel,
+                                                  );
+                                            },
+                                        onRefreshProfile: () async {
+                                          await profileProvider.loadProfile(
+                                            _userId!,
+                                          );
+                                          return profileProvider.profileData;
+                                        },
+                                      ),
+                                    ),
+                                  )
+                                  .then((_) {
+                                    if (mounted) {
+                                      _reloadOnReturn();
+                                    }
+                                  });
                             }
                           },
                           style: ElevatedButton.styleFrom(
