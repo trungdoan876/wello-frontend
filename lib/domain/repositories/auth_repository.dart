@@ -17,5 +17,5 @@ abstract class AuthRepository {
   });
 
   /// Login with Google account
-  Future<LoginResponseModel> loginWithGoogle();
+  Future<LoginResponseModel> loginWithGoogle({String? idToken});
 }
