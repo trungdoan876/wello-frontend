@@ -46,6 +46,10 @@ class RegisterTextFields extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: isPassword,
+      keyboardType: label == "Email"
+          ? TextInputType.emailAddress
+          : TextInputType.text,
+      autofillHints: label == "Email" ? const [AutofillHints.email] : null,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: GoogleFonts.beVietnamPro(

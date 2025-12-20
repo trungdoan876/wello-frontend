@@ -137,27 +137,19 @@ class _HeightPageState extends State<HeightPage> {
                           '[HeightPage] Update mode - calling onUpdate with ${height.toInt()}',
                         );
                         final success = await widget.onUpdate!(height.toInt());
-                        if (mounted) {
-                          if (success) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Đã cập nhật chiều cao thành công',
-                                ),
-                                backgroundColor: Color(0xFF22C55E),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                            Navigator.pop(context, height.toInt());
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Cập nhật chiều cao thất bại'),
-                                backgroundColor: Color(0xFFEF4444),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          }
+                        if (!mounted) return;
+                        if (success) {
+                          // Avoid showing SnackBar from a route that will be popped
+                          Navigator.pop(context, height.toInt());
+                        } else {
+                          // Use maybeOf to avoid ancestor lookup errors if deactivated
+                          ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                            const SnackBar(
+                              content: Text('Cập nhật chiều cao thất bại'),
+                              backgroundColor: Color(0xFFEF4444),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
                         }
                       } else {
                         // Normal onboarding flow

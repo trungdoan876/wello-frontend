@@ -177,17 +177,28 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      print(
+        '[ProfileProvider] updateHeight called: userId=$userId, height=$height',
+      );
       final success = await _repository.updateHeight(
         userId: userId,
         height: height,
       );
+      print('[ProfileProvider] updateHeight result: success=$success');
       if (success) {
-        await loadProfile(userId);
+        try {
+          await loadProfile(userId);
+        } catch (e) {
+          print(
+            '[ProfileProvider] Warning: refresh after height update failed: $e',
+          );
+        }
       }
       _isLoading = false;
       notifyListeners();
       return success;
     } catch (e) {
+      print('[ProfileProvider] updateHeight error: $e');
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();

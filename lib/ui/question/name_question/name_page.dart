@@ -47,6 +47,7 @@ class _NamePageState extends State<NamePage> {
 
     // Load questions from backend if not already loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final provider = Provider.of<QuestionProvider>(context, listen: false);
       if (provider.questions.isEmpty && !provider.isLoading) {
         provider.loadQuestions();
@@ -175,28 +176,17 @@ class _NamePageState extends State<NamePage> {
                               final ok = await widget.onUpdate!(name);
                               if (!mounted) return;
                               if (ok) {
-                                ScaffoldMessenger.of(context)
-                                  ..clearSnackBars()
-                                  ..showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Đã cập nhật tên thành công',
-                                      ),
-                                      backgroundColor: Color(0xFF22C55E),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
                                 Navigator.pop(context, name);
                               } else {
-                                ScaffoldMessenger.of(context)
-                                  ..clearSnackBars()
-                                  ..showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Cập nhật tên thất bại'),
-                                      backgroundColor: Color(0xFFEF4444),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
+                                ScaffoldMessenger.maybeOf(
+                                  context,
+                                )?.showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Cập nhật tên thất bại'),
+                                    backgroundColor: Color(0xFFEF4444),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
                               }
                             } else {
                               Navigator.pop(context, name);

@@ -15,6 +15,9 @@ import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:intl/intl.dart';
+import 'package:wello_frontend/core/navigation/route_observer.dart';
+import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
+import 'package:wello_frontend/ui/auth/initial_page.dart';
 import 'widgets/water_tracking_card.dart';
 import 'package:wello_frontend/ui/summary/widgets/bmi_card.dart';
 import 'widgets/physical_profile_page.dart';
@@ -28,13 +31,14 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
   bool _showQuickActions = false;
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
   int? _userId;
   bool _surveyRequested = false;
   bool _nutritionDataLoaded = false;
+  bool _routeSubscribed = false;
 
   @override
   void initState() {
@@ -43,19 +47,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserId();
     // Load profile data when entering screen
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _loadProfileData();
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (!_routeSubscribed && route is PageRoute) {
+      appRouteObserver.subscribe(this, route);
+      _routeSubscribed = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_routeSubscribed) {
+      final route = ModalRoute.of(context);
+      if (route is PageRoute) {
+        appRouteObserver.unsubscribe(this);
+      }
+    }
+    super.dispose();
+  }
+
   Future<void> _loadUserId() async {
     final userId = await UserSession.getUserId();
+    if (!mounted) return;
     setState(() {
       _userId = userId ?? 1; // Default to 1 if not found
     });
   }
 
   Future<void> _loadProfileData() async {
-    if (_userId == null) return;
+    if (_userId == null || !mounted) return;
 
     try {
       final profileProvider = Provider.of<ProfileProvider>(
@@ -65,6 +92,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await profileProvider.loadProfile(_userId!);
     } catch (e) {
       print('[ProfileScreen] Error loading profile: $e');
+    }
+  }
+
+  Future<void> _reloadOnReturn() async {
+    if (!mounted || _userId == null) return;
+    try {
+      debugPrint('[ProfileScreen] didPopNext → Reloading data');
+      final profileProvider = context.read<ProfileProvider>();
+      await profileProvider.loadProfile(_userId!);
+
+      // Recompute BMI survey using latest profile
+      final p = profileProvider.profileData;
+      if (p != null) {
+        final surveyProvider = context.read<SurveyProvider>();
+        final req = SurveyRequestModel(
+          userId: p.userId,
+          fullname: p.fullname,
+          gender: p.gender,
+          age: p.age,
+          height: p.height,
+          weight: p.weight.toInt(),
+          goal: p.goal,
+          activityLevel: p.activityLevel,
+        );
+        await surveyProvider.submitSurvey(req);
+      }
+
+      // Reload today's water summary
+      final credentials = await AuthHelper.getCredentials();
+      if (credentials != null) {
+        final nutritionProvider = context.read<NutritionProvider>();
+        final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        await nutritionProvider.loadDailySummary(
+          credentials.token,
+          credentials.userIdString,
+          today,
+        );
+      }
+    } catch (e) {
+      // ignore errors silently for back refresh
     }
   }
 
@@ -133,6 +200,144 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _toggleNotif() {
     // TODO: Implement notification toggle
+  }
+
+  Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          elevation: 8,
+          backgroundColor: Colors.white,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: context.w(0.06),
+              vertical: context.h(0.03),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEBEE),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.logout,
+                    size: 48,
+                    color: Color(0xFFE53935),
+                  ),
+                ),
+                SizedBox(height: context.h(0.025)),
+                Text(
+                  'Đăng xuất',
+                  style: GoogleFonts.baloo2(
+                    fontSize: context.sp(7.5),
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF4C494C),
+                  ),
+                ),
+                SizedBox(height: context.h(0.015)),
+                Text(
+                  'Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng?',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.baloo2(
+                    fontSize: context.sp(5.5),
+                    color: const Color(0xFF6B6B6B),
+                    height: 1.4,
+                  ),
+                ),
+                SizedBox(height: context.h(0.03)),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: context.h(0.018),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: const BorderSide(
+                              color: Color(0xFFE0E0E0),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          'Hủy',
+                          style: GoogleFonts.baloo2(
+                            fontSize: context.sp(6),
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF6B6B6B),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: context.w(0.03)),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE53935),
+                          padding: EdgeInsets.symmetric(
+                            vertical: context.h(0.018),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Đăng xuất',
+                          style: GoogleFonts.baloo2(
+                            fontSize: context.sp(6),
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await AuthHelper.logout();
+      await UserSession.clearSession();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const InitialPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đăng xuất thất bại: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  void didPopNext() {
+    // Called when navigating back to this screen
+    _reloadOnReturn();
   }
 
   Future<void> _showImageSourceDialog() async {
@@ -323,13 +528,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ProfileProvider()),
-        ChangeNotifierProvider(create: (_) => SurveyProvider()),
-      ],
-      child: _buildProfileContent(),
-    );
+    return _buildProfileContent();
   }
 
   Widget _buildProfileContent() {
@@ -346,6 +545,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 !profileProvider.isLoading &&
                 profileProvider.errorMessage == null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
                 profileProvider.loadProfile(_userId!);
               });
             }
@@ -405,6 +605,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (profileData != null && !_surveyRequested) {
               _surveyRequested = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
                 final surveyProvider = Provider.of<SurveyProvider>(
                   context,
                   listen: false,
@@ -427,6 +628,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (profileData != null && !_nutritionDataLoaded) {
               _nutritionDataLoaded = true;
               WidgetsBinding.instance.addPostFrameCallback((_) async {
+                if (!mounted) return;
                 final credentials = await AuthHelper.getCredentials();
                 if (credentials != null && mounted) {
                   final nutritionProvider = Provider.of<NutritionProvider>(
@@ -605,64 +807,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     context,
                                     listen: false,
                                   );
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => PhysicalProfilePage(
-                                    profile: profileData,
-                                    onUpdateFullname: (userId, fullname) async {
-                                      return await profileProvider
-                                          .updateFullname(
-                                            userId: userId,
-                                            fullname: fullname,
-                                          );
-                                    },
-                                    onUpdateGender: (userId, gender) async {
-                                      return await profileProvider.updateGender(
-                                        userId: userId,
-                                        gender: gender,
-                                      );
-                                    },
-                                    onUpdateAge: (userId, age) async {
-                                      return await profileProvider.updateAge(
-                                        userId: userId,
-                                        age: age,
-                                      );
-                                    },
-                                    onUpdateHeight: (userId, height) async {
-                                      return await profileProvider.updateHeight(
-                                        userId: userId,
-                                        height: height,
-                                      );
-                                    },
-                                    onUpdateWeight: (userId, weight) async {
-                                      return await profileProvider.updateWeight(
-                                        userId: userId,
-                                        weight: weight,
-                                      );
-                                    },
-                                    onUpdateGoal: (userId, goal) async {
-                                      return await profileProvider.updateGoal(
-                                        userId: userId,
-                                        goal: goal,
-                                      );
-                                    },
-                                    onUpdateActivityLevel:
-                                        (userId, activityLevel) async {
+                              Navigator.of(context)
+                                  .push(
+                                    MaterialPageRoute(
+                                      builder: (_) => PhysicalProfilePage(
+                                        profile: profileData,
+                                        onUpdateFullname:
+                                            (userId, fullname) async {
+                                              return await profileProvider
+                                                  .updateFullname(
+                                                    userId: userId,
+                                                    fullname: fullname,
+                                                  );
+                                            },
+                                        onUpdateGender: (userId, gender) async {
                                           return await profileProvider
-                                              .updateActivityLevel(
+                                              .updateGender(
                                                 userId: userId,
-                                                activityLevel: activityLevel,
+                                                gender: gender,
                                               );
                                         },
-                                    onRefreshProfile: () async {
-                                      await profileProvider.loadProfile(
-                                        _userId!,
-                                      );
-                                      return profileProvider.profileData;
-                                    },
-                                  ),
-                                ),
-                              );
+                                        onUpdateAge: (userId, age) async {
+                                          return await profileProvider
+                                              .updateAge(
+                                                userId: userId,
+                                                age: age,
+                                              );
+                                        },
+                                        onUpdateHeight: (userId, height) async {
+                                          return await profileProvider
+                                              .updateHeight(
+                                                userId: userId,
+                                                height: height,
+                                              );
+                                        },
+                                        onUpdateWeight: (userId, weight) async {
+                                          return await profileProvider
+                                              .updateWeight(
+                                                userId: userId,
+                                                weight: weight,
+                                              );
+                                        },
+                                        onUpdateGoal: (userId, goal) async {
+                                          return await profileProvider
+                                              .updateGoal(
+                                                userId: userId,
+                                                goal: goal,
+                                              );
+                                        },
+                                        onUpdateActivityLevel:
+                                            (userId, activityLevel) async {
+                                              return await profileProvider
+                                                  .updateActivityLevel(
+                                                    userId: userId,
+                                                    activityLevel:
+                                                        activityLevel,
+                                                  );
+                                            },
+                                        onRefreshProfile: () async {
+                                          await profileProvider.loadProfile(
+                                            _userId!,
+                                          );
+                                          return profileProvider.profileData;
+                                        },
+                                      ),
+                                    ),
+                                  )
+                                  .then((_) {
+                                    if (mounted) {
+                                      _reloadOnReturn();
+                                    }
+                                  });
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -812,6 +1027,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               onToggleNotification: _toggleNotif,
                             );
                           },
+                        ),
+                        SizedBox(height: context.h(0.03)),
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.w(0.08),
+                          ),
+                          child: AnimatedStartButton(
+                            text: 'Đăng xuất',
+                            onPressed: _logout,
+                          ),
                         ),
                         SizedBox(height: navHeight + context.h(0.05)),
                       ],

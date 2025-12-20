@@ -6,7 +6,7 @@ import '../../domain/entities/week_overview.dart';
 import '../models/requests/log_food_request.dart';
 import '../models/responses/log_food_response.dart';
 import '../../domain/entities/food_history_item.dart';
-
+import '../../domain/entities/weight_history_item.dart';
 
 /// Remote data source for nutrition and fitness data
 /// Handles API calls related to nutrition tracking, user profile, and weekly overview
@@ -33,6 +33,26 @@ class NutritionRemoteDataSource {
       return UserProfile.fromJson(bodyJson);
     } else {
       throw Exception('Failed to load user profile: ${response.statusCode}');
+    }
+  }
+
+  /// Get weight change history for a user
+  /// Endpoint: GET /api/history/{userId}
+  Future<List<WeightHistoryItem>> getWeightHistory(String userId) async {
+    final url = Uri.parse('$baseUrl/history/$userId');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final bodyJson = jsonDecode(response.body) as List<dynamic>;
+      return bodyJson
+          .map((e) => WeightHistoryItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } else {
+      throw Exception('Failed to load weight history: ${response.statusCode}');
     }
   }
 
@@ -246,7 +266,8 @@ class NutritionRemoteDataSource {
     print('📥 Response body: ${utf8.decode(response.bodyBytes)}');
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final bodyJson = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      final bodyJson =
+          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
       return LogFoodResponse.fromJson(bodyJson);
     } else {
       throw Exception('Failed to log food: ${response.statusCode}');
@@ -261,7 +282,9 @@ class NutritionRemoteDataSource {
     String userId,
     String date,
   ) async {
-    final url = Uri.parse('$baseUrl/nutrition/history?userId=$userId&date=$date');
+    final url = Uri.parse(
+      '$baseUrl/nutrition/history?userId=$userId&date=$date',
+    );
 
     print('🌐 Making GET request to: $url');
 
@@ -276,7 +299,9 @@ class NutritionRemoteDataSource {
     print('📥 Response status: ${response.statusCode}');
 
     if (response.statusCode == 200) {
-      final List<dynamic> bodyJson = jsonDecode(utf8.decode(response.bodyBytes));
+      final List<dynamic> bodyJson = jsonDecode(
+        utf8.decode(response.bodyBytes),
+      );
       return bodyJson.map((item) => FoodHistoryItem.fromJson(item)).toList();
     } else {
       throw Exception('Failed to load food history: ${response.statusCode}');

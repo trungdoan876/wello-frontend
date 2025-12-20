@@ -5,20 +5,22 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/providers/survey_provider.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
+import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/ui/auth/initial_page.dart';
 import 'package:wello_frontend/core/services/notification_service.dart';
+import 'package:wello_frontend/core/navigation/route_observer.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Khởi tạo Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Setup background message handler TRƯỚC KHI app chạy
-  FirebaseMessaging.onBackgroundMessage(NotificationService.firebaseMessagingBackgroundHandler);
+  FirebaseMessaging.onBackgroundMessage(
+    NotificationService.firebaseMessagingBackgroundHandler,
+  );
 
   // Setup foreground message listener NGAY TẠI ĐÂY
   NotificationService.setupForegroundListener();
@@ -29,6 +31,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => QuestionProvider()),
         ChangeNotifierProvider(create: (_) => SurveyProvider()),
         ChangeNotifierProvider(create: (_) => NutritionProvider()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
       ],
       child: MyApp(),
     ),
@@ -52,6 +55,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [appRouteObserver],
       home: const InitialPage(), // Wrapper that uses LoadingPage
     );
   }

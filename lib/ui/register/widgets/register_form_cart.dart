@@ -11,7 +11,6 @@ import 'package:wello_frontend/ui/register/widgets/register_textfields.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 
-
 class RegisterFormContent extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
@@ -23,8 +22,6 @@ class RegisterFormContent extends StatelessWidget {
     required this.passwordController,
     required this.confirmPasswordController,
   });
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -86,10 +83,24 @@ class RegisterFormContent extends StatelessWidget {
                     type: QuickAlertType.error,
                     title: 'Lỗi',
                     text: 'Vui lòng điền đầy đủ thông tin.',
-                    );
+                  );
                   return;
                 }
-                
+
+                // Validate email format
+                final emailRegex = RegExp(
+                  r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+                );
+                if (!emailRegex.hasMatch(email)) {
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    title: 'Email không hợp lệ',
+                    text:
+                        'Vui lòng nhập đúng định dạng (ví dụ: ten@domain.com).',
+                  );
+                  return;
+                }
 
                 if (password != confirmPassword) {
                   QuickAlert.show(
@@ -103,13 +114,13 @@ class RegisterFormContent extends StatelessWidget {
 
                 try {
                   final repository = AuthRepositoryImpl();
-                  
+
                   // Send OTP instead of direct registration
                   final response = await repository.sendOtp(
                     email: email,
                     password: password,
                   );
-                  
+
                   // Navigate to OTP verification screen
                   if (context.mounted) {
                     Navigator.push(

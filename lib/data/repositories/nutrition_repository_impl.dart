@@ -6,7 +6,7 @@ import '../../domain/entities/week_overview.dart';
 import '../../domain/entities/food_log_result.dart';
 import '../models/requests/log_food_request.dart';
 import '../../domain/entities/food_history_item.dart';
-
+import '../../domain/entities/weight_history_item.dart';
 
 /// Implementation of NutritionRepository
 class NutritionRepositoryImpl implements NutritionRepository {
@@ -107,7 +107,15 @@ class NutritionRepositoryImpl implements NutritionRepository {
   }
 
   @override
-  Future<List<FoodHistoryItem>> getFoodHistory(String token, String userId, String date) async {
+  Future<List<FoodHistoryItem>> getFoodHistory(
+    String token,
+    String userId,
+    String date,
+  ) async {
     return await remoteDataSource.getFoodHistory(token, userId, date);
+  }
+
+  Future<List<WeightHistoryItem>> getWeightHistory(String userId) async {
+    return await remoteDataSource.getWeightHistory(userId);
   }
 }
