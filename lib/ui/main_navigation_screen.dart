@@ -15,6 +15,18 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
   bool _hideBottomNav = false;
+  int _homeReloadId = 0;
+  int _favoritesReloadId = 0;
+  int _profileReloadId = 0;
+
+  void _onTabSelected(int index) {
+    setState(() {
+      _currentIndex = index;
+      if (index == 0) _homeReloadId++;
+      if (index == 1) _favoritesReloadId++;
+      if (index == 2) _profileReloadId++;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +35,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         index: _currentIndex,
         children: [
           HomeScreen(
+            key: ValueKey('home_$_homeReloadId'),
             onQuickActionsChanged: (show) {
               setState(() {
                 _hideBottomNav = show;
@@ -30,6 +43,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             },
           ),
           FavoritesScreen(
+            key: ValueKey('fav_$_favoritesReloadId'),
             onQuickActionsChanged: (show) {
               setState(() {
                 _hideBottomNav = show;
@@ -37,6 +51,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             },
           ),
           ProfileScreen(
+            key: ValueKey('profile_$_profileReloadId'),
             onQuickActionsChanged: (show) {
               setState(() {
                 _hideBottomNav = show;
@@ -49,7 +64,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ? null
           : CenteredBottomNavBar(
               currentIndex: _currentIndex,
-              onTap: (index) => setState(() => _currentIndex = index),
+              onTap: _onTabSelected,
             ),
     );
   }

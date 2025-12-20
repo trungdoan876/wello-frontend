@@ -14,6 +14,7 @@ import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
+import 'package:wello_frontend/core/navigation/route_observer.dart';
 
 class HomeScreen extends StatefulWidget {
   final ValueChanged<bool>? onQuickActionsChanged;
@@ -24,8 +25,10 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with RouteAware {
   bool _showQuickActions = false; // trạng thái mở panel
+  bool _routeSubscribed = false;
+  ProfileProvider? _profileProviderRef;
 
   @override
   void initState() {
@@ -34,15 +37,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Listen to profile changes and reload data
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final profileProvider = context.read<ProfileProvider>();
+      _profileProviderRef = profileProvider;
       profileProvider.addListener(_onProfileChanged);
     });
   }
 
   @override
   void dispose() {
-    final profileProvider = context.read<ProfileProvider>();
-    profileProvider.removeListener(_onProfileChanged);
+    _profileProviderRef?.removeListener(_onProfileChanged);
+    if (_routeSubscribed) {
+      final route = ModalRoute.of(context);
+      if (route is PageRoute) {
+        appRouteObserver.unsubscribe(this);
+      }
+    }
     super.dispose();
   }
 
@@ -53,10 +63,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadNutritionData() async {
     final credentials = await AuthHelper.getCredentials();
-    if (credentials == null) return;
+    if (credentials == null || !mounted) return;
 
     final provider = context.read<NutritionProvider>();
     await provider.loadHomeData(credentials.token, credentials.userIdString);
+  }
+
+  Future<void> _reloadAll() async {
+    await _loadNutritionData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (!_routeSubscribed && route is PageRoute) {
+      appRouteObserver.subscribe(this, route);
+      _routeSubscribed = true;
+    }
+  }
+
+  @override
+  void didPopNext() {
+    _reloadAll();
   }
 
   void _setQuickActionsVisible(bool show) {
@@ -83,42 +112,47 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Stack(
           children: [
             // Nội dung cuộn
-            SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: headerHeight,
-                    width: double.infinity,
-                    child: _buildHeaderSection(context, headerHeight),
-                  ),
+            RefreshIndicator(
+              color: const Color(0xffEBCF23),
+              onRefresh: _reloadAll,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: headerHeight,
+                      width: double.infinity,
+                      child: _buildHeaderSection(context, headerHeight),
+                    ),
 
-                  Padding(
-                    padding: EdgeInsets.only(
-                      left: context.w(0.05),
-                      right: context.w(0.05),
-                      top: context.h(0.02),
-                      bottom: _showQuickActions
-                          ? context.h(0.02)
-                          : navHeight + context.h(0.02),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: context.w(0.05),
+                        right: context.w(0.05),
+                        top: context.h(0.02),
+                        bottom: _showQuickActions
+                            ? context.h(0.02)
+                            : navHeight + context.h(0.02),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          const WaterTracker(),
+                          SizedBox(height: context.h(0.04)),
+                          const WeightGoalCard(),
+                          SizedBox(height: context.h(0.04)),
+                          const WorkoutHistoryCard(), // ← Workout history
+                          SizedBox(height: context.h(0.04)),
+                          const FoodHistoryCard(), // ← Food history
+                          SizedBox(height: context.h(0.04)),
+                          const ActivitySummaryCard(),
+                          SizedBox(height: context.h(0.02)),
+                        ],
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        const WaterTracker(),
-                        SizedBox(height: context.h(0.04)),
-                        const WeightGoalCard(),
-                        SizedBox(height: context.h(0.04)),
-                        const WorkoutHistoryCard(), // ← Workout history
-                        SizedBox(height: context.h(0.04)),
-                        const FoodHistoryCard(), // ← Food history
-                        SizedBox(height: context.h(0.04)),
-                        const ActivitySummaryCard(),
-                        SizedBox(height: context.h(0.02)),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 

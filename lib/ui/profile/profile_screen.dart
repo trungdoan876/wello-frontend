@@ -43,19 +43,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserId();
     // Load profile data when entering screen
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _loadProfileData();
     });
   }
 
   Future<void> _loadUserId() async {
     final userId = await UserSession.getUserId();
+    if (!mounted) return;
     setState(() {
       _userId = userId ?? 1; // Default to 1 if not found
     });
   }
 
   Future<void> _loadProfileData() async {
-    if (_userId == null) return;
+    if (_userId == null || !mounted) return;
 
     try {
       final profileProvider = Provider.of<ProfileProvider>(
@@ -346,6 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 !profileProvider.isLoading &&
                 profileProvider.errorMessage == null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
                 profileProvider.loadProfile(_userId!);
               });
             }
@@ -405,6 +408,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (profileData != null && !_surveyRequested) {
               _surveyRequested = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
                 final surveyProvider = Provider.of<SurveyProvider>(
                   context,
                   listen: false,
@@ -427,6 +431,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (profileData != null && !_nutritionDataLoaded) {
               _nutritionDataLoaded = true;
               WidgetsBinding.instance.addPostFrameCallback((_) async {
+                if (!mounted) return;
                 final credentials = await AuthHelper.getCredentials();
                 if (credentials != null && mounted) {
                   final nutritionProvider = Provider.of<NutritionProvider>(

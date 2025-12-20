@@ -16,18 +16,22 @@ class DateSelector extends StatefulWidget {
 
 class _DateSelectorState extends State<DateSelector> {
   int _weekOffset = 0; // 0 = current week, -1 = previous week, +1 = next week
+  NutritionProvider? _providerRef;
 
   @override
   void initState() {
     super.initState();
     // Automatically select today's date when widget loads
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
       final provider = context.read<NutritionProvider>();
+      _providerRef = provider;
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      
+
       // Only set if not already set or different
       if (provider.selectedDate != today) {
         final credentials = await AuthHelper.getCredentials();
+        if (!mounted) return;
         if (credentials != null) {
           await provider.changeDate(
             credentials.token,
@@ -36,16 +40,18 @@ class _DateSelectorState extends State<DateSelector> {
           );
         }
       }
-      
+
       // Add listener to update week offset when selected date changes
-      provider.addListener(_onDateChanged);
+      if (mounted) {
+        provider.addListener(_onDateChanged);
+      }
     });
   }
 
   @override
   void dispose() {
     // Remove listener when widget is disposed
-    context.read<NutritionProvider>().removeListener(_onDateChanged);
+    _providerRef?.removeListener(_onDateChanged);
     super.dispose();
   }
 
@@ -55,19 +61,25 @@ class _DateSelectorState extends State<DateSelector> {
   }
 
   void _updateWeekOffsetForDate() {
+    if (!mounted) return;
     final provider = context.read<NutritionProvider>();
     final selectedDateStr = provider.selectedDate;
-    
+
     if (selectedDateStr.isNotEmpty) {
       final selectedDate = DateTime.parse(selectedDateStr);
       final today = DateTime.now();
-      
+
       // Calculate which week the selected date is in
-      final selectedWeekStart = selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
-      final currentWeekStart = today.subtract(Duration(days: today.weekday - 1));
-      
-      final weekDiff = selectedWeekStart.difference(currentWeekStart).inDays ~/ 7;
-      
+      final selectedWeekStart = selectedDate.subtract(
+        Duration(days: selectedDate.weekday - 1),
+      );
+      final currentWeekStart = today.subtract(
+        Duration(days: today.weekday - 1),
+      );
+
+      final weekDiff =
+          selectedWeekStart.difference(currentWeekStart).inDays ~/ 7;
+
       if (weekDiff != _weekOffset) {
         setState(() {
           _weekOffset = weekDiff;
@@ -78,19 +90,22 @@ class _DateSelectorState extends State<DateSelector> {
 
   Future<void> _selectDateInWeek() async {
     final credentials = await AuthHelper.getCredentials();
-    if (credentials == null) return;
-    
+    if (!mounted || credentials == null) return;
+
     final provider = context.read<NutritionProvider>();
     final today = DateTime.now();
     final offsetDate = today.add(Duration(days: _weekOffset * 7));
-    final weekStart = offsetDate.subtract(Duration(days: offsetDate.weekday - 1));
-    
+    final weekStart = offsetDate.subtract(
+      Duration(days: offsetDate.weekday - 1),
+    );
+
     // Try to select same weekday, or Monday if current day doesn't exist yet
     final currentSelectedDate = DateTime.tryParse(provider.selectedDate);
-    final targetWeekday = currentSelectedDate?.weekday ?? 1; // Default to Monday
-    
+    final targetWeekday =
+        currentSelectedDate?.weekday ?? 1; // Default to Monday
+
     final targetDate = weekStart.add(Duration(days: targetWeekday - 1));
-    
+
     // Don't select future dates
     if (targetDate.isAfter(DateTime.now())) {
       // Select today instead
@@ -118,32 +133,46 @@ class _DateSelectorState extends State<DateSelector> {
     // Current week + offset
     final DateTime today = DateTime.now();
     final DateTime offsetDate = today.add(Duration(days: _weekOffset * 7));
-    final DateTime weekStart = offsetDate.subtract(Duration(days: offsetDate.weekday - 1));
+    final DateTime weekStart = offsetDate.subtract(
+      Duration(days: offsetDate.weekday - 1),
+    );
 
     // Weekday labels
-    const List<String> weekdayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    const List<String> weekdayLabels = [
+      'T2',
+      'T3',
+      'T4',
+      'T5',
+      'T6',
+      'T7',
+      'CN',
+    ];
 
     return Consumer<NutritionProvider>(
       builder: (context, provider, child) {
         final selectedDate = provider.selectedDate;
-        
+
         return Row(
           children: [
             // Previous week button
             IconButton(
-              icon: Icon(Icons.chevron_left, color: activeColor, size: context.sp(5)),
+              icon: Icon(
+                Icons.chevron_left,
+                color: activeColor,
+                size: context.sp(5),
+              ),
               padding: EdgeInsets.all(8),
               constraints: BoxConstraints(),
               onPressed: () async {
                 setState(() {
                   _weekOffset--;
                 });
-                
+
                 // Auto-select same weekday in the previous week
                 await _selectDateInWeek();
               },
             ),
-            
+
             // Week days
             Expanded(
               child: Row(
@@ -153,15 +182,20 @@ class _DateSelectorState extends State<DateSelector> {
                   final String dateStr = DateFormat('yyyy-MM-dd').format(d);
                   final bool isActive = dateStr == selectedDate;
                   final bool isFuture = d.isAfter(DateTime.now());
-                  
+
                   // Check if date is before user's start date
                   bool isBeforeStart = false;
                   if (provider.userProfile?.startDate != null) {
                     try {
-                      final startDate = DateFormat('yyyy-MM-dd').parse(provider.userProfile!.startDate!);
+                      final startDate = DateFormat(
+                        'yyyy-MM-dd',
+                      ).parse(provider.userProfile!.startDate!);
                       isBeforeStart = d.isBefore(startDate);
-                      if (i == 0) { // Log once per week
-                        print('🔍 StartDate: ${provider.userProfile!.startDate}, Current: $dateStr, isBeforeStart: $isBeforeStart');
+                      if (i == 0) {
+                        // Log once per week
+                        print(
+                          '🔍 StartDate: ${provider.userProfile!.startDate}, Current: $dateStr, isBeforeStart: $isBeforeStart',
+                        );
                       }
                     } catch (e) {
                       print('⚠️ Error parsing startDate: $e');
@@ -169,25 +203,28 @@ class _DateSelectorState extends State<DateSelector> {
                   } else {
                     if (i == 0) print('⚠️ UserProfile or startDate is null');
                   }
-                  
+
                   final bool isDisabled = isFuture || isBeforeStart;
                   final Color color = isDisabled
                       ? inactiveColor.withOpacity(0.3) // Dim disabled dates
                       : (isActive ? activeColor : inactiveColor);
 
                   return GestureDetector(
-                    onTap: isDisabled ? null : () async {
-                      print('📅 Date tapped: $dateStr');
-                      
-                      final credentials = await AuthHelper.getCredentials();
-                      if (credentials != null) {
-                        await provider.changeDate(
-                          credentials.token,
-                          credentials.userIdString,
-                          dateStr,
-                        );
-                      }
-                    },
+                    onTap: isDisabled
+                        ? null
+                        : () async {
+                            print('📅 Date tapped: $dateStr');
+
+                            final credentials =
+                                await AuthHelper.getCredentials();
+                            if (credentials != null) {
+                              await provider.changeDate(
+                                credentials.token,
+                                credentials.userIdString,
+                                dateStr,
+                              );
+                            }
+                          },
                     child: Column(
                       children: [
                         Text(
@@ -213,23 +250,29 @@ class _DateSelectorState extends State<DateSelector> {
                 }),
               ),
             ),
-            
+
             // Next week button (only show when viewing past weeks)
             _weekOffset < 0
                 ? IconButton(
-                    icon: Icon(Icons.chevron_right, color: activeColor, size: context.sp(5)),
+                    icon: Icon(
+                      Icons.chevron_right,
+                      color: activeColor,
+                      size: context.sp(5),
+                    ),
                     padding: EdgeInsets.all(8),
                     constraints: BoxConstraints(),
                     onPressed: () async {
                       setState(() {
                         _weekOffset++;
                       });
-                      
+
                       // Auto-select same weekday in the next week
                       await _selectDateInWeek();
                     },
                   )
-                : SizedBox(width: context.sp(5) + 16), // Same width as IconButton for alignment
+                : SizedBox(
+                    width: context.sp(5) + 16,
+                  ), // Same width as IconButton for alignment
           ],
         );
       },
