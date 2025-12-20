@@ -11,11 +11,13 @@ import '../entities/food_history_item.dart';
 
 import '../../data/data_source/nutrition_remote_data_source.dart';
 import '../../data/repositories/nutrition_repository_impl.dart';
+import '../../data/repositories/profile_repository.dart';
 import '../repositories/nutrition_repository.dart';
 
 /// Provider for managing nutrition and fitness data state
 class NutritionProvider extends ChangeNotifier {
   final NutritionRepository _repository;
+  final ProfileRepository _profileRepository;
 
   UserProfile? _userProfile;
   NutritionSummary? _dailySummary;
@@ -34,12 +36,14 @@ class NutritionProvider extends ChangeNotifier {
   String? _errorMessage;
   String _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-  NutritionProvider({NutritionRepository? repository})
-    : _repository =
-          repository ??
-          NutritionRepositoryImpl(
-            remoteDataSource: NutritionRemoteDataSource(),
-          );
+  NutritionProvider({
+    NutritionRepository? repository,
+    ProfileRepository? profileRepository,
+  })  : _repository = repository ??
+            NutritionRepositoryImpl(
+              remoteDataSource: NutritionRemoteDataSource(),
+            ),
+        _profileRepository = profileRepository ?? ProfileRepository();
 
   // Getters
   UserProfile? get userProfile => _userProfile;
@@ -299,6 +303,35 @@ class NutritionProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'Failed to log food: ${e.toString()}';
       _isLoggingFood = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  /// Update Water Reminder Settings
+  Future<void> updateWaterReminderSettings({
+    required int userId,
+    required bool enabled,
+    required int startHour,
+    required int endHour,
+    required int intervalHours,
+    required int intervalMinutes,
+  }) async {
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _profileRepository.updateWaterReminderSettings(
+        userId: userId,
+        enabled: enabled,
+        startHour: startHour,
+        endHour: endHour,
+        intervalHours: intervalHours,
+        intervalMinutes: intervalMinutes,
+      );
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to update reminder settings: ${e.toString()}';
       notifyListeners();
       rethrow;
     }

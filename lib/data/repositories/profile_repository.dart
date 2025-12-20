@@ -31,4 +31,42 @@ class ProfileRepository {
       throw Exception('Failed to upload avatar: $e');
     }
   }
+
+  /// Update FCM Token
+  Future<bool> updateFcmToken({
+    required int userId,
+    required String fcmToken,
+  }) async {
+    try {
+      return await _dataSource.updateFcmToken(
+        userId: userId,
+        fcmToken: fcmToken,
+      );
+    } catch (e) {
+      throw Exception('Failed to update FCM token: $e');
+    }
+  }
+
+  /// Update Water Reminder Settings
+  Future<bool> updateWaterReminderSettings({
+    required int userId,
+    required bool enabled,
+    required int startHour,
+    required int endHour,
+    required int intervalHours,
+    required int intervalMinutes,
+  }) async {
+    try {
+      return await _dataSource.updateWaterReminderSettings(
+        userId: userId,
+        enabled: enabled,
+        startHour: startHour,
+        endHour: endHour,
+        intervalHours: intervalHours,
+        intervalMinutes: intervalMinutes,
+      );
+    } catch (e) {
+      throw Exception('Failed to update water reminder settings: $e');
+    }
+  }
 }

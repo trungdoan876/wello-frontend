@@ -14,6 +14,8 @@ import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 
+import 'package:wello_frontend/core/services/notification_service.dart';
+
 class HomeScreen extends StatefulWidget {
   final ValueChanged<bool>? onQuickActionsChanged;
 
@@ -30,6 +32,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadNutritionData();
+    _initNotifications();
+  }
+
+  Future<void> _initNotifications() async {
+    final credentials = await AuthHelper.getCredentials();
+    if (credentials != null) {
+      await NotificationService.initialize(credentials.userId);
+    }
   }
 
   Future<void> _loadNutritionData() async {

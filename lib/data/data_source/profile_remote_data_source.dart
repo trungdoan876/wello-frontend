@@ -90,4 +90,67 @@ class ProfileRemoteDataSource {
       throw Exception('Error uploading avatar: $e');
     }
   }
+
+  /// Update FCM Token for user
+  /// POST /api/profile/{userId}/fcm-token?fcmToken=...
+  Future<bool> updateFcmToken({
+    required int userId,
+    required String fcmToken,
+  }) async {
+    final url = Uri.parse('$baseUrl/profile/$userId/fcm-token?fcmToken=$fcmToken');
+
+    try {
+      print('🌐 Updating FCM Token: $url');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('📥 Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        throw Exception('Failed to update FCM token: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error updating FCM token: $e');
+      throw Exception('Error updating FCM token: $e');
+    }
+  }
+
+  /// Update Water Reminder Settings
+  /// POST /api/profile/{userId}/water-reminder-settings?enabled=...&startHour=...&endHour=...&intervalHours=...&intervalMinutes=...
+  Future<bool> updateWaterReminderSettings({
+    required int userId,
+    required bool enabled,
+    required int startHour,
+    required int endHour,
+    required int intervalHours,
+    required int intervalMinutes,
+  }) async {
+    final url = Uri.parse(
+      '$baseUrl/profile/$userId/water-reminder-settings?'
+      'enabled=$enabled&startHour=$startHour&endHour=$endHour&intervalHours=$intervalHours&intervalMinutes=$intervalMinutes',
+    );
+
+    try {
+      print('🌐 Updating Water Reminder Settings: $url');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('📥 Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        throw Exception('Failed to update water reminder settings: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error updating water reminder settings: $e');
+      throw Exception('Error updating water reminder settings: $e');
+    }
+  }
 }
