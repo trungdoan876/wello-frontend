@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
-import 'package:wello_frontend/data/repositories/auth_repository.dart';
+import 'package:wello_frontend/data/repositories/auth_repository_impl.dart';
+import 'package:wello_frontend/ui/auth/otp_verification_page.dart';
 import 'package:wello_frontend/ui/login/login_page.dart';
 import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/widgets/register_textfields.dart';
@@ -102,30 +103,24 @@ class RegisterFormContent extends StatelessWidget {
 
                 try {
                   final repository = AuthRepositoryImpl();
-                  final response = await repository.register(
+                  
+                  // Send OTP instead of direct registration
+                  final response = await repository.sendOtp(
                     email: email,
                     password: password,
                   );
                   
-                  if (response.success) {
-                    QuickAlert.show(
-                      context: context,
-                      type: QuickAlertType.success,
-                      title: 'Thành công',
-                      text: 'Bạn đã đăng ký thành công!',
-                      onConfirmBtnTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginPage()),
-                        );
-                      },
-                    );
-                  } else {
-                    QuickAlert.show(
-                      context: context,
-                      type: QuickAlertType.error,
-                      title: 'Lỗi',
-                      text: response.message ?? 'Đăng ký thất bại. Vui lòng thử lại.',
+                  // Navigate to OTP verification screen
+                  if (context.mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => OtpVerificationPage(
+                          email: email,
+                          password: password,
+                          verificationToken: response.verificationToken,
+                        ),
+                      ),
                     );
                   }
                 } catch (e) {
@@ -133,7 +128,7 @@ class RegisterFormContent extends StatelessWidget {
                     context: context,
                     type: QuickAlertType.error,
                     title: "Lỗi",
-                    text: "Không thể kết nối server: $e",
+                    text: e.toString().replaceAll('Exception: ', ''),
                   );
                 }
               },

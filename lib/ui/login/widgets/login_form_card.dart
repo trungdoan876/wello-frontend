@@ -2,7 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wello_frontend/data/repositories/auth_repository.dart';
+import 'package:wello_frontend/data/repositories/auth_repository_impl.dart';
 import 'package:wello_frontend/ui/login/widgets/login_textfields.dart';
 import 'package:wello_frontend/ui/main_navigation_screen.dart';
 import 'package:wello_frontend/ui/question/name_question/name_page.dart';
