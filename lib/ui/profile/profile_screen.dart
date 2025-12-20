@@ -16,6 +16,8 @@ import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:wello_frontend/core/navigation/route_observer.dart';
+import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
+import 'package:wello_frontend/ui/auth/initial_page.dart';
 import 'widgets/water_tracking_card.dart';
 import 'package:wello_frontend/ui/summary/widgets/bmi_card.dart';
 import 'widgets/physical_profile_page.dart';
@@ -128,17 +130,6 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
           today,
         );
       }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(
-              content: Text('Đã làm mới hồ sơ, BMI và nước uống'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-      }
     } catch (e) {
       // ignore errors silently for back refresh
     }
@@ -209,6 +200,138 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
 
   void _toggleNotif() {
     // TODO: Implement notification toggle
+  }
+
+  Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          elevation: 8,
+          backgroundColor: Colors.white,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: context.w(0.06),
+              vertical: context.h(0.03),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEBEE),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.logout,
+                    size: 48,
+                    color: Color(0xFFE53935),
+                  ),
+                ),
+                SizedBox(height: context.h(0.025)),
+                Text(
+                  'Đăng xuất',
+                  style: GoogleFonts.baloo2(
+                    fontSize: context.sp(7.5),
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF4C494C),
+                  ),
+                ),
+                SizedBox(height: context.h(0.015)),
+                Text(
+                  'Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng?',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.baloo2(
+                    fontSize: context.sp(5.5),
+                    color: const Color(0xFF6B6B6B),
+                    height: 1.4,
+                  ),
+                ),
+                SizedBox(height: context.h(0.03)),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: context.h(0.018),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: const BorderSide(
+                              color: Color(0xFFE0E0E0),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          'Hủy',
+                          style: GoogleFonts.baloo2(
+                            fontSize: context.sp(6),
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF6B6B6B),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: context.w(0.03)),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE53935),
+                          padding: EdgeInsets.symmetric(
+                            vertical: context.h(0.018),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Đăng xuất',
+                          style: GoogleFonts.baloo2(
+                            fontSize: context.sp(6),
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await AuthHelper.logout();
+      await UserSession.clearSession();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const InitialPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đăng xuất thất bại: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -904,6 +1027,16 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                               onToggleNotification: _toggleNotif,
                             );
                           },
+                        ),
+                        SizedBox(height: context.h(0.03)),
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.w(0.08),
+                          ),
+                          child: AnimatedStartButton(
+                            text: 'Đăng xuất',
+                            onPressed: _logout,
+                          ),
                         ),
                         SizedBox(height: navHeight + context.h(0.05)),
                       ],
