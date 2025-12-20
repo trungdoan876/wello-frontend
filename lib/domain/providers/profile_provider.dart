@@ -78,4 +78,226 @@ class ProfileProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  /// Update fullname via API and refresh local state
+  Future<bool> updateFullname({
+    required int userId,
+    required String fullname,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final success = await _repository.updateFullname(
+        userId: userId,
+        fullname: fullname,
+      );
+      if (success) {
+        // Refresh from server to reflect persisted state
+        await loadProfile(userId);
+      }
+      _isLoading = false;
+      notifyListeners();
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Update gender via API and refresh local state
+  Future<bool> updateGender({
+    required int userId,
+    required String gender,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final success = await _repository.updateGender(
+        userId: userId,
+        gender: gender,
+      );
+      if (success) {
+        await loadProfile(userId);
+      }
+      _isLoading = false;
+      notifyListeners();
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Update age via API and refresh local state
+  Future<bool> updateAge({required int userId, required int age}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      print('[ProfileProvider] updateAge called: userId=$userId, age=$age');
+      final success = await _repository.updateAge(userId: userId, age: age);
+      print('[ProfileProvider] updateAge result: success=$success');
+      if (success) {
+        // Try to refresh from server to reflect persisted state, but don't
+        // treat refresh failures as update failures.
+        try {
+          await loadProfile(userId);
+        } catch (e) {
+          // Log and continue to report success for the update.
+          print(
+            '[ProfileProvider] Warning: refresh after age update failed: $e',
+          );
+        }
+      }
+      _isLoading = false;
+      notifyListeners();
+      return success;
+    } catch (e) {
+      print('[ProfileProvider] updateAge error: $e');
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Update height via API and refresh local state
+  Future<bool> updateHeight({required int userId, required int height}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final success = await _repository.updateHeight(
+        userId: userId,
+        height: height,
+      );
+      if (success) {
+        await loadProfile(userId);
+      }
+      _isLoading = false;
+      notifyListeners();
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Update weight via API and refresh local state
+  Future<bool> updateWeight({required int userId, required int weight}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      print(
+        '[ProfileProvider] updateWeight called: userId=$userId, weight=$weight',
+      );
+      final success = await _repository.updateWeight(
+        userId: userId,
+        weight: weight,
+      );
+      print('[ProfileProvider] updateWeight result: success=$success');
+      if (success) {
+        try {
+          await loadProfile(userId);
+        } catch (e) {
+          print(
+            '[ProfileProvider] Warning: refresh after weight update failed: $e',
+          );
+        }
+      }
+      _isLoading = false;
+      notifyListeners();
+      return success;
+    } catch (e) {
+      print('[ProfileProvider] updateWeight error: $e');
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Update goal via API and refresh local state
+  Future<bool> updateGoal({required int userId, required String goal}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      print('[ProfileProvider] updateGoal called: userId=$userId, goal=$goal');
+      final success = await _repository.updateGoal(userId: userId, goal: goal);
+      print('[ProfileProvider] updateGoal result: success=$success');
+      if (success) {
+        try {
+          await loadProfile(userId);
+        } catch (e) {
+          print(
+            '[ProfileProvider] Warning: refresh after goal update failed: $e',
+          );
+        }
+      }
+      _isLoading = false;
+      notifyListeners();
+      return success;
+    } catch (e) {
+      print('[ProfileProvider] updateGoal error: $e');
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Update activity level via API and refresh local state
+  Future<bool> updateActivityLevel({
+    required int userId,
+    required String activityLevel,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      print(
+        '[ProfileProvider] updateActivityLevel called: userId=$userId, activityLevel=$activityLevel',
+      );
+      final success = await _repository.updateActivityLevel(
+        userId: userId,
+        activityLevel: activityLevel,
+      );
+      print('[ProfileProvider] updateActivityLevel result: success=$success');
+      if (success) {
+        try {
+          await loadProfile(userId);
+        } catch (e) {
+          print(
+            '[ProfileProvider] Warning: refresh after activity level update failed: $e',
+          );
+        }
+      }
+      _isLoading = false;
+      notifyListeners();
+      return success;
+    } catch (e) {
+      print('[ProfileProvider] updateActivityLevel error: $e');
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

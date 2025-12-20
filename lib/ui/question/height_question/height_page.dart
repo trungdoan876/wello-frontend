@@ -13,12 +13,19 @@ class HeightPage extends StatefulWidget {
   final String? fullname;
   final String? gender;
   final int? userId;
+  final int? initialHeight;
+  final String? buttonText;
+  final Future<bool> Function(int height)? onUpdate;
+
   const HeightPage({
     super.key,
     required this.question,
     this.fullname,
     this.gender,
     this.userId,
+    this.initialHeight,
+    this.buttonText,
+    this.onUpdate,
   });
 
   @override
@@ -26,7 +33,13 @@ class HeightPage extends StatefulWidget {
 }
 
 class _HeightPageState extends State<HeightPage> {
-  double height = 165; // chiều cao mặc định
+  late double height;
+
+  @override
+  void initState() {
+    super.initState();
+    height = widget.initialHeight?.toDouble() ?? 165.0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,26 +128,58 @@ class _HeightPageState extends State<HeightPage> {
                 SizedBox(
                   width: context.w(0.5),
                   child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed: () {
-                      final provider = Provider.of<QuestionProvider>(
-                        context,
-                        listen: false,
-                      );
-                      final nextQuestion = provider.getQuestionByIndex(3);
-                      if (nextQuestion != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => WeightPage(
-                              question: nextQuestion,
-                              fullname: widget.fullname,
-                              gender: widget.gender,
-                              height: height.toInt(),
-                              userId: widget.userId,
-                            ),
-                          ),
+                    text: widget.buttonText ?? "Tiếp tục",
+                    onPressed: () async {
+                      print('[HeightPage] onUpdate: ${widget.onUpdate}');
+                      if (widget.onUpdate != null) {
+                        // Update mode
+                        print(
+                          '[HeightPage] Update mode - calling onUpdate with ${height.toInt()}',
                         );
+                        final success = await widget.onUpdate!(height.toInt());
+                        if (mounted) {
+                          if (success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Đã cập nhật chiều cao thành công',
+                                ),
+                                backgroundColor: Color(0xFF22C55E),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            Navigator.pop(context, height.toInt());
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Cập nhật chiều cao thất bại'),
+                                backgroundColor: Color(0xFFEF4444),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        // Normal onboarding flow
+                        final provider = Provider.of<QuestionProvider>(
+                          context,
+                          listen: false,
+                        );
+                        final nextQuestion = provider.getQuestionByIndex(3);
+                        if (nextQuestion != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => WeightPage(
+                                question: nextQuestion,
+                                fullname: widget.fullname,
+                                gender: widget.gender,
+                                height: height.toInt(),
+                                userId: widget.userId,
+                              ),
+                            ),
+                          );
+                        }
                       }
                     },
                   ),

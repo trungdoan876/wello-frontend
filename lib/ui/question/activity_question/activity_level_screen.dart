@@ -19,8 +19,10 @@ class ActivityLevelScreen extends StatefulWidget {
   final int? weight;
   final int? age;
   final String? goal;
-
   final int? userId;
+  final String? initialActivityLevel;
+  final String? buttonText;
+  final Future<bool> Function(String activityLevel)? onUpdate;
 
   const ActivityLevelScreen({
     super.key,
@@ -32,6 +34,9 @@ class ActivityLevelScreen extends StatefulWidget {
     this.age,
     this.goal,
     this.userId,
+    this.initialActivityLevel,
+    this.buttonText,
+    this.onUpdate,
   });
 
   @override
@@ -39,7 +44,13 @@ class ActivityLevelScreen extends StatefulWidget {
 }
 
 class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
-  String? _selectedLevel;
+  late String? _selectedLevel;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLevel = widget.initialActivityLevel;
+  }
 
   // Mapping tạm thời cho Title vì backend chưa trả về
   final Map<String, String> _titleMap = {
@@ -141,80 +152,95 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                   child: Consumer<SurveyProvider>(
                     builder: (context, surveyProvider, child) {
                       return AnimatedStartButton(
-                        text: surveyProvider.isLoading
-                            ? "Đang gửi..."
-                            : "Tiếp tục",
+                        text:
+                            widget.buttonText ??
+                            (surveyProvider.isLoading
+                                ? "Đang gửi..."
+                                : "Tiếp tục"),
                         onPressed:
                             _selectedLevel == null || surveyProvider.isLoading
                             ? null
                             : () async {
-                                // Get userId from SharedPreferences
-                                final userId =
-                                    await UserPreferences.getUserId();
+                                if (widget.onUpdate != null) {
+                                  // Update mode
+                                  print(
+                                    '[ActivityLevelScreen] Update mode - calling onUpdate with $_selectedLevel',
+                                  );
+                                  final success = await widget.onUpdate!(
+                                    _selectedLevel!,
+                                  );
+                                  if (!mounted) return;
+                                  if (success) {
+                                    Navigator.pop(context, _selectedLevel);
+                                  }
+                                } else {
+                                  // Normal onboarding flow - submit survey
+                                  final userId =
+                                      await UserPreferences.getUserId();
 
-                                // Build request from collected answers
-                                final request = SurveyRequestModel(
-                                  userId:
-                                      widget.userId ??
-                                      1, // Use real userId from login
-                                  fullname: widget.fullname ?? 'No name',
-                                  gender: widget.gender ?? 'MALE',
-                                  age: widget.age ?? 25,
-                                  height: widget.height ?? 170,
-                                  weight: widget.weight ?? 65,
-                                  goal: widget.goal ?? 'KEEP_FIT',
-                                  activityLevel: _selectedLevel!,
-                                );
+                                  final request = SurveyRequestModel(
+                                    userId: widget.userId ?? 1,
+                                    fullname: widget.fullname ?? 'No name',
+                                    gender: widget.gender ?? 'MALE',
+                                    age: widget.age ?? 25,
+                                    height: widget.height ?? 170,
+                                    weight: widget.weight ?? 65,
+                                    goal: widget.goal ?? 'KEEP_FIT',
+                                    activityLevel: _selectedLevel!,
+                                  );
 
-                                print(
-                                  'Submitting survey with userId: ${userId ?? 1}',
-                                );
+                                  print(
+                                    'Submitting survey with userId: ${userId ?? 1}',
+                                  );
 
-                                try {
-                                  await surveyProvider.submitSurvey(request);
-                                  final result = surveyProvider.surveyResult;
-                                  if (result != null) {
-                                    // Update response model with height and weight
-                                    final updatedResult = SurveyResponseModel(
-                                      bmi: result.bmi,
-                                      bmiStatus: result.bmiStatus,
-                                      bmr: result.bmr,
-                                      tdee: result.tdee,
-                                      dailyCalories: result.dailyCalories,
-                                      proteinGram: result.proteinGram,
-                                      carbsGram: result.carbsGram,
-                                      fatGram: result.fatGram,
-                                      waterIntakeMl: result.waterIntakeMl,
-                                      height: surveyProvider.height?.toDouble(),
-                                      weight: surveyProvider.weight?.toDouble(),
-                                    );
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            SummaryPage(survey: updatedResult),
+                                  try {
+                                    await surveyProvider.submitSurvey(request);
+                                    final result = surveyProvider.surveyResult;
+                                    if (result != null) {
+                                      final updatedResult = SurveyResponseModel(
+                                        bmi: result.bmi,
+                                        bmiStatus: result.bmiStatus,
+                                        bmr: result.bmr,
+                                        tdee: result.tdee,
+                                        dailyCalories: result.dailyCalories,
+                                        proteinGram: result.proteinGram,
+                                        carbsGram: result.carbsGram,
+                                        fatGram: result.fatGram,
+                                        waterIntakeMl: result.waterIntakeMl,
+                                        height: surveyProvider.height
+                                            ?.toDouble(),
+                                        weight: surveyProvider.weight
+                                            ?.toDouble(),
+                                      );
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => SummaryPage(
+                                            survey: updatedResult,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    // show simple dialog on error
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => AlertDialog(
+                                        title: const Text('Lỗi'),
+                                        content: Text(
+                                          surveyProvider.errorMessage ??
+                                              e.toString(),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text('Đóng'),
+                                          ),
+                                        ],
                                       ),
                                     );
                                   }
-                                } catch (e) {
-                                  // show simple dialog on error
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => AlertDialog(
-                                      title: const Text('Lỗi'),
-                                      content: Text(
-                                        surveyProvider.errorMessage ??
-                                            e.toString(),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: const Text('Đóng'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
                                 }
                               },
                       );

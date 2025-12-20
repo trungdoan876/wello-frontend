@@ -12,6 +12,7 @@ import 'package:wello_frontend/ui/home/widgets/workout_history_card.dart';
 import 'package:wello_frontend/ui/home/widgets/food_history_card.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
+import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 
 import 'package:wello_frontend/core/services/notification_service.dart';
@@ -31,6 +32,24 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadNutritionData();
+
+    // Listen to profile changes and reload data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileProvider = context.read<ProfileProvider>();
+      profileProvider.addListener(_onProfileChanged);
+    });
+  }
+
+  @override
+  void dispose() {
+    final profileProvider = context.read<ProfileProvider>();
+    profileProvider.removeListener(_onProfileChanged);
+    super.dispose();
+  }
+
+  void _onProfileChanged() {
+    // Reload nutrition data when profile is updated
     _loadNutritionData();
     _initNotifications();
   }
@@ -222,9 +241,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     );
-                    
+
                     if (selectedDate != null) {
-                      final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate);
+                      final dateStr = DateFormat(
+                        'yyyy-MM-dd',
+                      ).format(selectedDate);
                       final credentials = await AuthHelper.getCredentials();
                       if (credentials != null && mounted) {
                         final provider = context.read<NutritionProvider>();

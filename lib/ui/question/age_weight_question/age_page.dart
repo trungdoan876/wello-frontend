@@ -16,6 +16,10 @@ class AgePage extends StatefulWidget {
   final int? height;
   final int? weight;
   final int? userId;
+  final int? initialAge;
+  final String? buttonText;
+  final Future<bool> Function(int age)? onUpdate;
+
   const AgePage({
     super.key,
     required this.question,
@@ -24,6 +28,9 @@ class AgePage extends StatefulWidget {
     this.height,
     this.weight,
     this.userId,
+    this.initialAge,
+    this.buttonText,
+    this.onUpdate,
   });
 
   @override
@@ -31,7 +38,13 @@ class AgePage extends StatefulWidget {
 }
 
 class _AgePageState extends State<AgePage> {
-  int age = 20; // tuổi mặc định
+  late int age;
+
+  @override
+  void initState() {
+    super.initState();
+    age = widget.initialAge ?? 20;
+  }
 
   String _getUnit() {
     if (widget.question.unit == "inputNumber") return "";
@@ -129,28 +142,45 @@ class _AgePageState extends State<AgePage> {
                 SizedBox(
                   width: context.w(0.5),
                   child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed: () {
-                      final provider = Provider.of<QuestionProvider>(
-                        context,
-                        listen: false,
-                      );
-                      final nextQuestion = provider.getQuestionByIndex(5);
-                      if (nextQuestion != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => TargetLevelScreen(
-                              question: nextQuestion,
-                              fullname: widget.fullname,
-                              gender: widget.gender,
-                              height: widget.height,
-                              weight: widget.weight,
-                              age: age,
-                              userId: widget.userId,
-                            ),
-                          ),
+                    text: widget.buttonText ?? "Tiếp tục",
+                    onPressed: () async {
+                      if (widget.onUpdate != null) {
+                        // Update mode
+                        print(
+                          '[AgePage] Update mode - calling onUpdate with $age',
                         );
+                        final success = await widget.onUpdate!(age);
+                        print('[AgePage] onUpdate result: success=$success');
+                        if (!mounted) return;
+                        if (success) {
+                          // Only return the result; parent shows a single top banner
+                          Navigator.pop(context, age);
+                        } else {
+                          // Stay on page; parent will decide how to notify
+                        }
+                      } else {
+                        // Normal onboarding flow
+                        final provider = Provider.of<QuestionProvider>(
+                          context,
+                          listen: false,
+                        );
+                        final nextQuestion = provider.getQuestionByIndex(5);
+                        if (nextQuestion != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TargetLevelScreen(
+                                question: nextQuestion,
+                                fullname: widget.fullname,
+                                gender: widget.gender,
+                                height: widget.height,
+                                weight: widget.weight,
+                                age: age,
+                                userId: widget.userId,
+                              ),
+                            ),
+                          );
+                        }
                       }
                     },
                   ),
