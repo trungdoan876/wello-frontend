@@ -11,7 +11,7 @@ import 'package:wello_frontend/ui/register/widgets/register_textfields.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 
-class RegisterFormContent extends StatelessWidget {
+class RegisterFormContent extends StatefulWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final TextEditingController confirmPasswordController;
@@ -22,6 +22,13 @@ class RegisterFormContent extends StatelessWidget {
     required this.passwordController,
     required this.confirmPasswordController,
   });
+
+  @override
+  State<RegisterFormContent> createState() => _RegisterFormContentState();
+}
+
+class _RegisterFormContentState extends State<RegisterFormContent> {
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +65,9 @@ class RegisterFormContent extends StatelessWidget {
 
           // --- Input Fields ---
           RegisterTextFields(
-            emailController: emailController,
-            passwordController: passwordController,
-            confirmPasswordController: confirmPasswordController,
+            emailController: widget.emailController,
+            passwordController: widget.passwordController,
+            confirmPasswordController: widget.confirmPasswordController,
           ),
 
           SizedBox(height: context.h(0.04)),
@@ -69,11 +76,11 @@ class RegisterFormContent extends StatelessWidget {
           SizedBox(
             width: context.w(0.8),
             child: AnimatedStartButton(
-              text: "Đăng ký",
-              onPressed: () async {
-                final email = emailController.text.trim();
-                final password = passwordController.text;
-                final confirmPassword = confirmPasswordController.text;
+              text: _isLoading ? "Đang gửi OTP..." : "Đăng ký",
+              onPressed: _isLoading ? () {} : () async {
+                final email = widget.emailController.text.trim();
+                final password = widget.passwordController.text;
+                final confirmPassword = widget.confirmPasswordController.text;
 
                 if (email.isEmpty ||
                     password.isEmpty ||
@@ -112,6 +119,11 @@ class RegisterFormContent extends StatelessWidget {
                   return;
                 }
 
+                // Show loading state
+                setState(() {
+                  _isLoading = true;
+                });
+
                 try {
                   final repository = AuthRepositoryImpl();
 
@@ -121,8 +133,13 @@ class RegisterFormContent extends StatelessWidget {
                     password: password,
                   );
 
-                  // Navigate to OTP verification screen
-                  if (context.mounted) {
+                  // Hide loading state
+                  if (mounted) {
+                    setState(() {
+                      _isLoading = false;
+                    });
+
+                    // Navigate to OTP verification screen
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -135,12 +152,19 @@ class RegisterFormContent extends StatelessWidget {
                     );
                   }
                 } catch (e) {
-                  QuickAlert.show(
-                    context: context,
-                    type: QuickAlertType.error,
-                    title: "Lỗi",
-                    text: e.toString().replaceAll('Exception: ', ''),
-                  );
+                  // Hide loading state on error
+                  if (mounted) {
+                    setState(() {
+                      _isLoading = false;
+                    });
+
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: "Lỗi",
+                      text: e.toString().replaceAll('Exception: ', ''),
+                    );
+                  }
                 }
               },
             ),
@@ -150,7 +174,7 @@ class RegisterFormContent extends StatelessWidget {
 
           // ---- Đã có tài khoản ----
           TextButton(
-            onPressed: () {
+            onPressed: _isLoading ? null : () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -160,7 +184,7 @@ class RegisterFormContent extends StatelessWidget {
               'Bạn đã có tài khoản',
               style: TextStyle(
                 fontSize: context.sp(4),
-                color: Colors.grey.shade700,
+                color: _isLoading ? Colors.grey.shade400 : Colors.grey.shade700,
                 decoration: TextDecoration.underline,
               ),
             ),
@@ -180,7 +204,10 @@ class RegisterFormContent extends StatelessWidget {
           SizedBox(height: context.h(0.02)),
 
           // Google Icon
-          Image.asset("assets/images/google.png", width: context.w(0.08)),
+          Opacity(
+            opacity: _isLoading ? 0.5 : 1.0,
+            child: Image.asset("assets/images/google.png", width: context.w(0.08)),
+          ),
         ],
       ),
     );
