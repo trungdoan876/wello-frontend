@@ -4,7 +4,6 @@ import '../entities/week_overview.dart';
 import '../entities/food_log_result.dart';
 import '../entities/food_history_item.dart';
 
-
 /// Repository interface for nutrition and fitness data
 abstract class NutritionRepository {
   /// Get user profile with fitness goals and targets
@@ -61,6 +60,8 @@ abstract class NutritionRepository {
     required int amountGrams,
     required String date,
     required String mealType,
+    int? caloriesOverride,
+    String? foodNameOverride,
   });
 
   /// Get food intake history

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wello_frontend/ui/favorites/screens/add_favorite_screen.dart';
+import 'package:wello_frontend/ui/favorites/widgets/create_meal_page.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
+import 'package:wello_frontend/data/repositories/favorites_list_repository.dart';
+import 'package:wello_frontend/ui/meal_selection/selection_screen.dart';
+import 'package:wello_frontend/ui/favorites/widgets/favorite_meal_card.dart';
+import 'package:wello_frontend/ui/favorites/widgets/favorite_food_detail_sheet.dart';
 import 'models/favorite_item.dart';
 import 'widgets/empty_favorite_state.dart';
 import 'widgets/favorites_tab_bar.dart';
-import 'widgets/favorite_item_card.dart';
 
 class FavoritesScreen extends StatefulWidget {
   final Function(bool)? onQuickActionsChanged;
@@ -22,11 +25,57 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   List<FavoriteItem> favorites = [];
   int _selectedTabIndex = 0;
   bool _showQuickActions = false;
+  List<MealItem> _favoritesMeals = [];
+  bool _isLoadingFavorites = false;
+  String? _errorMessage;
+
+  final FavoritesRepository _favoritesRepository = FavoritesRepository();
 
   @override
   void initState() {
     super.initState();
-    // TODO: Lấy danh sách yêu thích từ API hoặc database
+    _loadMyFavorites();
+  }
+
+  Future<void> _loadMyFavorites() async {
+    setState(() {
+      _isLoadingFavorites = true;
+      _errorMessage = null;
+    });
+
+    try {
+      print('🔄 Đang load danh sách yêu thích...');
+      final favorites = await _favoritesRepository.getMyFavorites(1);
+      print('✅ Tải thành công: ${favorites.length} món ăn');
+      print('📋 Dữ liệu: $favorites');
+
+      setState(() {
+        _favoritesMeals = favorites.map((fav) {
+          print('🍽️ Thêm: ${fav.foodName} - ${fav.calories} calo');
+          return MealItem(
+            name: fav.foodName,
+            description:
+                '${fav.protein.toInt()}g protein, ${fav.carbs.toInt()}g carbs',
+            calories: fav.calories,
+            protein: fav.protein,
+            carbs: fav.carbs,
+            fat: fav.fat,
+            foodId: fav.id, // Use id from API
+            mealType: fav.mealType,
+          );
+        }).toList();
+        print('📊 Tổng: ${_favoritesMeals.length} items');
+      });
+    } catch (e) {
+      print('❌ Lỗi: $e');
+      setState(() {
+        _errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoadingFavorites = false;
+      });
+    }
   }
 
   void _setQuickActionsVisible(bool show) {
@@ -61,7 +110,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFFFFC107),
+        backgroundColor: const Color(0xFFEBCF23),
         title: Text(
           'Mục yêu thích',
           style: GoogleFonts.baloo2(
@@ -81,7 +130,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AddFavoriteScreen(),
+                        builder: (context) => const CreateMealPage(),
                       ),
                     );
                   },
@@ -140,16 +189,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                AnimatedSlide(
-                  offset: _showQuickActions
-                      ? const Offset(0, 0)
-                      : const Offset(0, 0.2),
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeOut,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: _showQuickActions ? 1 : 0,
-                    child: QuickActionsPanel(onAction: _handleQuickAction),
+                IgnorePointer(
+                  ignoring: !_showQuickActions,
+                  child: AnimatedSlide(
+                    offset: _showQuickActions
+                        ? const Offset(0, 0)
+                        : const Offset(0, 0.2),
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOut,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 200),
+                      opacity: _showQuickActions ? 1 : 0,
+                      child: QuickActionsPanel(onAction: _handleQuickAction),
+                    ),
                   ),
                 ),
                 SizedBox(height: context.h(0.012)),
@@ -166,7 +218,58 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   Widget _buildFavoritesContent(BuildContext context) {
-    if (favorites.isEmpty) {
+    if (_isLoadingFavorites) {
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation(Color(0xFFEBCF23)),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: context.sp(15),
+              color: Colors.red.shade300,
+            ),
+            SizedBox(height: context.h(0.02)),
+            Text(
+              'Lỗi tải dữ liệu',
+              style: GoogleFonts.baloo2(
+                fontSize: context.sp(5.5),
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800,
+              ),
+            ),
+            SizedBox(height: context.h(0.01)),
+            Text(
+              _errorMessage!,
+              style: GoogleFonts.baloo2(
+                fontSize: context.sp(4),
+                color: Colors.grey.shade600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: context.h(0.02)),
+            ElevatedButton.icon(
+              onPressed: _loadMyFavorites,
+              icon: Icon(Icons.refresh),
+              label: Text('Thử lại'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFEBCF23),
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_favoritesMeals.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -180,8 +283,25 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             Text(
               'Chưa có món ăn yêu thích',
               style: GoogleFonts.baloo2(
-                fontSize: context.sp(4),
+                fontSize: context.sp(5),
                 color: Colors.grey.shade500,
+              ),
+            ),
+            SizedBox(height: context.h(0.03)),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateMealPage(),
+                  ),
+                );
+              },
+              icon: Icon(Icons.add),
+              label: Text('Thêm món ăn'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFEBCF23),
+                foregroundColor: Colors.white,
               ),
             ),
           ],
@@ -191,20 +311,56 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     return ListView.builder(
       padding: EdgeInsets.all(context.w(0.04)),
-      itemCount: favorites.length,
+      itemCount: _favoritesMeals.length,
       itemBuilder: (context, index) {
-        final item = favorites[index];
+        final item = _favoritesMeals[index];
         return Padding(
           padding: EdgeInsets.only(bottom: context.h(0.015)),
-          child: FavoriteItemCard(
+          child: FavoriteMealCard(
             item: item,
-            onAdd: () {
-              // TODO: Thêm item vào meal
+            onAdd: () async {
+              final mappedMealType = _mapMealTypeForSheet(item.mealType);
+              print(
+                '➡️ Open FoodDetailSheet from favorites: foodId=${item.foodId}, name=${item.name}, kcal=${item.calories}, protein=${item.protein}, carbs=${item.carbs}, fat=${item.fat}, mealType=$mappedMealType',
+              );
+              await showModalBottomSheet<bool>(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => FavoriteFoodDetailSheet(
+                  foodId: item.foodId!,
+                  foodName: item.name,
+                  baseCalories: item.calories,
+                  baseProtein: item.protein ?? 0,
+                  baseCarbs: item.carbs ?? 0,
+                  baseFat: item.fat ?? 0,
+                  mealType: mappedMealType,
+                ),
+              );
             },
-            onRemove: () => _removeFavorite(item.id),
           ),
         );
       },
     );
+  }
+
+  String _mapMealTypeForSheet(String? rawType) {
+    if (rawType == null) return 'SNACK';
+    switch (rawType.toUpperCase()) {
+      case 'BREAKFAST':
+      case 'BUA_SANG':
+        return 'BREAKFAST';
+      case 'LUNCH':
+      case 'BUA_TRUA':
+        return 'LUNCH';
+      case 'DINNER':
+      case 'BUA_TOI':
+        return 'DINNER';
+      case 'SNACK':
+      case 'BUA_PHU':
+        return 'SNACK';
+      default:
+        return 'SNACK';
+    }
   }
 }

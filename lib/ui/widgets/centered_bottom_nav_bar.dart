@@ -40,7 +40,7 @@ class CenteredBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFFFFC107);
+    const Color bgColor = Color(0xFFEBCF23);
     final data =
         items ??
         const [

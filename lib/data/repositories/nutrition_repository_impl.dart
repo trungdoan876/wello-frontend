@@ -84,6 +84,8 @@ class NutritionRepositoryImpl implements NutritionRepository {
     required int amountGrams,
     required String date,
     required String mealType,
+    int? caloriesOverride,
+    String? foodNameOverride,
   }) async {
     final response = await remoteDataSource.logFood(
       token,
@@ -93,6 +95,8 @@ class NutritionRepositoryImpl implements NutritionRepository {
         amountGrams: amountGrams,
         date: date,
         mealType: mealType,
+        caloriesOverride: caloriesOverride,
+        foodNameOverride: foodNameOverride,
       ),
     );
 

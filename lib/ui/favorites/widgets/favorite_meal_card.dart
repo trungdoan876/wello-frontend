@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
-import '../selection_screen.dart'; // MealItem definition
+import 'package:wello_frontend/ui/meal_selection/selection_screen.dart';
 
-class MealItemCard extends StatelessWidget {
+class FavoriteMealCard extends StatelessWidget {
   final MealItem item;
   final VoidCallback onAdd;
 
-  const MealItemCard({super.key, required this.item, required this.onAdd});
+  const FavoriteMealCard({super.key, required this.item, required this.onAdd});
 
   @override
   Widget build(BuildContext context) {
@@ -120,29 +120,35 @@ class MealItemCard extends StatelessWidget {
               ),
               SizedBox(width: context.w(0.04)),
               // Right: Button
-              Container(
-                width: context.sp(14),
-                height: context.sp(14),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [const Color(0xFFFFC107), const Color(0xFFFFB300)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFFC107).withOpacity(0.4),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                      spreadRadius: 2,
+              GestureDetector(
+                onTap: onAdd,
+                child: Container(
+                  width: context.sp(14),
+                  height: context.sp(14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFFFFC107),
+                        const Color(0xFFFFB300),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.add_rounded,
-                  color: Colors.white,
-                  size: context.sp(7),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFFC107).withOpacity(0.4),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.add_rounded,
+                    color: Colors.white,
+                    size: context.sp(7),
+                  ),
                 ),
               ),
             ],

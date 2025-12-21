@@ -6,6 +6,7 @@ import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/providers/survey_provider.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
+import 'package:wello_frontend/domain/providers/favorites_provider.dart';
 import 'package:wello_frontend/ui/auth/initial_page.dart';
 import 'package:wello_frontend/core/services/notification_service.dart';
 import 'package:wello_frontend/core/navigation/route_observer.dart';
@@ -32,6 +33,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SurveyProvider()),
         ChangeNotifierProvider(create: (_) => NutritionProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
       ],
       child: MyApp(),
     ),
