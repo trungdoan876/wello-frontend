@@ -48,64 +48,6 @@ class EmptyFavoriteState extends StatelessWidget {
                   color: Colors.grey.shade600,
                 ),
               ),
-              SizedBox(height: context.h(0.02)),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: context.w(0.08)),
-                child: Text(
-                  'THỰC PHẨM TỐT CHO HỆ TIÊU HÓA',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.baloo2(
-                    fontSize: context.sp(4.5),
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              SizedBox(height: context.h(0.02)),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
-                child: Text(
-                  'Thực phẩm này chứa nhiều vi khuẩn tốt và nhiều chất xơ giúp bộ máy tiêu hóa làm việc trong trạng thái tốt nhất.',
-                  //textAlign: TextAlign.center,
-                  style: GoogleFonts.baloo2(
-                    fontSize: context.sp(3.2),
-                    color: Colors.grey.shade600,
-                    height: 1.5,
-                  ),
-                ),
-              ),
-              SizedBox(height: context.h(0.02)),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: context.w(0.02)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children:
-                      [
-                            'Hạnh nhân',
-                            'Măng tây',
-                            'Dừa',
-                            'Gừng',
-                            'Mật ong',
-                          ]
-                          .map(
-                            (item) => Padding(
-                              padding: EdgeInsets.symmetric(
-                                vertical: context.h(0.008),
-                              ),
-                              child: Text(
-                                '- $item',
-                                style: GoogleFonts.baloo2(
-                                  fontSize: context.sp(3.2),
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                ),
-              ),
-              SizedBox(height: context.h(0.03)),
-          
             ],
           ),
         ),

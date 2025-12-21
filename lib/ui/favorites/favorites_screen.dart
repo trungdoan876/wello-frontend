@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wello_frontend/ui/favorites/screens/add_favorite_screen.dart';
+import 'package:wello_frontend/ui/favorites/widgets/create_meal_page.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'models/favorite_item.dart';
@@ -61,7 +61,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFFFFC107),
+        backgroundColor: const Color(0xFFEBCF23),
         title: Text(
           'Mục yêu thích',
           style: GoogleFonts.baloo2(
@@ -81,7 +81,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AddFavoriteScreen(),
+                        builder: (context) => const CreateMealPage(),
                       ),
                     );
                   },
