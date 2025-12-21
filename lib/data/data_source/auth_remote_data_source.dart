@@ -4,10 +4,14 @@ import '../models/requests/login_request_model.dart';
 import '../models/requests/register_request_model.dart';
 import '../models/requests/send_otp_request_model.dart';
 import '../models/requests/verify_otp_request_model.dart';
+import '../models/requests/forgot_password_request.dart';
+import '../models/requests/verify_reset_otp_request.dart';
+import '../models/requests/reset_password_request.dart';
 import '../models/responses/login_response_model.dart';
 import '../models/responses/register_response_model.dart';
 import '../models/responses/send_otp_response_model.dart';
 import '../models/responses/verify_otp_response_model.dart';
+import '../models/responses/password_reset_response.dart';
 
 /// Remote data source for authentication
 /// Handles direct API calls related to auth (login, register)
@@ -211,6 +215,115 @@ class AuthRemoteDataSource {
       }
     } catch (e) {
       throw Exception('Error resending OTP: $e');
+    }
+  }
+
+  /// Send OTP for password reset
+  Future<PasswordResetResponse> forgotPassword({
+    required String email,
+  }) async {
+    final url = Uri.parse('$baseUrl/forgot-password');
+    final request = ForgotPasswordRequest(email: email);
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(request.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
+        return PasswordResetResponse.fromJson(bodyJson);
+      } else {
+        // Parse error message
+        final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
+        return PasswordResetResponse(
+          success: false,
+          message: errorJson['message'] ?? 'Failed to send reset OTP',
+        );
+      }
+    } catch (e) {
+      return PasswordResetResponse(
+        success: false,
+        message: 'Error: $e',
+      );
+    }
+  }
+
+  /// Verify OTP for password reset
+  Future<PasswordResetResponse> verifyResetOtp({
+    required String email,
+    required String otp,
+    required String verificationToken,
+  }) async {
+    final url = Uri.parse('$baseUrl/verify-reset-otp');
+    final request = VerifyResetOtpRequest(
+      email: email,
+      otp: otp,
+      verificationToken: verificationToken,
+    );
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(request.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
+        return PasswordResetResponse.fromJson(bodyJson);
+      } else {
+        // Parse error message
+        final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
+        return PasswordResetResponse(
+          success: false,
+          message: errorJson['message'] ?? 'OTP verification failed',
+        );
+      }
+    } catch (e) {
+      return PasswordResetResponse(
+        success: false,
+        message: 'Error: $e',
+      );
+    }
+  }
+
+  /// Reset password with reset token
+  Future<PasswordResetResponse> resetPassword({
+    required String resetToken,
+    required String newPassword,
+  }) async {
+    final url = Uri.parse('$baseUrl/reset-password');
+    final request = ResetPasswordRequest(
+      resetToken: resetToken,
+      newPassword: newPassword,
+    );
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(request.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
+        return PasswordResetResponse.fromJson(bodyJson);
+      } else {
+        // Parse error message
+        final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
+        return PasswordResetResponse(
+          success: false,
+          message: errorJson['message'] ?? 'Password reset failed',
+        );
+      }
+    } catch (e) {
+      return PasswordResetResponse(
+        success: false,
+        message: 'Error: $e',
+      );
     }
   }
 }

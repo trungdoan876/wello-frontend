@@ -81,13 +81,13 @@ class StartPage extends StatelessWidget {
               // Khoảng trống 5% chiều cao màn hình
               SizedBox(height: context.h(0.05)),
 
-              // --- Nút "Let's Start" ---
+              // --- Nút "Bắt đầu ngay" ---
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: context.w(0.1)),
                 child: SizedBox(
                   width: context.w(0.8), // responsive theo chiều ngang
                   child: AnimatedStartButton(
-                    text: "Let's Start",
+                    text: "Bắt đầu ngay",
                     onPressed: () {
                        Navigator.push(
                         context,

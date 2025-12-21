@@ -1,4 +1,3 @@
-// lib/widgets/login_form_card.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +6,7 @@ import 'package:wello_frontend/ui/login/widgets/login_textfields.dart';
 import 'package:wello_frontend/ui/main_navigation_screen.dart';
 import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/register_page.dart';
-import 'package:wello_frontend/ui/main_navigation_screen.dart';
+import 'package:wello_frontend/ui/auth/forgot_password_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/beautiful_dialog.dart';
@@ -80,7 +79,12 @@ class LoginFormContent extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
+                );
+              },
               child: Text(
                 'Quên mật khẩu?',
                 style: TextStyle(

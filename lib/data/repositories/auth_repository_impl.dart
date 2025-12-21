@@ -6,6 +6,7 @@ import '../models/responses/login_response_model.dart';
 import '../models/responses/register_response_model.dart';
 import '../models/responses/send_otp_response_model.dart';
 import '../models/responses/verify_otp_response_model.dart';
+import '../models/responses/password_reset_response.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../core/constants/app_constants.dart';
 
@@ -139,5 +140,57 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     return await _dataSource.resendOtp(email: email, password: password);
+  }
+
+  @override
+  Future<PasswordResetResponse> forgotPassword({
+    required String email,
+  }) async {
+    try {
+      return await _dataSource.forgotPassword(email: email);
+    } catch (e) {
+      return PasswordResetResponse(
+        success: false,
+        message: 'Failed to send reset OTP: $e',
+      );
+    }
+  }
+
+  @override
+  Future<PasswordResetResponse> verifyResetOtp({
+    required String email,
+    required String otp,
+    required String verificationToken,
+  }) async {
+    try {
+      return await _dataSource.verifyResetOtp(
+        email: email,
+        otp: otp,
+        verificationToken: verificationToken,
+      );
+    } catch (e) {
+      return PasswordResetResponse(
+        success: false,
+        message: 'Failed to verify OTP: $e',
+      );
+    }
+  }
+
+  @override
+  Future<PasswordResetResponse> resetPassword({
+    required String resetToken,
+    required String newPassword,
+  }) async {
+    try {
+      return await _dataSource.resetPassword(
+        resetToken: resetToken,
+        newPassword: newPassword,
+      );
+    } catch (e) {
+      return PasswordResetResponse(
+        success: false,
+        message: 'Failed to reset password: $e',
+      );
+    }
   }
 }
