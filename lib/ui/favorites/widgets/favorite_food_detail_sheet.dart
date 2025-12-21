@@ -6,91 +6,37 @@ import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
-import 'package:wello_frontend/data/data_source/food_remote_data_source.dart';
-import 'package:wello_frontend/data/repositories/food_repository_impl.dart';
-import 'package:wello_frontend/domain/entities/food.dart';
-import 'package:wello_frontend/domain/entities/goal_status.dart';
 
-/// Bottom sheet for selecting food amount and logging intake
-class FoodDetailSheet extends StatefulWidget {
+/// Bottom sheet for logging favorite food with amount selection
+class FavoriteFoodDetailSheet extends StatefulWidget {
   final int foodId;
   final String foodName;
-  final int
-  baseCalories; // Calories per 100g (assumed based on standard food DB)
+  final int baseCalories; // Calories per 100g
+  final double baseProtein; // Protein per 100g
+  final double baseCarbs; // Carbs per 100g
+  final double baseFat; // Fat per 100g
   final String mealType;
-  final double baseProtein;
-  final double baseCarbs;
-  final double baseFat;
 
-  const FoodDetailSheet({
+  const FavoriteFoodDetailSheet({
     super.key,
     required this.foodId,
     required this.foodName,
+    required this.baseCalories,
+    required this.baseProtein,
+    required this.baseCarbs,
+    required this.baseFat,
     required this.mealType,
-    this.baseCalories = 0,
-    this.baseProtein = 0,
-    this.baseCarbs = 0,
-    this.baseFat = 0,
   });
 
   @override
-  State<FoodDetailSheet> createState() => _FoodDetailSheetState();
+  State<FavoriteFoodDetailSheet> createState() =>
+      _FavoriteFoodDetailSheetState();
 }
 
-class _FoodDetailSheetState extends State<FoodDetailSheet> {
+class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
   double _amountGrams = 100; // Default 100g
   bool _isLogging = false;
-  bool _isPreviewing = false;
-  Food? _previewData;
   String? _errorMessage;
-  late final bool _hasBaseData;
-
-  @override
-  void initState() {
-    super.initState();
-    _hasBaseData =
-        (widget.baseCalories > 0) ||
-        (widget.baseProtein > 0) ||
-        (widget.baseCarbs > 0) ||
-        (widget.baseFat > 0);
-
-    // Chỉ gọi preview API nếu không có dữ liệu base truyền vào
-    if (!_hasBaseData) {
-      _previewNutrients();
-    }
-  }
-
-  Future<void> _previewNutrients() async {
-    setState(() {
-      _isPreviewing = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final credentials = await AuthHelper.getCredentials();
-      if (credentials == null) throw Exception('Not authenticated');
-
-      final repository = FoodRepositoryImpl(
-        remoteDataSource: FoodRemoteDataSource(),
-      );
-
-      final preview = await repository.previewFood(
-        credentials.token,
-        widget.foodId,
-        _amountGrams.toInt(),
-      );
-
-      setState(() {
-        _previewData = preview;
-        _isPreviewing = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isPreviewing = false;
-      });
-      // Don't show error for preview, just keep old data or show 0
-    }
-  }
 
   Future<void> _logFood() async {
     setState(() {
@@ -107,27 +53,21 @@ class _FoodDetailSheetState extends State<FoodDetailSheet> {
 
       final nutritionProvider = context.read<NutritionProvider>();
 
+      // Calculate nutrition for this amount
+      final calories = (widget.baseCalories * (_amountGrams / 100)).toInt();
+      final protein = widget.baseProtein * (_amountGrams / 100);
+      final carbs = widget.baseCarbs * (_amountGrams / 100);
+      final fat = widget.baseFat * (_amountGrams / 100);
+
       // Check if this log will exceed the calorie target
       final summary = nutritionProvider.dailySummary;
       final profile = nutritionProvider.userProfile;
 
-      // Get calories from preview or calculate from base data
-      int? newCalories;
-      if (_previewData != null) {
-        newCalories = _previewData!.calories;
-      } else if (_hasBaseData) {
-        // Tính từ base data
-        newCalories = (widget.baseCalories * (_amountGrams / 100)).toInt();
-      }
-
-      if (summary != null &&
-          profile != null &&
-          newCalories != null &&
-          newCalories > 0) {
+      if (summary != null && profile != null) {
         final currentConsumed = summary.caloriesConsumed;
         final target = profile.dailyCalorieTarget;
 
-        if (currentConsumed + newCalories > target) {
+        if (currentConsumed + calories > target) {
           // Show confirmation dialog
           bool proceed = false;
           await QuickAlert.show(
@@ -152,13 +92,38 @@ class _FoodDetailSheetState extends State<FoodDetailSheet> {
         }
       }
 
+      print('═══════════════════════════════════════════════════════');
+      print('📤 THÊM MÓN ĂN TỪ YÊU THÍCH');
+      print('═══════════════════════════════════════════════════════');
+      print('👤 User ID: $userId');
+      print('🍽️  Food Name: ${widget.foodName}');
+      print('🆔 Food ID: ${widget.foodId}');
+      print('⚖️  Amount: ${_amountGrams.toInt()} grams');
+      print('🕐 Meal Type: ${widget.mealType}');
+      print('───────────────────────────────────────────────────────');
+      print('📊 NUTRITION DATA (CALCULATED):');
+      print('🔥 Calories: $calories kcal');
+      print('💪 Protein: ${protein.toStringAsFixed(1)} g');
+      print('🍞 Carbs: ${carbs.toStringAsFixed(1)} g');
+      print('🥑 Fat: ${fat.toStringAsFixed(1)} g');
+      print('───────────────────────────────────────────────────────');
+      print('✅ OVERRIDE DATA (SENT TO BACKEND):');
+      print('   caloriesOverride: $calories');
+      print('   foodNameOverride: ${widget.foodName}');
+      print('═══════════════════════════════════════════════════════');
+
       await nutritionProvider.logFood(
         token: credentials.token,
         userId: userId,
         foodId: widget.foodId,
         amountGrams: _amountGrams.toInt(),
         mealType: widget.mealType,
+        caloriesOverride: calories,
+        foodNameOverride: widget.foodName, // Use name from favorites
       );
+
+      print('✅ API call completed successfully');
+      print('═══════════════════════════════════════════════════════');
 
       if (!mounted) return;
 
@@ -171,8 +136,6 @@ class _FoodDetailSheetState extends State<FoodDetailSheet> {
       Navigator.pop(context, true); // Return true to indicate success
 
       if (achievements.isNotEmpty) {
-        // Show celebration only for goals that were reached but not exceeded
-        // (Since exceeding was already handled by the pre-log confirmation)
         final celebrates = achievements.where((a) => !a.exceeded).toList();
 
         if (celebrates.isNotEmpty) {
@@ -197,6 +160,11 @@ class _FoodDetailSheetState extends State<FoodDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final calories = (widget.baseCalories * (_amountGrams / 100)).toInt();
+    final protein = widget.baseProtein * (_amountGrams / 100);
+    final carbs = widget.baseCarbs * (_amountGrams / 100);
+    final fat = widget.baseFat * (_amountGrams / 100);
+
     return Container(
       padding: EdgeInsets.all(context.w(0.05)),
       decoration: BoxDecoration(
@@ -276,7 +244,7 @@ class _FoodDetailSheetState extends State<FoodDetailSheet> {
           ),
           SizedBox(height: context.h(0.02)),
 
-          // Nutrition Details Preview (fallback to base macros if preview missing)
+          // Nutrition Details (from favorites data)
           Container(
             padding: EdgeInsets.all(context.sp(4)),
             decoration: BoxDecoration(
@@ -284,56 +252,35 @@ class _FoodDetailSheetState extends State<FoodDetailSheet> {
               borderRadius: BorderRadius.circular(context.sp(3)),
               border: Border.all(color: Colors.grey.shade200),
             ),
-            child: _isPreviewing && _previewData == null
-                ? Center(child: CircularProgressIndicator(strokeWidth: 2))
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildNutrientItem(
-                        'Calories',
-                        _previewData != null
-                            ? '${_previewData!.calories}'
-                            : _formatNumber(
-                                widget.baseCalories * (_amountGrams / 100),
-                              ),
-                        'kcal',
-                        const Color(0xFFFF6B6B),
-                      ),
-                      _buildNutrientItem(
-                        'Protein',
-                        _previewData != null
-                            ? _previewData!.protein.toStringAsFixed(1)
-                            : _formatNumber(
-                                widget.baseProtein * (_amountGrams / 100),
-                                decimals: 1,
-                              ),
-                        'g',
-                        const Color(0xFF4ECDC4),
-                      ),
-                      _buildNutrientItem(
-                        'Carbs',
-                        _previewData != null
-                            ? _previewData!.carbs.toStringAsFixed(1)
-                            : _formatNumber(
-                                widget.baseCarbs * (_amountGrams / 100),
-                                decimals: 1,
-                              ),
-                        'g',
-                        const Color(0xFFFFD93D),
-                      ),
-                      _buildNutrientItem(
-                        'Fat',
-                        _previewData != null
-                            ? _previewData!.fat.toStringAsFixed(1)
-                            : _formatNumber(
-                                widget.baseFat * (_amountGrams / 100),
-                                decimals: 1,
-                              ),
-                        'g',
-                        const Color(0xFFFF8066),
-                      ),
-                    ],
-                  ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNutrientItem(
+                  'Calories',
+                  calories.toString(),
+                  'kcal',
+                  const Color(0xFFFF6B6B),
+                ),
+                _buildNutrientItem(
+                  'Protein',
+                  protein.toStringAsFixed(1),
+                  'g',
+                  const Color(0xFF4ECDC4),
+                ),
+                _buildNutrientItem(
+                  'Carbs',
+                  carbs.toStringAsFixed(1),
+                  'g',
+                  const Color(0xFFFFD93D),
+                ),
+                _buildNutrientItem(
+                  'Fat',
+                  fat.toStringAsFixed(1),
+                  'g',
+                  const Color(0xFFFF8066),
+                ),
+              ],
+            ),
           ),
           SizedBox(height: context.h(0.01)),
           SizedBox(height: context.h(0.03)),
@@ -348,11 +295,6 @@ class _FoodDetailSheetState extends State<FoodDetailSheet> {
             inactiveColor: Colors.grey.shade300,
             onChanged: (value) {
               setState(() => _amountGrams = value);
-            },
-            onChangeEnd: (value) {
-              if (!_hasBaseData) {
-                _previewNutrients();
-              }
             },
           ),
           Row(
@@ -460,9 +402,5 @@ class _FoodDetailSheetState extends State<FoodDetailSheet> {
         ),
       ],
     );
-  }
-
-  String _formatNumber(double value, {int decimals = 1}) {
-    return value.toStringAsFixed(decimals);
   }
 }

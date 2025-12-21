@@ -8,6 +8,7 @@ import 'package:wello_frontend/data/data_source/food_remote_data_source.dart';
 import 'package:wello_frontend/data/repositories/food_repository_impl.dart';
 import 'widgets/meal_search_bar.dart';
 import 'widgets/meal_item_card.dart';
+import 'widgets/suggestion_meal_card.dart';
 import 'widgets/exercise_detail_sheet.dart';
 import 'widgets/food_detail_sheet.dart';
 
@@ -20,6 +21,7 @@ class MealItem {
   final double? fat;
   final int? exerciseId; // For exercises
   final int? foodId; // For foods
+  final String? mealType; // Optional meal type context
 
   const MealItem({
     required this.name,
@@ -30,6 +32,7 @@ class MealItem {
     this.fat,
     this.exerciseId,
     this.foodId,
+    this.mealType,
   });
 }
 
@@ -53,6 +56,7 @@ class _SelectionScreenState extends State<SelectionScreen> {
   List<MealItem> _allItems = [];
   bool _isLoading = false;
   String? _errorMessage;
+  String? _activeFilter; // popular | highProtein | lowCarb | lowFat
 
   @override
   void initState() {
@@ -134,19 +138,39 @@ class _SelectionScreenState extends State<SelectionScreen> {
   }
 
   void _filterItems(String query) {
-    setState(() {
-      _filteredItems = query.isEmpty
-          ? _allItems
-          : _allItems
-                .where(
-                  (item) =>
-                      item.name.toLowerCase().contains(query.toLowerCase()) ||
-                      item.description.toLowerCase().contains(
-                        query.toLowerCase(),
-                      ),
-                )
-                .toList();
-    });
+    final base = query.isEmpty
+        ? _allItems
+        : _allItems
+              .where(
+                (item) =>
+                    item.name.toLowerCase().contains(query.toLowerCase()) ||
+                    item.description.toLowerCase().contains(
+                      query.toLowerCase(),
+                    ),
+              )
+              .toList();
+
+    // Apply optional filter chip logic
+    List<MealItem> result = base;
+    if (_activeFilter != null) {
+      switch (_activeFilter) {
+        case 'highProtein':
+          result = base.where((i) => (i.protein ?? 0) >= 15).toList();
+          break;
+        case 'lowCarb':
+          result = base.where((i) => (i.carbs ?? 0) <= 10).toList();
+          break;
+        case 'lowFat':
+          result = base.where((i) => (i.fat ?? 0) <= 8).toList();
+          break;
+        case 'popular':
+          // Placeholder: sort by calories descending to simulate featured
+          result = [...base]..sort((a, b) => b.calories.compareTo(a.calories));
+          break;
+      }
+    }
+
+    setState(() => _filteredItems = result);
   }
 
   String _getErrorMessage(String error) {
@@ -207,6 +231,26 @@ class _SelectionScreenState extends State<SelectionScreen> {
             ),
           ),
           SizedBox(height: context.h(0.015)),
+
+          // Filter chips row
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
+            child: Wrap(
+              spacing: context.sp(2.5),
+              runSpacing: context.sp(2),
+              children: [
+                _buildFilterChip(context, label: 'Phổ biến', value: 'popular'),
+                _buildFilterChip(
+                  context,
+                  label: 'Giàu protein',
+                  value: 'highProtein',
+                ),
+                _buildFilterChip(context, label: 'Ít carb', value: 'lowCarb'),
+                _buildFilterChip(context, label: 'Ít béo', value: 'lowFat'),
+              ],
+            ),
+          ),
+          SizedBox(height: context.h(0.02)),
 
           Expanded(
             child: _isLoading
@@ -301,7 +345,7 @@ class _SelectionScreenState extends State<SelectionScreen> {
                       final item = _filteredItems[index];
                       return Padding(
                         padding: EdgeInsets.only(bottom: context.h(0.015)),
-                        child: MealItemCard(
+                        child: SuggestionMealCard(
                           item: item,
                           onAdd: () async {
                             if (widget.mealType == 'tap_luyen') {
@@ -343,6 +387,9 @@ class _SelectionScreenState extends State<SelectionScreen> {
                                     foodId: item.foodId!,
                                     foodName: item.name,
                                     baseCalories: item.calories,
+                                    baseProtein: item.protein ?? 0,
+                                    baseCarbs: item.carbs ?? 0,
+                                    baseFat: item.fat ?? 0,
                                     mealType: _mapMealType(widget.mealType),
                                   ),
                                 );
@@ -379,4 +426,40 @@ class _SelectionScreenState extends State<SelectionScreen> {
         return 'SNACK';
     }
   }
+}
+
+Widget _buildFilterChip(
+  BuildContext context, {
+  required String label,
+  required String value,
+}) {
+  final accent = const Color(0xFFFFC107);
+  final state = context.findAncestorStateOfType<_SelectionScreenState>();
+  final isSelected = state?._activeFilter == value;
+
+  return ChoiceChip(
+    label: Text(
+      label,
+      style: GoogleFonts.beVietnamPro(
+        fontSize: context.sp(3.8),
+        fontWeight: FontWeight.w700,
+        color: isSelected ? Colors.white : Colors.grey.shade800,
+      ),
+    ),
+    selected: isSelected,
+    onSelected: (selected) {
+      if (state == null) return;
+      state.setState(() {
+        state._activeFilter = selected ? value : null;
+      });
+      state._filterItems(state._searchController.text);
+    },
+    selectedColor: accent,
+    backgroundColor: accent.withOpacity(0.12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(context.sp(3)),
+      side: BorderSide(color: accent.withOpacity(0.35)),
+    ),
+    pressElevation: 0,
+  );
 }

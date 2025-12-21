@@ -32,18 +32,18 @@ class NutritionProvider extends ChangeNotifier {
   bool _isLoggingFood = false;
   bool _isLoadingHistory = false;
 
-
   String? _errorMessage;
   String _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   NutritionProvider({
     NutritionRepository? repository,
     ProfileRepository? profileRepository,
-  })  : _repository = repository ??
-            NutritionRepositoryImpl(
-              remoteDataSource: NutritionRemoteDataSource(),
-            ),
-        _profileRepository = profileRepository ?? ProfileRepository();
+  }) : _repository =
+           repository ??
+           NutritionRepositoryImpl(
+             remoteDataSource: NutritionRemoteDataSource(),
+           ),
+       _profileRepository = profileRepository ?? ProfileRepository();
 
   // Getters
   UserProfile? get userProfile => _userProfile;
@@ -276,6 +276,8 @@ class NutritionProvider extends ChangeNotifier {
     required int foodId,
     required int amountGrams,
     required String mealType,
+    int? caloriesOverride,
+    String? foodNameOverride,
   }) async {
     _isLoggingFood = true;
     _errorMessage = null;
@@ -289,6 +291,8 @@ class NutritionProvider extends ChangeNotifier {
         amountGrams: amountGrams,
         date: _selectedDate,
         mealType: mealType,
+        caloriesOverride: caloriesOverride,
+        foodNameOverride: foodNameOverride,
       );
 
       _isLoggingFood = false;
@@ -366,14 +370,16 @@ class NutritionProvider extends ChangeNotifier {
     final calTarget = profile.dailyCalorieTarget;
     if (calTarget > 0) {
       if (summary.caloriesConsumed >= calTarget) {
-        achievements.add(GoalAchievement(
-          type: GoalType.calories,
-          reached: true,
-          exceeded: summary.caloriesConsumed > calTarget,
-          message: summary.caloriesConsumed > calTarget
-              ? 'Bạn đã vượt mục tiêu Calorie trong ngày!'
-              : 'Chúc mừng! Bạn đã hoàn thành mục tiêu Calorie hôm nay.',
-        ));
+        achievements.add(
+          GoalAchievement(
+            type: GoalType.calories,
+            reached: true,
+            exceeded: summary.caloriesConsumed > calTarget,
+            message: summary.caloriesConsumed > calTarget
+                ? 'Bạn đã vượt mục tiêu Calorie trong ngày!'
+                : 'Chúc mừng! Bạn đã hoàn thành mục tiêu Calorie hôm nay.',
+          ),
+        );
       }
     }
 
@@ -381,12 +387,14 @@ class NutritionProvider extends ChangeNotifier {
     final proteinTarget = profile.macroTargets.protein.toDouble();
     if (proteinTarget > 0) {
       if (summary.protein.consumed >= proteinTarget) {
-        achievements.add(GoalAchievement(
-          type: GoalType.protein,
-          reached: true,
-          exceeded: summary.protein.consumed > proteinTarget + 10,
-          message: 'Bạn đã nạp đủ lượng Protein cần thiết!',
-        ));
+        achievements.add(
+          GoalAchievement(
+            type: GoalType.protein,
+            reached: true,
+            exceeded: summary.protein.consumed > proteinTarget + 10,
+            message: 'Bạn đã nạp đủ lượng Protein cần thiết!',
+          ),
+        );
       }
     }
 
@@ -394,12 +402,14 @@ class NutritionProvider extends ChangeNotifier {
     final waterTarget = profile.dailyWaterTarget;
     if (waterTarget > 0) {
       if (summary.waterIntake.consumed >= waterTarget) {
-        achievements.add(GoalAchievement(
-          type: GoalType.water,
-          reached: true,
-          exceeded: summary.waterIntake.consumed > waterTarget,
-          message: 'Tuyệt vời! Bạn đã uống đủ nước hôm nay.',
-        ));
+        achievements.add(
+          GoalAchievement(
+            type: GoalType.water,
+            reached: true,
+            exceeded: summary.waterIntake.consumed > waterTarget,
+            message: 'Tuyệt vời! Bạn đã uống đủ nước hôm nay.',
+          ),
+        );
       }
     }
 

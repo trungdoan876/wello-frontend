@@ -655,12 +655,88 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                       children: [
                         SizedBox(height: context.h(0.02)),
 
-                        Text(
-                          'Hồ sơ cá nhân',
-                          style: GoogleFonts.baloo2(
-                            fontSize: context.sp(8.5),
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFFEBCF23),
+                        // Header
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.w(0.04),
+                            vertical: context.h(0.02),
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFFEBCF23),
+                                const Color(0xFFFFF7DA),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFFEBCF23,
+                                ).withOpacity(0.25),
+                                blurRadius: 16,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: const Color(0xFFEBCF23).withOpacity(0.35),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Title row with accent icon chip
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(context.sp(1.4)),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFFFFC107,
+                                      ).withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(
+                                        context.sp(3),
+                                      ),
+                                      border: Border.all(
+                                        color: const Color(
+                                          0xFFFFC107,
+                                        ).withOpacity(0.35),
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.person_rounded,
+                                      size: context.sp(4.8),
+                                      color: const Color(0xFFE68F00),
+                                    ),
+                                  ),
+                                  SizedBox(width: context.w(0.02)),
+                                  Text(
+                                    'Hồ sơ cá nhân',
+                                    style: GoogleFonts.baloo2(
+                                      fontSize: context.sp(8),
+                                      fontWeight: FontWeight.w900,
+                                      color: const Color(0xFF3F3D3F),
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: context.h(0.006)),
+                              Text(
+                                'Quản lý thông tin và mục tiêu của bạn',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.beVietnamPro(
+                                  fontSize: context.sp(4.2),
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF6B6B6B),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 
@@ -672,15 +748,22 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                           child: Stack(
                             children: [
                               Container(
-                                width: context.w(0.2),
-                                height: context.w(0.2),
+                                width: context.w(0.22),
+                                height: context.w(0.22),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: Colors.white,
                                   border: Border.all(
-                                    color: const Color(0xFFE0E0E0),
+                                    color: const Color(0xFFEBCF23),
                                     width: 2,
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
                                   image: _profileImage != null
                                       ? DecorationImage(
                                           image: FileImage(_profileImage!),
@@ -765,12 +848,19 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                               vertical: context.h(0.02),
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(15),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: const Color.fromARGB(255, 187, 187, 187),
-                                width: 1.5,
+                                color: const Color(0xFFEBCF23).withOpacity(0.4),
+                                width: 1.2,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -799,104 +889,142 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                         SizedBox(height: context.h(0.02)),
 
                         // Physical profile button
-                        ElevatedButton(
-                          onPressed: () {
-                            if (profileData != null) {
-                              final profileProvider =
-                                  Provider.of<ProfileProvider>(
-                                    context,
-                                    listen: false,
-                                  );
-                              Navigator.of(context)
-                                  .push(
-                                    MaterialPageRoute(
-                                      builder: (_) => PhysicalProfilePage(
-                                        profile: profileData,
-                                        onUpdateFullname:
-                                            (userId, fullname) async {
-                                              return await profileProvider
-                                                  .updateFullname(
-                                                    userId: userId,
-                                                    fullname: fullname,
-                                                  );
-                                            },
-                                        onUpdateGender: (userId, gender) async {
-                                          return await profileProvider
-                                              .updateGender(
-                                                userId: userId,
-                                                gender: gender,
-                                              );
-                                        },
-                                        onUpdateAge: (userId, age) async {
-                                          return await profileProvider
-                                              .updateAge(
-                                                userId: userId,
-                                                age: age,
-                                              );
-                                        },
-                                        onUpdateHeight: (userId, height) async {
-                                          return await profileProvider
-                                              .updateHeight(
-                                                userId: userId,
-                                                height: height,
-                                              );
-                                        },
-                                        onUpdateWeight: (userId, weight) async {
-                                          return await profileProvider
-                                              .updateWeight(
-                                                userId: userId,
-                                                weight: weight,
-                                              );
-                                        },
-                                        onUpdateGoal: (userId, goal) async {
-                                          return await profileProvider
-                                              .updateGoal(
-                                                userId: userId,
-                                                goal: goal,
-                                              );
-                                        },
-                                        onUpdateActivityLevel:
-                                            (userId, activityLevel) async {
-                                              return await profileProvider
-                                                  .updateActivityLevel(
-                                                    userId: userId,
-                                                    activityLevel:
-                                                        activityLevel,
-                                                  );
-                                            },
-                                        onRefreshProfile: () async {
-                                          await profileProvider.loadProfile(
-                                            _userId!,
-                                          );
-                                          return profileProvider.profileData;
-                                        },
-                                      ),
-                                    ),
-                                  )
-                                  .then((_) {
-                                    if (mounted) {
-                                      _reloadOnReturn();
-                                    }
-                                  });
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFFE066),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: context.w(0.25),
-                              vertical: context.h(0.015),
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            elevation: 0,
+                        Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                            borderRadius: BorderRadius.circular(24),
                           ),
-                          child: Text(
-                            'Hồ sơ thể chất',
-                            style: GoogleFonts.baloo2(
-                              fontSize: context.sp(6),
-                              fontWeight: FontWeight.w600,
-                              color: const Color.fromARGB(255, 93, 90, 93),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              if (profileData != null) {
+                                final profileProvider =
+                                    Provider.of<ProfileProvider>(
+                                      context,
+                                      listen: false,
+                                    );
+                                Navigator.of(context)
+                                    .push(
+                                      MaterialPageRoute(
+                                        builder: (_) => PhysicalProfilePage(
+                                          profile: profileData,
+                                          onUpdateFullname:
+                                              (userId, fullname) async {
+                                                return await profileProvider
+                                                    .updateFullname(
+                                                      userId: userId,
+                                                      fullname: fullname,
+                                                    );
+                                              },
+                                          onUpdateGender:
+                                              (userId, gender) async {
+                                                return await profileProvider
+                                                    .updateGender(
+                                                      userId: userId,
+                                                      gender: gender,
+                                                    );
+                                              },
+                                          onUpdateAge: (userId, age) async {
+                                            return await profileProvider
+                                                .updateAge(
+                                                  userId: userId,
+                                                  age: age,
+                                                );
+                                          },
+                                          onUpdateHeight:
+                                              (userId, height) async {
+                                                return await profileProvider
+                                                    .updateHeight(
+                                                      userId: userId,
+                                                      height: height,
+                                                    );
+                                              },
+                                          onUpdateWeight:
+                                              (userId, weight) async {
+                                                return await profileProvider
+                                                    .updateWeight(
+                                                      userId: userId,
+                                                      weight: weight,
+                                                    );
+                                              },
+                                          onUpdateGoal: (userId, goal) async {
+                                            return await profileProvider
+                                                .updateGoal(
+                                                  userId: userId,
+                                                  goal: goal,
+                                                );
+                                          },
+                                          onUpdateActivityLevel:
+                                              (userId, activityLevel) async {
+                                                return await profileProvider
+                                                    .updateActivityLevel(
+                                                      userId: userId,
+                                                      activityLevel:
+                                                          activityLevel,
+                                                    );
+                                              },
+                                          onRefreshProfile: () async {
+                                            await profileProvider.loadProfile(
+                                              _userId!,
+                                            );
+                                            return profileProvider.profileData;
+                                          },
+                                        ),
+                                      ),
+                                    )
+                                    .then((_) {
+                                      if (mounted) {
+                                        _reloadOnReturn();
+                                      }
+                                    });
+                              }
+                            },
+                            icon: Icon(
+                              Icons.fitness_center,
+                              size: context.sp(6),
+                              color: Colors.white,
+                            ),
+                            label: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Hồ sơ thể chất',
+                                  style: GoogleFonts.baloo2(
+                                    fontSize: context.sp(6),
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(width: context.w(0.02)),
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: context.sp(6),
+                                  color: Colors.white,
+                                ),
+                              ],
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFEBCF23),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: context.w(0.18),
+                                vertical: context.h(0.018),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                side: BorderSide(
+                                  color: const Color(
+                                    0xFFEBCF23,
+                                  ).withOpacity(0.6),
+                                  width: 1.5,
+                                ),
+                              ),
+                              elevation: 0,
                             ),
                           ),
                         ),
@@ -904,13 +1032,40 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                         SizedBox(height: context.h(0.03)),
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Chỉ số cơ thể',
-                            style: GoogleFonts.baloo2(
-                              fontSize: context.sp(7),
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF4C494C),
-                            ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(context.sp(1.6)),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFFFFC107,
+                                  ).withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(
+                                    context.sp(2.5),
+                                  ),
+                                  border: Border.all(
+                                    color: const Color(
+                                      0xFFFFC107,
+                                    ).withOpacity(0.35),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.monitor_heart_rounded,
+                                  size: context.sp(4.8),
+                                  color: const Color(0xFFE68F00),
+                                ),
+                              ),
+                              SizedBox(width: context.w(0.02)),
+                              Text(
+                                'Chỉ số cơ thể',
+                                style: GoogleFonts.baloo2(
+                                  fontSize: context.sp(7),
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF4C494C),
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 
@@ -998,13 +1153,45 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                         SizedBox(height: context.h(0.03)),
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Bạn nên uống bao nhiêu nước',
-                            style: GoogleFonts.baloo2(
-                              fontSize: context.sp(6),
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF4C494C),
-                            ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(context.sp(1.2)),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFFFFC107,
+                                  ).withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(
+                                    context.sp(2.5),
+                                  ),
+                                  border: Border.all(
+                                    color: const Color(
+                                      0xFFFFC107,
+                                    ).withOpacity(0.35),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.water_drop_rounded,
+                                  size: context.sp(4.2),
+                                  color: const Color(0xFFE68F00),
+                                ),
+                              ),
+                              SizedBox(width: context.w(0.015)),
+                              Expanded(
+                                child: Text(
+                                  'Bạn nên uống bao nhiêu nước',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.baloo2(
+                                    fontSize: context.sp(5.4),
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF4C494C),
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 

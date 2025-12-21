@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:wello_frontend/domain/providers/favorites_provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/meal_selection/selection_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
@@ -256,6 +258,18 @@ class _CreateMealPageState extends State<CreateMealPage> {
                         0,
                         (s, i) => s + (i.calories),
                       );
+                      final totalProtein = _ingredients.fold<double>(
+                        0.0,
+                        (s, i) => s + i.protein,
+                      );
+                      final totalCarbs = _ingredients.fold<double>(
+                        0.0,
+                        (s, i) => s + i.carbs,
+                      );
+                      final totalFat = _ingredients.fold<double>(
+                        0.0,
+                        (s, i) => s + i.fat,
+                      );
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
@@ -264,6 +278,9 @@ class _CreateMealPageState extends State<CreateMealPage> {
                           return _AddMealBottomSheet(
                             mealName: nameTrimmed,
                             baseCalories: totalCalories,
+                            totalProtein: totalProtein,
+                            totalCarbs: totalCarbs,
+                            totalFat: totalFat,
                             onConfirm: (mealTime, servings) {
                               Navigator.of(context).pop();
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -653,11 +670,17 @@ extension _MealTimeX on _MealTime {
 class _AddMealBottomSheet extends StatefulWidget {
   final String mealName;
   final int baseCalories;
+  final double totalProtein;
+  final double totalCarbs;
+  final double totalFat;
   final void Function(_MealTime mealTime, int servings) onConfirm;
   const _AddMealBottomSheet({
     Key? key,
     required this.mealName,
     required this.baseCalories,
+    required this.totalProtein,
+    required this.totalCarbs,
+    required this.totalFat,
     required this.onConfirm,
   }) : super(key: key);
 
@@ -669,282 +692,327 @@ class _AddMealBottomSheetState extends State<_AddMealBottomSheet> {
   _MealTime _selectedTime = _MealTime.dinner;
   int _servings = 1;
 
+  Future<void> _addToFavorites() async {
+    try {
+      final favoritesProvider = Provider.of<FavoritesProvider>(
+        context,
+        listen: false,
+      );
+
+      final success = await favoritesProvider.addToFavorites(
+        userId: 1,
+        foodName: widget.mealName,
+        caloriesPer100g: widget.baseCalories,
+        proteinPer100g: widget.totalProtein,
+        carbsPer100g: widget.totalCarbs,
+        fatPer100g: widget.totalFat,
+        mealType: _selectedTime.toString().split('.').last.toUpperCase(),
+      );
+
+      if (!mounted) return;
+
+      if (success) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Đã thêm "${widget.mealName}" vào yêu thích',
+                    style: GoogleFonts.beVietnamPro(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF2ECC71),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Lỗi: ${favoritesProvider.errorMessage}',
+              style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: const Color(0xFFFF6B6B),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lỗi kết nối: $e',
+            style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: const Color(0xFFFF6B6B),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeOrange = const Color(0xFFEBCF23);
     final totalCalories = (_servings * widget.baseCalories).clamp(0, 999999);
 
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        color: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(28, 28, 28, 28),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 32,
-                offset: const Offset(0, 12),
-                spreadRadius: 2,
+    return Consumer<FavoritesProvider>(
+      builder: (context, favoritesProvider, _) {
+        final isLoading = favoritesProvider.isLoading;
+
+        return SafeArea(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(28, 28, 28, 28),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 32,
+                    offset: const Offset(0, 12),
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Thêm bữa ăn',
+                              style: GoogleFonts.baloo2(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: themeOrange,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.mealName,
+                              style: GoogleFonts.baloo2(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF132439),
+                                height: 1.2,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: themeOrange.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.close, color: themeOrange, size: 24),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          themeOrange.withOpacity(0.08),
+                          themeOrange.withOpacity(0.04),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: themeOrange.withOpacity(0.2),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          'Thêm bữa ăn',
-                          style: GoogleFonts.baloo2(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: themeOrange.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.local_fire_department_rounded,
                             color: themeOrange,
-                            letterSpacing: 0.5,
+                            size: 20,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.mealName,
-                          style: GoogleFonts.baloo2(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFF132439),
-                            height: 1.2,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Năng lượng',
+                                style: GoogleFonts.baloo2(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.grey.shade600,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$totalCalories kcal',
+                                style: GoogleFonts.baloo2(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: themeOrange,
+                                ),
+                              ),
+                            ],
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: themeOrange.withOpacity(0.1),
-                      shape: BoxShape.circle,
+                  const SizedBox(height: 28),
+                  Text(
+                    'Chọn bữa ăn',
+                    style: GoogleFonts.baloo2(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF132439),
+                      letterSpacing: 0.3,
                     ),
-                    child: IconButton(
-                      icon: Icon(Icons.close, color: themeOrange, size: 24),
-                      onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _MealTime.values.map((t) {
+                      final selected = t == _selectedTime;
+                      return Material(
+                        child: InkWell(
+                          onTap: () => setState(() => _selectedTime = t),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: selected ? themeOrange : Colors.white,
+                              border: Border.all(
+                                color: selected
+                                    ? themeOrange
+                                    : Colors.grey.shade200,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: selected
+                                  ? [
+                                      BoxShadow(
+                                        color: themeOrange.withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ]
+                                  : [],
+                            ),
+                            child: Text(
+                              t.label,
+                              style: GoogleFonts.baloo2(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                color: selected
+                                    ? Colors.white
+                                    : const Color(0xFF5E6A78),
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: themeOrange.withOpacity(0.3),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: isLoading ? null : _addToFavorites,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isLoading
+                              ? Colors.grey
+                              : themeOrange,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: isLoading
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                'Thêm vào yêu thích',
+                                style: GoogleFonts.baloo2(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      themeOrange.withOpacity(0.08),
-                      themeOrange.withOpacity(0.04),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: themeOrange.withOpacity(0.2),
-                    width: 1.5,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: themeOrange.withOpacity(0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.local_fire_department_rounded,
-                        color: themeOrange,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Năng lượng',
-                            style: GoogleFonts.baloo2(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.grey.shade600,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '$totalCalories kcal',
-                            style: GoogleFonts.baloo2(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: themeOrange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 28),
-              Text(
-                'Chọn bữa ăn',
-                style: GoogleFonts.baloo2(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF132439),
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _MealTime.values.map((t) {
-                  final selected = t == _selectedTime;
-                  return Material(
-                    child: InkWell(
-                      onTap: () => setState(() => _selectedTime = t),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: selected ? themeOrange : Colors.white,
-                          border: Border.all(
-                            color: selected
-                                ? themeOrange
-                                : Colors.grey.shade200,
-                            width: 2,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: selected
-                              ? [
-                                  BoxShadow(
-                                    color: themeOrange.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: Text(
-                          t.label,
-                          style: GoogleFonts.baloo2(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13,
-                            color: selected
-                                ? Colors.white
-                                : const Color(0xFF5E6A78),
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: themeOrange.withOpacity(0.3),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () => widget.onConfirm(_selectedTime, _servings),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: themeOrange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Thêm vào nhật ký',
-                      style: GoogleFonts.baloo2(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _chip(String label, bool selected, Color color) {
-    return ChoiceChip(
-      label: Text(
-        label,
-        style: GoogleFonts.beVietnamPro(
-          fontWeight: FontWeight.w700,
-          color: selected ? Colors.white : const Color(0xFF5E6A78),
-        ),
-      ),
-      selected: selected,
-      onSelected: (_) {},
-      selectedColor: color,
-      backgroundColor: const Color(0xFFF4F6F8),
-      shape: const StadiumBorder(),
-      labelPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-    );
-  }
-
-  Widget _circleButton(IconData icon, {required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
             ),
-          ],
-        ),
-        child: Icon(icon, color: const Color(0xFF5E6A78)),
-      ),
+          ),
+        );
+      },
     );
   }
 }
