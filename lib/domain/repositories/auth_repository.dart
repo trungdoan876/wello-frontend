@@ -11,10 +11,10 @@ abstract class AuthRepository {
     required String password,
   });
 
-  /// Register new user with email and password
+  /// Register new user with email and hashed password
   Future<RegisterResponseModel> register({
     required String email,
-    required String password,
+    required String hashedPassword,
   });
 
   /// Login with Google account
@@ -23,12 +23,7 @@ abstract class AuthRepository {
   /// Send OTP for password reset
   Future<PasswordResetResponse> forgotPassword({required String email});
 
-  /// Verify OTP for password reset
-  Future<PasswordResetResponse> verifyResetOtp({
-    required String email,
-    required String otp,
-    required String verificationToken,
-  });
+
 
   /// Reset password with reset token
   Future<PasswordResetResponse> resetPassword({

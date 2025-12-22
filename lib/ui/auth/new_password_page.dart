@@ -37,9 +37,13 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
   Future<void> handleResetPassword() async {
     final password = passwordController.text;
     final confirmPassword = confirmPasswordController.text;
+    
+    print('🔵 [NewPassword] Bắt đầu đặt lại mật khẩu');
+    print('🔵 [NewPassword] Password length: ${password.length}');
 
     // Validation
     if (password.isEmpty || confirmPassword.isEmpty) {
+      print('🔴 [NewPassword] Thiếu thông tin');
       QuickAlert.show(
         context: context,
         type: QuickAlertType.warning,
@@ -50,6 +54,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     }
 
     if (password.length < 6) {
+      print('🔴 [NewPassword] Mật khẩu quá ngắn: ${password.length} ký tự');
       QuickAlert.show(
         context: context,
         type: QuickAlertType.warning,
@@ -60,6 +65,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     }
 
     if (password != confirmPassword) {
+      print('🔴 [NewPassword] Mật khẩu không khớp');
       QuickAlert.show(
         context: context,
         type: QuickAlertType.warning,
@@ -69,21 +75,26 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       return;
     }
 
+    print('🔵 [NewPassword] Validation thành công, gọi API...');
     setState(() {
       isLoading = true;
     });
 
     try {
+      print('🔵 [NewPassword] Gọi API /reset-password...');
       final response = await _authRepository.resetPassword(
         resetToken: widget.resetToken,
         newPassword: password,
       );
+      print('🔵 [NewPassword] Nhận response: success=${response.success}, message=${response.message}');
 
       setState(() {
         isLoading = false;
       });
 
       if (response.success) {
+        print('✅ [NewPassword] Đặt lại mật khẩu thành công!');
+        print('🔵 [NewPassword] Chuyển về LoginPage');
         // Show success dialog and navigate to login
         QuickAlert.show(
           context: context,
@@ -100,6 +111,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
           },
         );
       } else {
+        print('🔴 [NewPassword] Thất bại: ${response.message}');
         QuickAlert.show(
           context: context,
           type: QuickAlertType.error,
@@ -108,6 +120,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         );
       }
     } catch (e) {
+      print('🔴 [NewPassword] Exception: $e');
       setState(() {
         isLoading = false;
       });

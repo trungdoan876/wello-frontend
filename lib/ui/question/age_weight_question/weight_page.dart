@@ -203,23 +203,50 @@ class _WeightPageState extends State<WeightPage> {
                           context,
                           listen: false,
                         );
-                        final nextQuestion = provider.getQuestionByIndex(6);
-                        if (nextQuestion != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TargetWeightPage(
-                                question: nextQuestion,
-                                fullname: widget.fullname,
-                                gender: widget.gender,
-                                height: widget.height,
-                                weight: weight,
-                                age: widget.age,
-                                goal: widget.goal,
-                                userId: widget.userId,
+                        
+                        // Check if user needs to set target weight
+                        // Only show TargetWeightPage for LOSE_WEIGHT or GAIN_WEIGHT
+                        if (widget.goal == 'LOSE_WEIGHT' || widget.goal == 'GAIN_WEIGHT') {
+                          final nextQuestion = provider.getQuestionByIndex(6);
+                          if (nextQuestion != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TargetWeightPage(
+                                  question: nextQuestion,
+                                  fullname: widget.fullname,
+                                  gender: widget.gender,
+                                  height: widget.height,
+                                  weight: weight,
+                                  age: widget.age,
+                                  goal: widget.goal,
+                                  userId: widget.userId,
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          }
+                        } else {
+                          // Skip TargetWeightPage for KEEP_FIT or MAINTAIN_WEIGHT
+                          // Go directly to ActivityLevelScreen
+                          final activityQuestion = provider.getQuestionByIndex(7);
+                          if (activityQuestion != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ActivityLevelScreen(
+                                  question: activityQuestion,
+                                  fullname: widget.fullname,
+                                  gender: widget.gender,
+                                  height: widget.height,
+                                  weight: weight,
+                                  age: widget.age,
+                                  goal: widget.goal,
+                                  userId: widget.userId,
+                                  targetWeight: null, // No target weight for KEEP_FIT/MAINTAIN_WEIGHT
+                                ),
+                              ),
+                            );
+                          }
                         }
                       }
                     },

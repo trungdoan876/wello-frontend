@@ -109,6 +109,17 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
                   return;
                 }
 
+                // Validate password length
+                if (password.length < 6) {
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    title: 'Mật khẩu yếu',
+                    text: 'Mật khẩu phải có ít nhất 6 ký tự',
+                  );
+                  return;
+                }
+
                 if (password != confirmPassword) {
                   QuickAlert.show(
                     context: context,

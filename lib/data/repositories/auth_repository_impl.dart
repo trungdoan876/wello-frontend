@@ -33,11 +33,13 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<RegisterResponseModel> register({
     required String email,
-    required String password,
+    required String hashedPassword,
   }) async {
     try {
-      final request = RegisterRequestModel(email: email, password: password);
-      return await _dataSource.register(request: request);
+      return await _dataSource.register(
+        email: email,
+        hashedPassword: hashedPassword,
+      );
     } catch (e) {
       return RegisterResponseModel(
         success: false,
@@ -134,14 +136,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  /// Resend OTP to email
-  Future<SendOtpResponse> resendOtp({
-    required String email,
-    required String password,
-  }) async {
-    return await _dataSource.resendOtp(email: email, password: password);
-  }
-
   @override
   Future<PasswordResetResponse> forgotPassword({
     required String email,
@@ -152,26 +146,6 @@ class AuthRepositoryImpl implements AuthRepository {
       return PasswordResetResponse(
         success: false,
         message: 'Failed to send reset OTP: $e',
-      );
-    }
-  }
-
-  @override
-  Future<PasswordResetResponse> verifyResetOtp({
-    required String email,
-    required String otp,
-    required String verificationToken,
-  }) async {
-    try {
-      return await _dataSource.verifyResetOtp(
-        email: email,
-        otp: otp,
-        verificationToken: verificationToken,
-      );
-    } catch (e) {
-      return PasswordResetResponse(
-        success: false,
-        message: 'Failed to verify OTP: $e',
       );
     }
   }

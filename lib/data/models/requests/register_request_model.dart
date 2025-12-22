@@ -1,16 +1,16 @@
-import '../../../domain/entities/user.dart';
-
 class RegisterRequestModel {
   final String email;
-  final String password;
+  final String hashedPassword;
 
-  RegisterRequestModel({required this.email, required this.password});
-
-  factory RegisterRequestModel.fromEntity(User user) {
-    return RegisterRequestModel(email: user.email, password: user.password);
-  }
+  RegisterRequestModel({
+    required this.email,
+    required this.hashedPassword,
+  });
 
   Map<String, dynamic> toJson() {
-    return {'email': email, 'password': password};
+    return {
+      'email': email,
+      'hashedPassword': hashedPassword,
+    };
   }
 }

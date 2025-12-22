@@ -41,6 +41,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     // Validation
     if (email.isEmpty) {
+      print('🔴 [ForgotPassword] Email trống');
       showPopup(
         title: "",
         message: "Vui lòng nhập email của bạn.",
@@ -50,6 +51,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     // Basic email validation
     if (!email.contains('@')) {
+      print('🔴 [ForgotPassword] Email không hợp lệ: $email');
       showPopup(
         title: "",
         message: "Email không hợp lệ.",
@@ -57,13 +59,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       return;
     }
 
+    print('🔵 [ForgotPassword] Bắt đầu gửi OTP reset cho email: $email');
     setState(() {
       isLoading = true;
     });
 
     try {
       final repository = AuthRepositoryImpl();
+      print('🔵 [ForgotPassword] Gọi API /forgot-password...');
       final response = await repository.forgotPassword(email: email);
+      print('🔵 [ForgotPassword] Nhận response: success=${response.success}, message=${response.message}');
 
       setState(() {
         isLoading = false;
@@ -72,6 +77,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       if (response.success) {
         // Navigate to OTP verification page
         if (response.verificationToken != null) {
+          print('✅ [ForgotPassword] Thành công! verificationToken: ${response.verificationToken!.substring(0, 20)}...');
+          print('🔵 [ForgotPassword] Chuyển đến ResetOtpVerificationPage');
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -81,14 +88,18 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ),
           );
+        } else {
+          print('🔴 [ForgotPassword] Thiếu verificationToken!');
         }
       } else {
+        print('🔴 [ForgotPassword] Thất bại: ${response.message}');
         showPopup(
           title: "",
           message: response.message,
         );
       }
     } catch (e) {
+      print('🔴 [ForgotPassword] Exception: $e');
       setState(() {
         isLoading = false;
       });
