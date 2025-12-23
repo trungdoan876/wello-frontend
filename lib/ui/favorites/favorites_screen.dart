@@ -111,6 +111,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: const Color(0xFFEBCF23),
+        automaticallyImplyLeading: false, // Remove back button
         title: Text(
           'Mục yêu thích',
           style: GoogleFonts.baloo2(
@@ -140,8 +141,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(width: context.w(0.03)),
-                Icon(Icons.search, size: context.sp(6), color: Colors.white),
+                // Search icon removed
+                // SizedBox(width: context.w(0.03)),
+                // Icon(Icons.search, size: context.sp(6), color: Colors.white),
               ],
             ),
           ),
@@ -151,18 +153,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         children: [
           Column(
             children: [
-              // Tab bar
-              FavoritesTabBar(
-                selectedIndex: _selectedTabIndex,
-                onTabChanged: (index) =>
-                    setState(() => _selectedTabIndex = index),
-              ),
-              SizedBox(height: context.h(0.02)),
+              // Tab bar (commented out)
+              // FavoritesTabBar(
+              //   selectedIndex: _selectedTabIndex,
+              //   onTabChanged: (index) =>
+              //       setState(() => _selectedTabIndex = index),
+              // ),
+              // SizedBox(height: context.h(0.02)),
               // Content
               Expanded(
-                child: _selectedTabIndex == 0
-                    ? const EmptyFavoriteState()
-                    : _buildFavoritesContent(context),
+                child: _buildFavoritesContent(context), // Always show favorites content
+                // child: _selectedTabIndex == 0
+                //     ? const EmptyFavoriteState() // Suggestions tab commented out
+                //     : _buildFavoritesContent(context),
               ),
             ],
           ),

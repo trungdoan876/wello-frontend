@@ -216,41 +216,7 @@ class _SelectionScreenState extends State<SelectionScreen> {
           MealSearchBar(controller: _searchController, onChanged: _filterItems),
           SizedBox(height: context.h(0.02)),
 
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: context.w(0.08)),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Gợi ý',
-                style: GoogleFonts.baloo2(
-                  fontSize: context.sp(6),
-                  fontWeight: FontWeight.w800,
-                  color: Colors.grey.shade800,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: context.h(0.015)),
-
-          // Filter chips row
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
-            child: Wrap(
-              spacing: context.sp(2.5),
-              runSpacing: context.sp(2),
-              children: [
-                _buildFilterChip(context, label: 'Phổ biến', value: 'popular'),
-                _buildFilterChip(
-                  context,
-                  label: 'Giàu protein',
-                  value: 'highProtein',
-                ),
-                _buildFilterChip(context, label: 'Ít carb', value: 'lowCarb'),
-                _buildFilterChip(context, label: 'Ít béo', value: 'lowFat'),
-              ],
-            ),
-          ),
-          SizedBox(height: context.h(0.02)),
+          SizedBox(height: context.h(0.01)),
 
           Expanded(
             child: _isLoading
