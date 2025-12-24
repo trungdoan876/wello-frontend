@@ -2,10 +2,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:wello_frontend/data/models/requests/favorite_combo_item.dart';
 import 'package:wello_frontend/domain/providers/favorites_provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/meal_selection/selection_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
+import 'package:wello_frontend/ui/favorites/widgets/gram_input_bottom_sheet.dart';
 
 class CreateMealPage extends StatefulWidget {
   const CreateMealPage({Key? key}) : super(key: key);
@@ -18,21 +20,44 @@ class _CreateMealPageState extends State<CreateMealPage> {
   final TextEditingController _nameController = TextEditingController();
   final List<_MealIngredient> _ingredients = [];
 
-  void _addIngredientFromSelection(dynamic payload) {
+  void _addIngredientFromSelection(dynamic payload) async {
     if (payload is Map && payload['id'] != null) {
-      setState(() {
-        _ingredients.add(
-          _MealIngredient(
-            id: payload['id'] as int,
-            name: payload['name'] as String? ?? 'Thực phẩm',
-            portionText: payload['portionText'] as String? ?? '100 g',
-            calories: payload['calories'] as int? ?? 0,
-            protein: (payload['protein'] as num?)?.toDouble() ?? 0.0,
-            carbs: (payload['carbs'] as num?)?.toDouble() ?? 0.0,
-            fat: (payload['fat'] as num?)?.toDouble() ?? 0.0,
-          ),
-        );
-      });
+      // Show bottom sheet to input grams
+      final baseCalories = (payload['calories'] as int?) ?? 0;
+      final baseProtein = (payload['protein'] as num?)?.toDouble() ?? 0.0;
+      final baseCarbs = (payload['carbs'] as num?)?.toDouble() ?? 0.0;
+      final baseFat = (payload['fat'] as num?)?.toDouble() ?? 0.0;
+      
+      final grams = await showModalBottomSheet<int>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => GramInputBottomSheet(
+          foodName: payload['name'] as String? ?? 'Món ăn',
+          baseCalories: baseCalories,
+          baseProtein: baseProtein,
+          baseCarbs: baseCarbs,
+          baseFat: baseFat,
+        ),
+      );
+
+      if (grams != null) {
+        // Calculate nutrition based on grams
+        final ratio = grams / 100.0;
+        setState(() {
+          _ingredients.add(
+            _MealIngredient(
+              id: payload['id'] as int,
+              name: payload['name'] as String? ?? 'Thực phẩm',
+              portionText: '${grams}g',
+              calories: (baseCalories * ratio).toInt(),
+              protein: baseProtein * ratio,
+              carbs: baseCarbs * ratio,
+              fat: baseFat * ratio,
+            ),
+          );
+        });
+      }
     }
   }
 
@@ -281,6 +306,7 @@ class _CreateMealPageState extends State<CreateMealPage> {
                             totalProtein: totalProtein,
                             totalCarbs: totalCarbs,
                             totalFat: totalFat,
+                            ingredients: _ingredients,
                             onConfirm: (mealTime, servings) {
                               Navigator.of(context).pop();
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -673,6 +699,7 @@ class _AddMealBottomSheet extends StatefulWidget {
   final double totalProtein;
   final double totalCarbs;
   final double totalFat;
+  final List<_MealIngredient> ingredients;
   final void Function(_MealTime mealTime, int servings) onConfirm;
   const _AddMealBottomSheet({
     Key? key,
@@ -681,6 +708,7 @@ class _AddMealBottomSheet extends StatefulWidget {
     required this.totalProtein,
     required this.totalCarbs,
     required this.totalFat,
+    required this.ingredients,
     required this.onConfirm,
   }) : super(key: key);
 
@@ -699,14 +727,25 @@ class _AddMealBottomSheetState extends State<_AddMealBottomSheet> {
         listen: false,
       );
 
-      final success = await favoritesProvider.addToFavorites(
+      // Convert _MealIngredient to FavoriteComboItem
+      final items = widget.ingredients.map((ingredient) {
+        // Extract grams from portionText (e.g., "100 g" -> 100)
+        final gramsMatch = RegExp(r'(\d+)\s*g').firstMatch(ingredient.portionText);
+        final amountGrams = gramsMatch != null 
+            ? int.parse(gramsMatch.group(1)!) 
+            : 100;
+
+        return FavoriteComboItem(
+          foodId: ingredient.id,
+          amountGrams: amountGrams,
+        );
+      }).toList();
+
+      final success = await favoritesProvider.addCombo(
         userId: 1,
-        foodName: widget.mealName,
-        caloriesPer100g: widget.baseCalories,
-        proteinPer100g: widget.totalProtein,
-        carbsPer100g: widget.totalCarbs,
-        fatPer100g: widget.totalFat,
+        favoriteName: widget.mealName,
         mealType: _selectedTime.toString().split('.').last.toUpperCase(),
+        items: items,
       );
 
       if (!mounted) return;

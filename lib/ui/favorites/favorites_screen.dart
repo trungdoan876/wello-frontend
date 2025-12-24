@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:wello_frontend/ui/favorites/widgets/create_meal_page.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
@@ -7,6 +10,9 @@ import 'package:wello_frontend/data/repositories/favorites_list_repository.dart'
 import 'package:wello_frontend/ui/meal_selection/selection_screen.dart';
 import 'package:wello_frontend/ui/favorites/widgets/favorite_meal_card.dart';
 import 'package:wello_frontend/ui/favorites/widgets/favorite_food_detail_sheet.dart';
+import 'package:wello_frontend/ui/favorites/widgets/edit_combo_page.dart';
+import 'package:wello_frontend/core/utils/auth_helper.dart';
+import 'package:wello_frontend/domain/providers/favorites_provider.dart';
 import 'models/favorite_item.dart';
 import 'widgets/empty_favorite_state.dart';
 import 'widgets/favorites_tab_bar.dart';
@@ -51,15 +57,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
       setState(() {
         _favoritesMeals = favorites.map((fav) {
-          print('🍽️ Thêm: ${fav.foodName} - ${fav.calories} calo');
+          print('🍽️ Thêm: ${fav.favoriteName} - ${fav.totalNutrition.totalCalories} calo');
           return MealItem(
-            name: fav.foodName,
+            name: fav.favoriteName,
             description:
-                '${fav.protein.toInt()}g protein, ${fav.carbs.toInt()}g carbs',
-            calories: fav.calories,
-            protein: fav.protein,
-            carbs: fav.carbs,
-            fat: fav.fat,
+                '${fav.totalNutrition.totalProtein.toInt()}g protein, ${fav.totalNutrition.totalCarbs.toInt()}g carbs',
+            calories: fav.totalNutrition.totalCalories,
+            protein: fav.totalNutrition.totalProtein,
+            carbs: fav.totalNutrition.totalCarbs,
+            fat: fav.totalNutrition.totalFat,
             foodId: fav.id, // Use id from API
             mealType: fav.mealType,
           );
@@ -321,7 +327,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           padding: EdgeInsets.only(bottom: context.h(0.015)),
           child: FavoriteMealCard(
             item: item,
-            onAdd: () async {
+            onTap: () async {
               final mappedMealType = _mapMealTypeForSheet(item.mealType);
               print(
                 '➡️ Open FoodDetailSheet from favorites: foodId=${item.foodId}, name=${item.name}, kcal=${item.calories}, protein=${item.protein}, carbs=${item.carbs}, fat=${item.fat}, mealType=$mappedMealType',
@@ -333,13 +339,129 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 builder: (context) => FavoriteFoodDetailSheet(
                   foodId: item.foodId!,
                   foodName: item.name,
-                  baseCalories: item.calories,
-                  baseProtein: item.protein ?? 0,
-                  baseCarbs: item.carbs ?? 0,
-                  baseFat: item.fat ?? 0,
+                  totalCalories: item.calories,
+                  totalProtein: item.protein ?? 0,
+                  totalCarbs: item.carbs ?? 0,
+                  totalFat: item.fat ?? 0,
                   mealType: mappedMealType,
                 ),
               );
+            },
+            onEdit: () async {
+              try {
+                final credentials = await AuthHelper.getCredentials();
+                if (credentials == null) {
+                  throw Exception('Not authenticated');
+                }
+
+                final userId = int.tryParse(credentials.userIdString) ?? 0;
+                if (userId == 0) {
+                  throw Exception('Invalid user ID');
+                }
+
+                final result = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditComboPage(
+                      favoriteId: item.foodId!,
+                      userId: userId,
+                    ),
+                  ),
+                );
+                
+                // Reload favorites if update was successful
+                if (result == true) {
+                  _loadMyFavorites();
+                }
+              } catch (e) {
+                print('❌ Error opening edit page: $e');
+              }
+            },
+            onDelete: () async {
+              // Show beautiful confirmation dialog
+              bool shouldDelete = false;
+              
+              await QuickAlert.show(
+                context: context,
+                type: QuickAlertType.confirm,
+                title: 'Xóa món ăn yêu thích?',
+                text: 'Bạn có chắc chắn muốn xóa "${item.name}" khỏi danh sách yêu thích?',
+                confirmBtnText: 'Xóa',
+                cancelBtnText: 'Hủy',
+                confirmBtnColor: const Color(0xFFFF6B6B),
+                onConfirmBtnTap: () {
+                  shouldDelete = true;
+                  Navigator.pop(context);
+                },
+              );
+
+              if (shouldDelete) {
+                print('🗑️ Deleting favorite: favoriteId=${item.foodId}');
+                
+                try {
+                  final credentials = await AuthHelper.getCredentials();
+                  if (credentials == null) {
+                    throw Exception('Not authenticated');
+                  }
+
+                  final userId = int.tryParse(credentials.userIdString) ?? 0;
+                  if (userId == 0) {
+                    throw Exception('Invalid user ID');
+                  }
+
+                  final favoritesProvider = context.read<FavoritesProvider>();
+                  
+                  // Show loading
+                  if (!mounted) return;
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation(Color(0xFFEBCF23)),
+                      ),
+                    ),
+                  );
+
+                  final success = await favoritesProvider.deleteFavorite(
+                    favoriteId: item.foodId!,
+                    userId: userId,
+                  );
+
+                  if (!mounted) return;
+                  Navigator.pop(context); // Close loading dialog
+
+                  if (success) {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.success,
+                      title: 'Đã xóa!',
+                      text: 'Món ăn đã được xóa khỏi danh sách yêu thích',
+                      confirmBtnText: 'Đồng ý',
+                      confirmBtnColor: const Color(0xFFEBCF23),
+                    );
+                    _loadMyFavorites();
+                  } else {
+                    QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      title: 'Lỗi!',
+                      text: favoritesProvider.errorMessage ?? 'Không thể xóa món ăn',
+                      confirmBtnText: 'Đồng ý',
+                    );
+                  }
+                } catch (e) {
+                  if (!mounted) return;
+                  Navigator.pop(context); // Close loading dialog if still open
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.error,
+                    title: 'Lỗi!',
+                    text: e.toString(),
+                    confirmBtnText: 'Đồng ý',
+                  );
+                }
+              }
             },
           ),
         );

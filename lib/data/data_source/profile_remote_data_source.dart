@@ -13,13 +13,8 @@ class ProfileRemoteDataSource {
   ProfileRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
 
   String _resolveBaseUrl() {
-    if (kIsWeb) return 'http://localhost:8080/api';
-    try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:8080/api';
-    } catch (_) {
-      // Platform may not be available in some contexts
-    }
-    return 'http://localhost:8080/api';
+    // Always use production server
+    return 'http://10.0.2.2:8080/api';
   }
 
   /// Fetch profile by ID
