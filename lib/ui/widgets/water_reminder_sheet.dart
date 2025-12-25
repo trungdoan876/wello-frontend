@@ -1,128 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
-import '../../../data/models/responses/survey_response_model.dart';
 
-class WaterCard extends StatelessWidget {
-  final SurveyResponseModel survey;
-  const WaterCard({super.key, required this.survey});
+class WaterReminderSheet extends StatefulWidget {
+  const WaterReminderSheet({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(context.w(0.06)),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(context.w(0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-
-      child: Row(
-        children: [
-          // LEFT
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "${survey.waterIntakeMl ?? ((survey.tdee * 0.92).round())} ml",
-                  style: GoogleFonts.baloo2(
-                    fontSize: context.sp(8),
-                    color: Colors.red,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                Text(
-                  "Lượng nước bạn cần uống",
-                  style: GoogleFonts.baloo2(
-                    fontSize: context.sp(4),
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xffA3A1A1),
-                  ),
-                ),
-                SizedBox(height: context.h(0.03)),
-                 // full-width thin divider between BMI and metrics
-                  Container(
-                    width: double.infinity,
-                    height: 1.5,
-                    color: Colors.grey.withOpacity(0.2),
-                  ),
-                SizedBox(height: context.h(0.015)),
-                Row(
-                  children: [
-                    Icon(Icons.access_time, size: context.sp(6), color: Colors.grey),
-                    SizedBox(width: 4),
-                    Text(
-                      "Lần cuối cùng",
-                     style: GoogleFonts.baloo2(
-                      fontSize: context.sp(5),
-                      color: const Color(0xffA3A1A1),
-                      fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: context.h(0.02)),
-                GestureDetector(
-                  onTap: () {
-                    // Show water reminder settings bottom sheet
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) => _WaterReminderSheet(),
-                    );
-                  },
-                  child: Row(
-                    children: [
-                      Icon(Icons.notifications_active, color: const Color(0xffEBCF23), size: context.sp(6)),
-                      SizedBox(width: 4),
-                      Text(
-                        "Bật tính năng thông báo",
-                        style: GoogleFonts.baloo2(
-                          color: const Color(0xffEBCF23),
-                          fontSize: context.sp(4),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-
-          // RIGHT IMAGE
-          SizedBox(
-            width: context.w(0.25),
-            child: Image.asset(
-              "assets/images/water.png",
-              fit: BoxFit.contain,
-            ),
-          )
-        ],
-      ),
-    );
-  }
+  State<WaterReminderSheet> createState() => _WaterReminderSheetState();
 }
 
-class _WaterReminderSheet extends StatefulWidget {
-  const _WaterReminderSheet({super.key});
-
-  @override
-  State<_WaterReminderSheet> createState() => _WaterReminderSheetState();
-}
-
-class _WaterReminderSheetState extends State<_WaterReminderSheet> {
+class _WaterReminderSheetState extends State<WaterReminderSheet> {
   bool _enabled = true;
   int _startHour = 8;
   int _endHour = 22;

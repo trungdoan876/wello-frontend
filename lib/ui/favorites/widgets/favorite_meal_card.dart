@@ -5,14 +5,22 @@ import 'package:wello_frontend/ui/meal_selection/selection_screen.dart';
 
 class FavoriteMealCard extends StatelessWidget {
   final MealItem item;
-  final VoidCallback onAdd;
+  final VoidCallback onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const FavoriteMealCard({super.key, required this.item, required this.onAdd});
+  const FavoriteMealCard({
+    super.key,
+    required this.item,
+    required this.onTap,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onAdd,
+      onTap: onTap,
       child: Container(
         margin: EdgeInsets.symmetric(vertical: context.h(0.008)),
         decoration: BoxDecoration(
@@ -119,37 +127,78 @@ class FavoriteMealCard extends StatelessWidget {
                 ),
               ),
               SizedBox(width: context.w(0.04)),
-              // Right: Button
-              GestureDetector(
-                onTap: onAdd,
-                child: Container(
-                  width: context.sp(14),
-                  height: context.sp(14),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFFFFC107),
-                        const Color(0xFFFFB300),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFFC107).withOpacity(0.4),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                        spreadRadius: 2,
+              // Right: Buttons
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Edit button
+                  if (onEdit != null)
+                    GestureDetector(
+                      onTap: onEdit,
+                      child: Container(
+                        width: context.sp(12),
+                        height: context.sp(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color(0xFF4ECDC4),
+                              const Color(0xFF44A3A0),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF4ECDC4).withOpacity(0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: context.sp(6),
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.add_rounded,
-                    color: Colors.white,
-                    size: context.sp(7),
-                  ),
-                ),
+                    ),
+                  if (onEdit != null && onDelete != null) SizedBox(height: context.h(0.01)),
+                  // Delete button
+                  if (onDelete != null)
+                    GestureDetector(
+                      onTap: onDelete,
+                      child: Container(
+                        width: context.sp(12),
+                        height: context.sp(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color(0xFFFF6B6B),
+                              const Color(0xFFEE5A6F),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFFF6B6B).withOpacity(0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.delete,
+                          color: Colors.white,
+                          size: context.sp(6),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ],
           ),

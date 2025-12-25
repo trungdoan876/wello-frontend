@@ -6,25 +6,26 @@ import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
+import 'package:wello_frontend/domain/providers/favorites_provider.dart';
 
 /// Bottom sheet for logging favorite food with amount selection
 class FavoriteFoodDetailSheet extends StatefulWidget {
   final int foodId;
   final String foodName;
-  final int baseCalories; // Calories per 100g
-  final double baseProtein; // Protein per 100g
-  final double baseCarbs; // Carbs per 100g
-  final double baseFat; // Fat per 100g
+  final int totalCalories; // Total calories of the combo
+  final double totalProtein; // Total protein of the combo
+  final double totalCarbs; // Total carbs of the combo
+  final double totalFat; // Total fat of the combo
   final String mealType;
 
   const FavoriteFoodDetailSheet({
     super.key,
     required this.foodId,
     required this.foodName,
-    required this.baseCalories,
-    required this.baseProtein,
-    required this.baseCarbs,
-    required this.baseFat,
+    required this.totalCalories,
+    required this.totalProtein,
+    required this.totalCarbs,
+    required this.totalFat,
     required this.mealType,
   });
 
@@ -34,18 +35,20 @@ class FavoriteFoodDetailSheet extends StatefulWidget {
 }
 
 class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
-  double _amountGrams = 100; // Default 100g
   bool _isLogging = false;
   String? _errorMessage;
 
   Future<void> _logFood() async {
+    print('👉 STARTING _logFood()');
     setState(() {
       _isLogging = true;
       _errorMessage = null;
     });
 
     try {
+      print('🔐 Getting credentials...');
       final credentials = await AuthHelper.getCredentials();
+      print('🔐 Credentials found: ${credentials != null}');
       if (credentials == null) throw Exception('Not authenticated');
 
       final userId = int.tryParse(credentials.userIdString) ?? 0;
@@ -53,11 +56,11 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
 
       final nutritionProvider = context.read<NutritionProvider>();
 
-      // Calculate nutrition for this amount
-      final calories = (widget.baseCalories * (_amountGrams / 100)).toInt();
-      final protein = widget.baseProtein * (_amountGrams / 100);
-      final carbs = widget.baseCarbs * (_amountGrams / 100);
-      final fat = widget.baseFat * (_amountGrams / 100);
+      // Use total nutrition values directly (no calculation needed)
+      final calories = widget.totalCalories;
+      final protein = widget.totalProtein;
+      final carbs = widget.totalCarbs;
+      final fat = widget.totalFat;
 
       // Check if this log will exceed the calorie target
       final summary = nutritionProvider.dailySummary;
@@ -98,7 +101,6 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
       print('👤 User ID: $userId');
       print('🍽️  Food Name: ${widget.foodName}');
       print('🆔 Food ID: ${widget.foodId}');
-      print('⚖️  Amount: ${_amountGrams.toInt()} grams');
       print('🕐 Meal Type: ${widget.mealType}');
       print('───────────────────────────────────────────────────────');
       print('📊 NUTRITION DATA (CALCULATED):');
@@ -107,22 +109,41 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
       print('🍞 Carbs: ${carbs.toStringAsFixed(1)} g');
       print('🥑 Fat: ${fat.toStringAsFixed(1)} g');
       print('───────────────────────────────────────────────────────');
-      print('✅ OVERRIDE DATA (SENT TO BACKEND):');
-      print('   caloriesOverride: $calories');
-      print('   foodNameOverride: ${widget.foodName}');
-      print('═══════════════════════════════════════════════════════');
+      print('✅ API Call: favoritesProvider.logFavorite');
+      print('   favoriteId: ${widget.foodId} (from favorite model)');
+      print('   mealType: ${widget.mealType}');
+      // print('   date: ${nutritionProvider.selectedDate}'); // Ensure selectedDate is available
 
-      await nutritionProvider.logFood(
-        token: credentials.token,
+      // Use FavoritesProvider to log the combo directly
+      final favoritesProvider = context.read<FavoritesProvider>();
+      
+      final success = await favoritesProvider.logFavorite(
         userId: userId,
-        foodId: widget.foodId,
-        amountGrams: _amountGrams.toInt(),
+        favoriteId: widget.foodId, // This is the favoriteId
+        date: nutritionProvider.selectedDate,
         mealType: widget.mealType,
-        caloriesOverride: calories,
-        foodNameOverride: widget.foodName, // Use name from favorites
       );
 
-      print('✅ API call completed successfully');
+      if (!success) {
+        throw Exception(favoritesProvider.errorMessage ?? 'Failed to log favorite');
+      }
+
+      print('✅ Favorite logged successfully. Refreshing nutrition data...');
+
+      // Refresh nutrition data
+      await nutritionProvider.loadDailySummary(
+        credentials.token,
+        userId.toString(),
+        nutritionProvider.selectedDate,
+      );
+      
+      await nutritionProvider.loadFoodHistory(
+        credentials.token,
+        userId.toString(),
+        nutritionProvider.selectedDate,
+      );
+      
+      print('✅ Data refreshed');
       print('═══════════════════════════════════════════════════════');
 
       if (!mounted) return;
@@ -151,6 +172,7 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
         }
       }
     } catch (e) {
+      print('❌ ERROR in _logFood: $e');
       setState(() {
         _errorMessage = e.toString();
         _isLogging = false;
@@ -160,10 +182,11 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final calories = (widget.baseCalories * (_amountGrams / 100)).toInt();
-    final protein = widget.baseProtein * (_amountGrams / 100);
-    final carbs = widget.baseCarbs * (_amountGrams / 100);
-    final fat = widget.baseFat * (_amountGrams / 100);
+    // Use total nutrition values directly (no calculation needed)
+    final calories = widget.totalCalories;
+    final protein = widget.totalProtein;
+    final carbs = widget.totalCarbs;
+    final fat = widget.totalFat;
 
     return Container(
       padding: EdgeInsets.all(context.w(0.05)),
@@ -198,53 +221,7 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
           ),
           SizedBox(height: context.h(0.02)),
 
-          // Grams display
-          Container(
-            padding: EdgeInsets.all(context.sp(5)),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEA),
-              borderRadius: BorderRadius.circular(context.sp(4)),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'Khối lượng tiêu thụ',
-                  style: GoogleFonts.baloo2(
-                    fontSize: context.sp(4.5),
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                SizedBox(height: context.h(0.01)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '${_amountGrams.toInt()}',
-                      style: GoogleFonts.baloo2(
-                        fontSize: context.sp(12),
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFFEBCF23),
-                      ),
-                    ),
-                    SizedBox(width: context.w(0.01)),
-                    Text(
-                      'g',
-                      style: GoogleFonts.baloo2(
-                        fontSize: context.sp(6),
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: context.h(0.02)),
-
-          // Nutrition Details (from favorites data)
+          // Nutrition Details (total values from combo)
           Container(
             padding: EdgeInsets.all(context.sp(4)),
             decoration: BoxDecoration(
@@ -281,40 +258,6 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
                 ),
               ],
             ),
-          ),
-          SizedBox(height: context.h(0.01)),
-          SizedBox(height: context.h(0.03)),
-
-          // Slider
-          Slider(
-            value: _amountGrams,
-            min: 10,
-            max: 1000,
-            divisions: 99, // 10g increments
-            activeColor: const Color(0xFFEBCF23),
-            inactiveColor: Colors.grey.shade300,
-            onChanged: (value) {
-              setState(() => _amountGrams = value);
-            },
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '10g',
-                style: GoogleFonts.baloo2(
-                  fontSize: context.sp(4),
-                  color: Colors.grey.shade500,
-                ),
-              ),
-              Text(
-                '1000g',
-                style: GoogleFonts.baloo2(
-                  fontSize: context.sp(4),
-                  color: Colors.grey.shade500,
-                ),
-              ),
-            ],
           ),
           SizedBox(height: context.h(0.04)),
 

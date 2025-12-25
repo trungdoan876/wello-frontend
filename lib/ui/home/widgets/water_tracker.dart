@@ -72,22 +72,6 @@ class WaterTracker extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: context.w(0.02)),
-                  GestureDetector(
-                    onTap: () => _showReminderSettings(context),
-                    child: Container(
-                      padding: EdgeInsets.all(context.sp(1.5)),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF61C8F5).withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.notifications_active_outlined,
-                        color: const Color(0xFF61C8F5),
-                        size: context.sp(5),
-                      ),
-                    ),
-                  ),
                 ],
               ),
 
@@ -240,15 +224,6 @@ class WaterTracker extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  void _showReminderSettings(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const WaterReminderSheet(),
     );
   }
 }

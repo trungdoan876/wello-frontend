@@ -109,25 +109,66 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await _authRepository.verifyOtp(
+      // Step 1: Verify OTP
+      final verifyResponse = await _authRepository.verifyOtp(
         verificationToken: _currentVerificationToken,
         otp: otp,
       );
 
-      if (mounted) {
-        setState(() => _isLoading = false);
+      if (!mounted) return;
 
+      // Check if this is registration flow
+      if (verifyResponse.type == 'registration') {
+        if (verifyResponse.hashedPassword == null) {
+          setState(() => _isLoading = false);
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.error,
+            title: 'Lỗi',
+            text: 'Không nhận được thông tin mật khẩu từ server',
+          );
+          return;
+        }
+
+        // Step 2: Register user with hashed password
+        final registerResponse = await _authRepository.register(
+          email: verifyResponse.email,
+          hashedPassword: verifyResponse.hashedPassword!,
+        );
+
+        if (mounted) {
+          setState(() => _isLoading = false);
+
+          if (registerResponse.success) {
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.success,
+              title: 'Thành công!',
+              text: registerResponse.message,
+              onConfirmBtnTap: () {
+                Navigator.of(context).pop(); // Close alert
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => LoginPage()),
+                );
+              },
+            );
+          } else {
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.error,
+              title: 'Đăng ký thất bại',
+              text: registerResponse.message,
+            );
+          }
+        }
+      } else {
+        // Not a registration flow
+        setState(() => _isLoading = false);
         QuickAlert.show(
           context: context,
-          type: QuickAlertType.success,
-          title: 'Thành công!',
-          text: response.message,
-          onConfirmBtnTap: () {
-            Navigator.of(context).pop(); // Close alert
-            Navigator.of(
-              context,
-            ).pushReplacement(MaterialPageRoute(builder: (_) => LoginPage()));
-          },
+          type: QuickAlertType.error,
+          title: 'Lỗi',
+          text: 'OTP này không dùng cho đăng ký',
         );
       }
     } catch (e) {
@@ -148,7 +189,8 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     setState(() => _isResending = true);
 
     try {
-      final response = await _authRepository.resendOtp(
+      // Use sendOtp instead of resendOtp (backend removed resend-otp endpoint)
+      final response = await _authRepository.sendOtp(
         email: widget.email,
         password: widget.password,
       );
@@ -208,12 +250,14 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Text(
-                'Xác thực OTP',
-                style: GoogleFonts.baloo2(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              Center(
+                child: Text(
+                  'Xác thực OTP',
+                  style: GoogleFonts.baloo2(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -314,7 +358,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                   onPressed: _isLoading ? null : _verifyOtp,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFEBCF23),
-                    foregroundColor: Colors.black87,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -327,7 +371,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.black87,
+                              Colors.white,
                             ),
                           ),
                         )

@@ -10,6 +10,7 @@ import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/widgets/register_textfields.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
+import 'package:wello_frontend/core/utils/validators.dart';
 
 class RegisterFormContent extends StatefulWidget {
   final TextEditingController emailController;
@@ -82,39 +83,41 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
                 final password = widget.passwordController.text;
                 final confirmPassword = widget.confirmPasswordController.text;
 
-                if (email.isEmpty ||
-                    password.isEmpty ||
-                    confirmPassword.isEmpty) {
-                  QuickAlert.show(
-                    context: context,
-                    type: QuickAlertType.error,
-                    title: 'Lỗi',
-                    text: 'Vui lòng điền đầy đủ thông tin.',
-                  );
-                  return;
-                }
-
-                // Validate email format
-                final emailRegex = RegExp(
-                  r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+                // Validate all fields using centralized validators
+                final emailError = Validators.validateEmail(email);
+                final passwordError = Validators.validatePassword(password);
+                final confirmPasswordError = Validators.validateConfirmPassword(
+                  password,
+                  confirmPassword,
                 );
-                if (!emailRegex.hasMatch(email)) {
+
+                // Show first error found
+                if (emailError != null) {
                   QuickAlert.show(
                     context: context,
-                    type: QuickAlertType.error,
+                    type: QuickAlertType.warning,
                     title: 'Email không hợp lệ',
-                    text:
-                        'Vui lòng nhập đúng định dạng (ví dụ: ten@domain.com).',
+                    text: emailError,
                   );
                   return;
                 }
 
-                if (password != confirmPassword) {
+                if (passwordError != null) {
                   QuickAlert.show(
                     context: context,
-                    type: QuickAlertType.error,
-                    title: "Lỗi",
-                    text: "Password và Confirm Password không khớp",
+                    type: QuickAlertType.warning,
+                    title: 'Mật khẩu không hợp lệ',
+                    text: passwordError,
+                  );
+                  return;
+                }
+
+                if (confirmPasswordError != null) {
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.warning,
+                    title: 'Xác nhận mật khẩu',
+                    text: confirmPasswordError,
                   );
                   return;
                 }

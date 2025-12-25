@@ -1,4 +1,4 @@
-import '../models/responses/favorite_response.dart';
+import '../models/responses/favorite_combo_response.dart';
 import '../data_source/favorites_data_source.dart';
 
 class FavoritesRepository {
@@ -7,7 +7,7 @@ class FavoritesRepository {
   FavoritesRepository({FavoritesDataSource? dataSource})
     : dataSource = dataSource ?? FavoritesDataSource();
 
-  Future<List<FavoriteResponse>> getMyFavorites(int userId) async {
+  Future<List<FavoriteComboResponse>> getMyFavorites(int userId) async {
     try {
       return await dataSource.getMyFavorites(userId);
     } catch (e) {

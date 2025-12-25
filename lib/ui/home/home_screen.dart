@@ -155,8 +155,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           const WorkoutHistoryCard(), // ← Workout history
                           SizedBox(height: context.h(0.04)),
                           const FoodHistoryCard(), // ← Food history
-                          SizedBox(height: context.h(0.04)),
-                          const ActivitySummaryCard(),
+                          // SizedBox(height: context.h(0.04)),
+                          // const ActivitySummaryCard(), // ← Step counter (commented out)
                           SizedBox(height: context.h(0.02)),
                         ],
                       ),

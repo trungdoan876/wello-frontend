@@ -80,6 +80,7 @@ class _ResetOtpVerificationPageState extends State<ResetOtpVerificationPage> {
     }
 
     if (otp.length != 6) {
+      print('🔴 [ResetOTP] OTP không đúng 6 chữ số: ${otp.length}');
       QuickAlert.show(
         context: context,
         type: QuickAlertType.warning,
@@ -89,19 +90,25 @@ class _ResetOtpVerificationPageState extends State<ResetOtpVerificationPage> {
       return;
     }
 
+    print('🔵 [ResetOTP] Bắt đầu xác thực OTP: $otp');
     setState(() => _isLoading = true);
 
     try {
-      final response = await _authRepository.verifyResetOtp(
-        email: widget.email,
-        otp: otp,
+      // Use the unified verify-otp endpoint
+      print('🔵 [ResetOTP] Gọi API /verify-otp...');
+      final response = await _authRepository.verifyOtp(
         verificationToken: _currentVerificationToken,
+        otp: otp,
       );
+      print('🔵 [ResetOTP] Nhận response: type=${response.type}, resetToken=${response.resetToken != null}');
 
       if (mounted) {
         setState(() => _isLoading = false);
 
-        if (response.success && response.resetToken != null) {
+        // Check if this is password reset flow
+        if (response.type == 'password_reset' && response.resetToken != null) {
+          print('✅ [ResetOTP] Xác thực thành công! resetToken: ${response.resetToken!.substring(0, 20)}...');
+          print('🔵 [ResetOTP] Chuyển đến NewPasswordPage');
           // Navigate to new password page
           Navigator.pushReplacement(
             context,
@@ -111,16 +118,28 @@ class _ResetOtpVerificationPageState extends State<ResetOtpVerificationPage> {
               ),
             ),
           );
-        } else {
+        } else if (response.type == 'password_reset') {
+          print('🔴 [ResetOTP] Thiếu resetToken!');
+          // Missing reset token
           QuickAlert.show(
             context: context,
             type: QuickAlertType.error,
-            title: 'Xác thực thất bại',
-            text: response.message,
+            title: 'Lỗi',
+            text: 'Không nhận được reset token từ server',
+          );
+        } else {
+          print('🔴 [ResetOTP] Sai loại OTP: ${response.type}');
+          // Wrong OTP type
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.error,
+            title: 'Lỗi',
+            text: 'OTP này không dùng cho đặt lại mật khẩu',
           );
         }
       }
     } catch (e) {
+      print('🔴 [ResetOTP] Exception: $e');
       if (mounted) {
         setState(() => _isLoading = false);
 

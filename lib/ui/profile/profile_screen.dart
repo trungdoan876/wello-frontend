@@ -21,6 +21,7 @@ import 'package:wello_frontend/ui/auth/initial_page.dart';
 import 'widgets/water_tracking_card.dart';
 import 'package:wello_frontend/ui/summary/widgets/bmi_card.dart';
 import 'widgets/physical_profile_page.dart';
+import 'package:wello_frontend/ui/widgets/water_reminder_sheet.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(bool)? onQuickActionsChanged;
@@ -199,7 +200,12 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
   }
 
   void _toggleNotif() {
-    // TODO: Implement notification toggle
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => WaterReminderSheet(),
+    );
   }
 
   Future<void> _logout() async {
