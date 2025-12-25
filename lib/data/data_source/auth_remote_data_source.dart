@@ -11,13 +11,14 @@ import '../models/responses/register_response_model.dart';
 import '../models/responses/send_otp_response_model.dart';
 import '../models/responses/verify_otp_response_model.dart';
 import '../models/responses/password_reset_response.dart';
+import '../../core/constants/app_constants.dart';
 
 /// Remote data source for authentication
 /// Handles direct API calls related to auth (login, register)
 class AuthRemoteDataSource {
   final String baseUrl;
 
-  AuthRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  AuthRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
 
   /// Login user
   Future<LoginResponseModel> login({

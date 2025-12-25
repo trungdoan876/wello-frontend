@@ -4,13 +4,14 @@ import '../models/requests/survey_request_model.dart';
 import '../models/requests/calculate_bmi_request_model.dart';
 import '../models/responses/survey_response_model.dart';
 import '../models/responses/calculate_bmi_response_model.dart';
+import '../../core/constants/app_constants.dart';
 
 /// Remote data source for survey operations
 /// Handles direct API calls for survey submission
 class SurveyRemoteDataSource {
   final String baseUrl;
 
-  SurveyRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  SurveyRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
 
   /// Submit survey and get health metrics
   Future<SurveyResponseModel> submitSurvey({

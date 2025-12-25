@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/responses/profile_response_model.dart';
+import '../../core/constants/app_constants.dart';
 
 /// Remote data source for profile
 /// Handles direct API calls related to profile
@@ -10,11 +11,11 @@ class ProfileRemoteDataSource {
   final String baseUrl;
 
   // Default for Android emulator; adjust per platform if needed
-  ProfileRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  ProfileRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
 
   String _resolveBaseUrl() {
     // Always use production server
-    return 'http://10.0.2.2:8080/api';
+    return AppConstants.baseUrl;
   }
 
   /// Fetch profile by ID

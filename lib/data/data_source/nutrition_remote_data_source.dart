@@ -7,13 +7,14 @@ import '../models/requests/log_food_request.dart';
 import '../models/responses/log_food_response.dart';
 import '../../domain/entities/food_history_item.dart';
 import '../../domain/entities/weight_history_item.dart';
+import '../../core/constants/app_constants.dart';
 
 /// Remote data source for nutrition and fitness data
 /// Handles API calls related to nutrition tracking, user profile, and weekly overview
 class NutritionRemoteDataSource {
   final String baseUrl;
 
-  NutritionRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  NutritionRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
 
   /// Get user profile with fitness goals and targets
   /// @param userId - User ID
@@ -283,7 +284,7 @@ class NutritionRemoteDataSource {
     String date,
   ) async {
     final url = Uri.parse(
-      '$baseUrl/nutrition/history?userId=$userId&date=$date',
+      '$baseUrl/nutrition/history/food?userId=$userId&date=$date',
     );
 
     print('🌐 Making GET request to: $url');

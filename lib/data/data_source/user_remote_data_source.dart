@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/requests/register_request_model.dart';
 import '../models/responses/register_response_model.dart';
+import '../../core/constants/app_constants.dart';
 
 /// Remote data source for user
 /// Handles direct API calls related to user operations
 class UserRemoteDataSource {
   final String baseUrl;
 
-  UserRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  UserRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
 
   /// Register a new user
   Future<RegisterResponseModel> register({

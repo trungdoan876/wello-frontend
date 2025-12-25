@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/exercise.dart';
+import '../../core/constants/app_constants.dart';
 
 /// Remote data source for exercise API calls
 class ExerciseRemoteDataSource {
   final String baseUrl;
 
-  ExerciseRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  ExerciseRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
 
   /// Get list of exercises
   /// GET /workout/exercises

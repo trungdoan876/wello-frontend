@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/food.dart';
 import '../models/requests/food_preview_request.dart';
+import '../../core/constants/app_constants.dart';
 
 
 /// Remote data source for food API calls
 class FoodRemoteDataSource {
   final String baseUrl;
 
-  FoodRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  FoodRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
 
   /// Get all foods
   /// GET /food/all

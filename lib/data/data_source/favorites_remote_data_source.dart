@@ -4,11 +4,12 @@ import '../models/requests/add_favorite_combo_request.dart';
 import '../models/requests/update_favorite_combo_request.dart';
 import '../models/requests/log_favorite_request.dart';
 import '../models/responses/favorite_combo_response.dart';
+import '../../core/constants/app_constants.dart';
 
 class FavoritesRemoteDataSource {
   final String baseUrl;
 
-  FavoritesRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  FavoritesRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
 
   /// Get a single favorite combo by ID
   Future<FavoriteComboResponse> getFavoriteById({
@@ -35,10 +36,10 @@ class FavoritesRemoteDataSource {
   }
 
   /// Add a combo to favorites
-  Future<Map<String, dynamic>> addCombo({
+  Future<FavoriteComboResponse> addCombo({
     required AddFavoriteComboRequest request,
   }) async {
-    final url = Uri.parse('$baseUrl/favorites/add-combo');
+    final url = Uri.parse('$baseUrl/favorites/add-favorite-food');
 
     try {
       final response = await http
@@ -50,7 +51,9 @@ class FavoritesRemoteDataSource {
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return jsonDecode(response.body) as Map<String, dynamic>;
+        return FavoriteComboResponse.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>,
+        );
       } else {
         throw Exception('Failed to add combo: ${response.statusCode}');
       }
@@ -63,7 +66,7 @@ class FavoritesRemoteDataSource {
   Future<Map<String, dynamic>> updateCombo({
     required UpdateFavoriteComboRequest request,
   }) async {
-    final url = Uri.parse('$baseUrl/favorites/update-combo');
+    final url = Uri.parse('$baseUrl/favorites/update-favorite-food');
 
     try {
       final response = await http
@@ -126,6 +129,26 @@ class FavoritesRemoteDataSource {
       }
     } catch (e) {
       throw Exception('Error logging favorite: $e');
+    }
+  }
+
+  /// Get all favorites for a user
+  Future<List<FavoriteComboResponse>> getFavoritesByUserId(int userId) async {
+    final url = Uri.parse('$baseUrl/favorites/user/$userId');
+
+    try {
+      final response = await http
+          .get(url)
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => FavoriteComboResponse.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to get favorites: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting favorites: $e');
     }
   }
 }
