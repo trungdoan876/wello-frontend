@@ -2,14 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
-import 'package:wello_frontend/data/models/question.dart';
+import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/ui/question/gender_question/gender_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class NamePage extends StatefulWidget {
   final Question? question;
-  const NamePage({super.key, this.question});
+  final int? userId;
+  final String? initialName;
+  final String? buttonText;
+  final bool returnNameOnSubmit;
+  final int? updateUserId;
+  final Future<bool> Function(String fullname)? onUpdate;
+
+  const NamePage({
+    super.key,
+    this.question,
+    this.userId,
+    this.initialName,
+    this.buttonText,
+    this.returnNameOnSubmit = false,
+    this.updateUserId,
+    this.onUpdate,
+  });
 
   @override
   State<NamePage> createState() => _NamePageState();
@@ -22,12 +38,16 @@ class _NamePageState extends State<NamePage> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialName != null) {
+      nameController.text = widget.initialName!;
+    }
     nameController.addListener(() {
       setState(() {}); // cập nhật UI khi nhập
     });
-    
+
     // Load questions from backend if not already loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final provider = Provider.of<QuestionProvider>(context, listen: false);
       if (provider.questions.isEmpty && !provider.isLoading) {
         provider.loadQuestions();
@@ -37,6 +57,10 @@ class _NamePageState extends State<NamePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.returnNameOnSubmit) {
+      return _buildUpdateNameScreen();
+    }
+
     return Consumer<QuestionProvider>(
       builder: (context, questionProvider, child) {
         // Show loading state
@@ -50,14 +74,131 @@ class _NamePageState extends State<NamePage> {
         }
 
         // Get current question (from prop or from provider)
-        _currentQuestion = widget.question ?? questionProvider.getQuestionByIndex(0);
-        
+        _currentQuestion =
+            widget.question ?? questionProvider.getQuestionByIndex(0);
+
         if (_currentQuestion == null) {
           return _buildErrorScreen(questionProvider);
         }
 
         return _buildNameQuestionScreen(questionProvider);
       },
+    );
+  }
+
+  Widget _buildUpdateNameScreen() {
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.05)),
+        child: Padding(
+          padding: EdgeInsets.only(top: context.h(0.05)),
+          child: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            centerTitle: true,
+            leadingWidth: context.w(0.2),
+            iconTheme: IconThemeData(
+              color: const Color(0xffEBCF23),
+              size: context.sp(10),
+            ),
+            title: Text(
+              "Wello",
+              style: GoogleFonts.pacifico(
+                fontSize: context.sp(12.0),
+                color: const Color(0xffEBCF23),
+              ),
+            ),
+          ),
+        ),
+      ),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        width: context.w(1),
+        height: context.h(1),
+        decoration: const BoxDecoration(
+          color: Color(0xffFFF8E8),
+          image: DecorationImage(
+            image: AssetImage("assets/images/question_bg.png"),
+            alignment: Alignment.bottomCenter,
+            fit: BoxFit.contain,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: context.w(0.07)),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(height: context.h(0.18)),
+                Text(
+                  "Bạn muốn mình gọi bạn là...",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.baloo2(
+                    fontSize: context.sp(8.0),
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xffEBCF23),
+                  ),
+                ),
+                SizedBox(height: context.h(0.05)),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: context.w(0.04)),
+                  height: context.h(0.065),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xffEBCF23),
+                      width: 2.0,
+                    ),
+                  ),
+                  child: Center(
+                    child: TextField(
+                      controller: nameController,
+                      style: TextStyle(fontSize: context.sp(4)),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: "Bạn muốn mình gọi bạn là ...",
+                        hintStyle: TextStyle(fontSize: context.sp(4)),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: context.h(0.05)),
+                SizedBox(
+                  width: context.w(0.5),
+                  child: AnimatedStartButton(
+                    text: widget.buttonText ?? "Cập nhật",
+                    onPressed: nameController.text.trim().isEmpty
+                        ? null
+                        : () async {
+                            final name = nameController.text.trim();
+                            if (widget.onUpdate != null) {
+                              final ok = await widget.onUpdate!(name);
+                              if (!mounted) return;
+                              if (ok) {
+                                Navigator.pop(context, name);
+                              } else {
+                                ScaffoldMessenger.maybeOf(
+                                  context,
+                                )?.showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Cập nhật tên thất bại'),
+                                    backgroundColor: Color(0xFFEF4444),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            } else {
+                              Navigator.pop(context, name);
+                            }
+                          },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -68,9 +209,7 @@ class _NamePageState extends State<NamePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
-              color: const Color(0xffEBCF23),
-            ),
+            CircularProgressIndicator(color: const Color(0xffEBCF23)),
             SizedBox(height: 20),
             Text(
               'Đang tải câu hỏi...',
@@ -94,11 +233,7 @@ class _NamePageState extends State<NamePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 80,
-                color: Colors.red,
-              ),
+              Icon(Icons.error_outline, size: 80, color: Colors.red),
               SizedBox(height: 20),
               Text(
                 'Không thể tải câu hỏi',
@@ -126,10 +261,7 @@ class _NamePageState extends State<NamePage> {
                 ),
                 child: Text(
                   'Thử lại',
-                  style: GoogleFonts.baloo2(
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
+                  style: GoogleFonts.baloo2(fontSize: 18, color: Colors.white),
                 ),
               ),
             ],
@@ -231,13 +363,16 @@ class _NamePageState extends State<NamePage> {
                         ? null
                         : () {
                             // Get next question from provider
-                            final nextQuestion = questionProvider.getQuestionByIndex(1);
+                            final nextQuestion = questionProvider
+                                .getQuestionByIndex(1);
                             if (nextQuestion != null) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => GenderPage(
                                     question: nextQuestion,
+                                    fullname: nameController.text.trim(),
+                                    userId: widget.userId,
                                   ),
                                 ),
                               );

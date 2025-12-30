@@ -2,22 +2,83 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
-import 'package:wello_frontend/data/models/question.dart';
+import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/ui/question/age_weight_question/age_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/data/data_source/survey_remote_data_source.dart';
+import 'package:wello_frontend/data/models/responses/calculate_bmi_response_model.dart';
+import 'package:wello_frontend/ui/question/activity_question/activity_level_screen.dart';
+import 'package:wello_frontend/ui/question/target_weight_question/target_weight_page.dart';
 import 'widgets/number_box.dart';
+import 'widgets/bmi_display_card.dart';
 
 class WeightPage extends StatefulWidget {
   final Question question;
-  const WeightPage({super.key, required this.question});
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  final int? weight;
+  final int? age;
+  final String? goal;
+  final int? userId;
+  final int? initialWeight;
+  final String? buttonText;
+  final Future<bool> Function(int weight)? onUpdate;
+  const WeightPage({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+    this.weight,
+    this.age,
+    this.goal,
+    this.userId,
+    this.initialWeight,
+    this.buttonText,
+    this.onUpdate,
+  });
 
   @override
   State<WeightPage> createState() => _WeightPageState();
 }
 
 class _WeightPageState extends State<WeightPage> {
-  int weight = 60;
+  late int weight;
+  CalculateBmiResponse? bmiData;
+  final SurveyRemoteDataSource _surveyDataSource = SurveyRemoteDataSource();
+
+  @override
+  void initState() {
+    super.initState();
+    weight = widget.initialWeight ?? 60;
+    _calculateBmi();
+  }
+
+  Future<void> _calculateBmi() async {
+    if (widget.height == null) return;
+    
+    try {
+      final response = await _surveyDataSource.calculateBmi(
+        weight: weight,
+        height: widget.height!,
+        goal: widget.goal,
+      );
+      
+      if (mounted) {
+        setState(() {
+          bmiData = response;
+        });
+      }
+    } catch (e) {
+      print('Error calculating BMI: $e');
+    }
+  }
+
+  void _onWeightChanged() {
+    _calculateBmi();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +116,7 @@ class _WeightPageState extends State<WeightPage> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/bg_question_weight.png"), 
+            image: AssetImage("assets/images/bg_question_weight.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -67,14 +128,16 @@ class _WeightPageState extends State<WeightPage> {
               vertical: context.h(0.02),
             ),
 
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
                 SizedBox(height: context.h(0.07)),
 
                 // ----- TITLE -----
                 Text(
                   widget.question.question,
+                  textAlign: TextAlign.center,
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(7),
                     fontWeight: FontWeight.w900,
@@ -99,10 +162,22 @@ class _WeightPageState extends State<WeightPage> {
                       setState(() {
                         if (weight > 1) weight--;
                       });
+                      _onWeightChanged();
                     },
-                    onPlus: () => setState(() => weight++),
+                    onPlus: () {
+                      setState(() => weight++);
+                      _onWeightChanged();
+                    },
                   ),
                 ),
+
+                SizedBox(height: context.h(0.02)),
+
+                // ----- BMI DISPLAY -----
+                if (widget.height != null)
+                  BmiDisplayCard(
+                    bmiData: bmiData,
+                  ),
 
                 SizedBox(height: context.h(0.05)),
 
@@ -110,19 +185,69 @@ class _WeightPageState extends State<WeightPage> {
                 SizedBox(
                   width: context.w(0.5),
                   child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed: () {
-                      final provider = Provider.of<QuestionProvider>(context, listen: false);
-                      final nextQuestion = provider.getQuestionByIndex(4);
-                      if (nextQuestion != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AgePage(
-                              question: nextQuestion,
-                            ),
-                          ),
+                    text: widget.buttonText ?? "Tiếp tục",
+                    onPressed: () async {
+                      if (widget.onUpdate != null) {
+                        // Update mode
+                        print(
+                          '[WeightPage] Update mode - calling onUpdate with $weight',
                         );
+                        final success = await widget.onUpdate!(weight);
+                        if (!mounted) return;
+                        if (success) {
+                          Navigator.pop(context, weight);
+                        }
+                      } else {
+                        // Normal onboarding flow
+                        final provider = Provider.of<QuestionProvider>(
+                          context,
+                          listen: false,
+                        );
+                        
+                        // Check if user needs to set target weight
+                        // Only show TargetWeightPage for LOSE_WEIGHT or GAIN_WEIGHT
+                        if (widget.goal == 'LOSE_WEIGHT' || widget.goal == 'GAIN_WEIGHT') {
+                          final nextQuestion = provider.getQuestionByIndex(6);
+                          if (nextQuestion != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TargetWeightPage(
+                                  question: nextQuestion,
+                                  fullname: widget.fullname,
+                                  gender: widget.gender,
+                                  height: widget.height,
+                                  weight: weight,
+                                  age: widget.age,
+                                  goal: widget.goal,
+                                  userId: widget.userId,
+                                ),
+                              ),
+                            );
+                          }
+                        } else {
+                          // Skip TargetWeightPage for KEEP_FIT or MAINTAIN_WEIGHT
+                          // Go directly to ActivityLevelScreen
+                          final activityQuestion = provider.getQuestionByIndex(7);
+                          if (activityQuestion != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ActivityLevelScreen(
+                                  question: activityQuestion,
+                                  fullname: widget.fullname,
+                                  gender: widget.gender,
+                                  height: widget.height,
+                                  weight: weight,
+                                  age: widget.age,
+                                  goal: widget.goal,
+                                  userId: widget.userId,
+                                  targetWeight: null, // No target weight for KEEP_FIT/MAINTAIN_WEIGHT
+                                ),
+                              ),
+                            );
+                          }
+                        }
                       }
                     },
                   ),
@@ -131,8 +256,8 @@ class _WeightPageState extends State<WeightPage> {
             ),
           ),
         ),
+        ),
       ),
     );
   }
 }
-

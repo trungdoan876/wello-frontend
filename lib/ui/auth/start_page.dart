@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wello_frontend/ui/login/login_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';// ignore: depend_on_referenced_packages
+import 'package:wello_frontend/ui/widgets/loading_page.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 class StartPage extends StatelessWidget {
   const StartPage({super.key});
@@ -80,20 +81,22 @@ class StartPage extends StatelessWidget {
               // Khoảng trống 5% chiều cao màn hình
               SizedBox(height: context.h(0.05)),
 
-              // --- Nút "Let's Start" ---
+              // --- Nút "Bắt đầu ngay" ---
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: context.w(0.1)),
                 child: SizedBox(
                   width: context.w(0.8), // responsive theo chiều ngang
                   child: AnimatedStartButton(
-                    text: "Let's Start",
+                    text: "Bắt đầu ngay",
                     onPressed: () {
                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginPage(), 
-                            ),
-                          );
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LoadingPage(
+                            nextPage: const LoginPage(),
+                          ),
+                        ),
+                      );
                       // TODO: Xử lý logic login
                     },
                   ),

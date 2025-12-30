@@ -1,14 +1,16 @@
-// lib/widgets/login_form_card.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wello_frontend/data/repositories/auth_repository.dart';
+import 'package:wello_frontend/data/repositories/auth_repository_impl.dart';
 import 'package:wello_frontend/ui/login/widgets/login_textfields.dart';
+import 'package:wello_frontend/ui/main_navigation_screen.dart';
 import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/register_page.dart';
+import 'package:wello_frontend/ui/auth/forgot_password_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/beautiful_dialog.dart';
+import 'package:wello_frontend/core/utils/user_session.dart';
 
 class LoginFormContent extends StatelessWidget {
   final TextEditingController emailController;
@@ -77,7 +79,12 @@ class LoginFormContent extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
+                );
+              },
               child: Text(
                 'Quên mật khẩu?',
                 style: TextStyle(
@@ -119,21 +126,36 @@ class LoginFormContent extends StatelessWidget {
                     password: password,
                   );
 
+                  print(
+                    'Login response: success=${response.success}, userId=${response.userId}, hasCompletedSurvey=${response.hasCompletedSurvey}',
+                  );
+
                   if (response.success) {
+                    // Save userId and token for persistent auth
+                    if (response.userId != null) {
+                      await UserSession.saveUserId(response.userId!);
+                      // TODO: Backend should return actual token
+                      // For now, save userId as token for authentication
+                      await UserSession.saveToken(response.userId!.toString());
+                    }
+
                     // Route based on survey completion
                     if (response.hasCompletedSurvey == false) {
                       // Navigate to QuestionFlow (Khảo sát)
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (_) => NamePage()),
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              NamePage(userId: response.userId ?? 1),
+                        ),
                       );
                     } else {
-                      // TODO: Navigate to Home/Dashboard
-                      showPopup(
+                      // Navigate to Home page
+                      Navigator.pushReplacement(
                         context,
-                        title: "",
-                        message: "Đăng nhập thành công! (Home page chưa có)",
-                        isError: false,
+                        MaterialPageRoute(
+                          builder: (_) => MainNavigationScreen(),
+                        ),
                       );
                     }
                   } else {
@@ -189,12 +211,55 @@ class LoginFormContent extends StatelessWidget {
           SizedBox(height: context.h(0.02)),
 
           // --- Nút Google ---
-          Container(
-            child: Center(
-              // Sử dụng icon Google
-              child: Image.asset(
-                'assets/images/google.png',
-                width: context.w(0.08),
+          GestureDetector(
+            onTap: () async {
+              try {
+                final repository = AuthRepositoryImpl();
+                final response = await repository.loginWithGoogle();
+
+                if (response.success) {
+                  // Save userId and token for persistent auth
+                  if (response.userId != null) {
+                    await UserSession.saveUserId(response.userId!);
+                    // TODO: Backend should return actual token
+                    // For now, save userId as token for authentication
+                    await UserSession.saveToken(response.userId!.toString());
+                  }
+                  // Route based on survey completion (same as email login)
+                  if (response.hasCompletedSurvey == false) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NamePage(userId: response.userId ?? 1),
+                      ),
+                    );
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => MainNavigationScreen()),
+                    );
+                  }
+                } else {
+                  showPopup(
+                    context,
+                    title: "",
+                    message: response.message ?? "Google login failed",
+                  );
+                }
+              } catch (e) {
+                showPopup(
+                  context,
+                  title: "",
+                  message: "Cannot connect to server: $e",
+                );
+              }
+            },
+            child: Container(
+              child: Center(
+                child: Image.asset(
+                  'assets/images/google.png',
+                  width: context.w(0.08),
+                ),
               ),
             ),
           ),

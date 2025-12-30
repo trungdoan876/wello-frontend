@@ -1,23 +1,58 @@
-// lib/screens/activity_level_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:wello_frontend/domain/providers/question_provider.dart';
-import 'package:wello_frontend/data/models/question.dart';
+import 'package:wello_frontend/domain/entities/question.dart';
+import 'package:wello_frontend/domain/providers/survey_provider.dart';
+import 'package:wello_frontend/data/models/requests/survey_request_model.dart';
+import 'package:wello_frontend/data/models/responses/survey_response_model.dart';
+import 'package:wello_frontend/ui/summary/summary_page.dart';
 import 'package:wello_frontend/ui/question/activity_question/widgets/activity_option_button.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/data/data_source/user_preferences.dart';
 
 class ActivityLevelScreen extends StatefulWidget {
   final Question question;
-  const ActivityLevelScreen({super.key, required this.question});
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  final int? weight;
+  final int? targetWeight;
+  final int? age;
+  final String? goal;
+  final int? userId;
+  final String? initialActivityLevel;
+  final String? buttonText;
+  final Future<bool> Function(String activityLevel)? onUpdate;
+
+  const ActivityLevelScreen({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+    this.weight,
+    this.targetWeight,
+    this.age,
+    this.goal,
+    this.userId,
+    this.initialActivityLevel,
+    this.buttonText,
+    this.onUpdate,
+  });
 
   @override
   State<ActivityLevelScreen> createState() => _ActivityLevelScreenState();
 }
 
 class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
-  String? _selectedLevel;
+  late String? _selectedLevel;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLevel = widget.initialActivityLevel;
+  }
 
   // Mapping tạm thời cho Title vì backend chưa trả về
   final Map<String, String> _titleMap = {
@@ -41,30 +76,24 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
     return Scaffold(
       // ---- APP BAR ----
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.0)),
-        child: Padding(
-          padding: EdgeInsets.only(top: context.h(0.0)),
-          child: AppBar(
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            centerTitle: true,
-            leadingWidth: context.w(0.2),
-            iconTheme: IconThemeData(
+        preferredSize: Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          elevation: 0,
+          backgroundColor: const Color(0xFFFFF7DA), // Pastel cream color
+          centerTitle: true,
+          leadingWidth: context.w(0.2),
+          iconTheme: IconThemeData(color: mainYellow, size: context.sp(10)),
+          title: Text(
+            "Wello",
+            style: GoogleFonts.pacifico(
+              fontSize: context.sp(12.0),
               color: mainYellow,
-              size: context.sp(10),
-            ),
-            title: Text(
-              "Wello",
-              style: GoogleFonts.pacifico(
-                fontSize: context.sp(12.0),
-                color: mainYellow,
-              ),
             ),
           ),
         ),
       ),
 
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       backgroundColor: Colors.transparent,
 
       body: Stack(
@@ -81,11 +110,16 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
 
           // --- Nội dung chính ---
           SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: context.w(0.08)),
+            padding: EdgeInsets.fromLTRB(
+              context.w(0.08),
+              0,
+              context.w(0.08),
+              context.h(0.04),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: context.h(0.12)),
+                SizedBox(height: context.h(0.02)),
 
                 // ---- CÂU HỎI ----
                 Text(
@@ -111,17 +145,108 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                   );
                 }).toList(),
 
-               SizedBox(height: context.h(0.05)),
+                SizedBox(height: context.h(0.05)),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
-                  child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed:_selectedLevel == null
-                        ? null
-                        : () {
-                      // TODO: Submit survey to backend
-                      print("Survey completed! Activity level: $_selectedLevel");
-                      // Navigate to home or submit survey
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.w(0.08),
+                    vertical: context.h(0.02),
+                  ),
+                  child: Consumer<SurveyProvider>(
+                    builder: (context, surveyProvider, child) {
+                      return AnimatedStartButton(
+                        text:
+                            widget.buttonText ??
+                            (surveyProvider.isLoading
+                                ? "Đang gửi..."
+                                : "Tiếp tục"),
+                        onPressed:
+                            _selectedLevel == null || surveyProvider.isLoading
+                            ? null
+                            : () async {
+                                if (widget.onUpdate != null) {
+                                  // Update mode
+                                  print(
+                                    '[ActivityLevelScreen] Update mode - calling onUpdate with $_selectedLevel',
+                                  );
+                                  final success = await widget.onUpdate!(
+                                    _selectedLevel!,
+                                  );
+                                  if (!mounted) return;
+                                  if (success) {
+                                    Navigator.pop(context, _selectedLevel);
+                                  }
+                                } else {
+                                  // Normal onboarding flow - submit survey
+                                  final userId =
+                                      await UserPreferences.getUserId();
+
+                                  final request = SurveyRequestModel(
+                                    userId: widget.userId ?? 1,
+                                    fullname: widget.fullname ?? 'No name',
+                                    gender: widget.gender ?? 'MALE',
+                                    age: widget.age ?? 25,
+                                    height: widget.height ?? 170,
+                                    weight: widget.weight ?? 65,
+                                    goal: widget.goal ?? 'KEEP_FIT',
+                                    activityLevel: _selectedLevel!,
+                                    targetWeight: widget.targetWeight,
+                                  );
+
+                                  print(
+                                    'Submitting survey with userId: ${userId ?? 1}',
+                                  );
+
+                                  try {
+                                    await surveyProvider.submitSurvey(request);
+                                    final result = surveyProvider.surveyResult;
+                                    if (result != null) {
+                                      final updatedResult = SurveyResponseModel(
+                                        bmi: result.bmi,
+                                        bmiStatus: result.bmiStatus,
+                                        bmr: result.bmr,
+                                        tdee: result.tdee,
+                                        dailyCalories: result.dailyCalories,
+                                        proteinGram: result.proteinGram,
+                                        carbsGram: result.carbsGram,
+                                        fatGram: result.fatGram,
+                                        waterIntakeMl: result.waterIntakeMl,
+                                        height: surveyProvider.height
+                                            ?.toDouble(),
+                                        weight: surveyProvider.weight
+                                            ?.toDouble(),
+                                      );
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => SummaryPage(
+                                            survey: updatedResult,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    // show simple dialog on error
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => AlertDialog(
+                                        title: const Text('Lỗi'),
+                                        content: Text(
+                                          surveyProvider.errorMessage ??
+                                              e.toString(),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text('Đóng'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                      );
                     },
                   ),
                 ),
@@ -133,4 +258,3 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
     );
   }
 }
-

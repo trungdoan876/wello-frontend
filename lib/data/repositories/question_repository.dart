@@ -1,4 +1,4 @@
-import '../models/question.dart';
+import '../../domain/entities/question.dart';
 import '../data_source/question_remote_data_source.dart';
 
 class QuestionRepository {

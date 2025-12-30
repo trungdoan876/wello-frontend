@@ -24,7 +24,7 @@ class NumberBox extends StatelessWidget {
       width: context.w(0.7),                // 🔥 responsive width
       padding: EdgeInsets.all(context.w(0.04)), // 🔥 responsive padding
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(context.w(0.05)), // 🔥 responsive bo góc
       ),
       child: Column(

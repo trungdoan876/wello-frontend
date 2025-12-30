@@ -2,15 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
-import 'package:wello_frontend/data/models/question.dart';
+import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/ui/question/gender_question/widgets/gender_selector.dart';
-import 'package:wello_frontend/ui/question/height_question/height_page.dart';
+import 'package:wello_frontend/ui/question/age_weight_question/age_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class GenderPage extends StatefulWidget {
   final Question question;
-  const GenderPage({super.key, required this.question});
+  final String? fullname;
+  final int? userId;
+  final String? initialGender;
+  final String? buttonText;
+  final Future<bool> Function(String gender)? onUpdate;
+
+  const GenderPage({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.userId,
+    this.initialGender,
+    this.buttonText,
+    this.onUpdate,
+  });
 
   @override
   State<GenderPage> createState() => _GenderPageState();
@@ -20,9 +34,16 @@ class _GenderPageState extends State<GenderPage> {
   String selectedGender = "";
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.initialGender != null) {
+      selectedGender = widget.initialGender!;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       // 👉 AppBar giống HeightPage
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.05)),
@@ -33,10 +54,10 @@ class _GenderPageState extends State<GenderPage> {
             backgroundColor: Colors.transparent,
             centerTitle: true,
 
-            leadingWidth: context.w(0.2), 
+            leadingWidth: context.w(0.2),
             iconTheme: IconThemeData(
               color: Color(0xffEBCF23), // màu icon back
-               size: context.sp(10),
+              size: context.sp(10),
             ),
 
             title: Text(
@@ -67,7 +88,6 @@ class _GenderPageState extends State<GenderPage> {
             padding: EdgeInsets.symmetric(horizontal: context.w(0.07)),
             child: Column(
               children: [
-
                 SizedBox(height: context.h(0.1)),
 
                 Text(
@@ -95,21 +115,48 @@ class _GenderPageState extends State<GenderPage> {
                 SizedBox(
                   width: context.w(0.5),
                   child: AnimatedStartButton(
-                    text: "Tiếp tục",
+                    text: widget.buttonText ?? "Tiếp tục",
                     onPressed: selectedGender.isEmpty
                         ? null
-                        : () {
-                            final provider = Provider.of<QuestionProvider>(context, listen: false);
-                            final nextQuestion = provider.getQuestionByIndex(2);
-                            if (nextQuestion != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => HeightPage(
-                                    question: nextQuestion,
-                                  ),
-                                ),
+                        : () async {
+                            print('[GenderPage] onUpdate: ${widget.onUpdate}');
+                            if (widget.onUpdate != null) {
+                              // Update mode
+                              print(
+                                '[GenderPage] Update mode - calling onUpdate with $selectedGender',
                               );
+                              final success = await widget.onUpdate!(
+                                selectedGender,
+                              );
+                              if (!mounted) return;
+                              if (success) {
+                                // Only return the result; parent shows a single top banner
+                                Navigator.pop(context, selectedGender);
+                              } else {
+                                // Stay on page; parent will decide how to notify
+                              }
+                            } else {
+                              // Normal onboarding flow
+                              final provider = Provider.of<QuestionProvider>(
+                                context,
+                                listen: false,
+                              );
+                              final nextQuestion = provider.getQuestionByIndex(
+                                2,
+                              );
+                              if (nextQuestion != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AgePage(
+                                      question: nextQuestion,
+                                      fullname: widget.fullname,
+                                      gender: selectedGender,
+                                      userId: widget.userId,
+                                    ),
+                                  ),
+                                );
+                              }
                             }
                           },
                   ),
@@ -122,4 +169,3 @@ class _GenderPageState extends State<GenderPage> {
     );
   }
 }
-

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
-import 'package:wello_frontend/data/models/question.dart';
+import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/ui/question/target_question/target_screen.dart';
+import 'package:wello_frontend/ui/question/height_question/height_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
@@ -11,14 +12,42 @@ import 'widgets/number_box.dart';
 
 class AgePage extends StatefulWidget {
   final Question question;
-  const AgePage({super.key, required this.question});
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  final int? weight;
+  final int? targetWeight;
+  final int? userId;
+  final int? initialAge;
+  final String? buttonText;
+  final Future<bool> Function(int age)? onUpdate;
+
+  const AgePage({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+    this.weight,
+    this.targetWeight,
+    this.userId,
+    this.initialAge,
+    this.buttonText,
+    this.onUpdate,
+  });
 
   @override
   State<AgePage> createState() => _AgePageState();
 }
 
 class _AgePageState extends State<AgePage> {
-  int age = 20; // tuổi mặc định
+  late int age;
+
+  @override
+  void initState() {
+    super.initState();
+    age = widget.initialAge ?? 20;
+  }
 
   String _getUnit() {
     if (widget.question.unit == "inputNumber") return "";
@@ -61,7 +90,7 @@ class _AgePageState extends State<AgePage> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/bg_question_age.png"), 
+            image: AssetImage("assets/images/bg_question_age.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -116,19 +145,42 @@ class _AgePageState extends State<AgePage> {
                 SizedBox(
                   width: context.w(0.5),
                   child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed: () {
-                      final provider = Provider.of<QuestionProvider>(context, listen: false);
-                      final nextQuestion = provider.getQuestionByIndex(5);
-                      if (nextQuestion != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => TargetLevelScreen(
-                              question: nextQuestion,
-                            ),
-                          ),
+                    text: widget.buttonText ?? "Tiếp tục",
+                    onPressed: () async {
+                      if (widget.onUpdate != null) {
+                        // Update mode
+                        print(
+                          '[AgePage] Update mode - calling onUpdate with $age',
                         );
+                        final success = await widget.onUpdate!(age);
+                        print('[AgePage] onUpdate result: success=$success');
+                        if (!mounted) return;
+                        if (success) {
+                          // Only return the result; parent shows a single top banner
+                          Navigator.pop(context, age);
+                        } else {
+                          // Stay on page; parent will decide how to notify
+                        }
+                      } else {
+                        // Normal onboarding flow
+                        final provider = Provider.of<QuestionProvider>(
+                          context,
+                          listen: false,
+                        );
+                        final nextQuestion = provider.getQuestionByIndex(3);
+                        if (nextQuestion != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => HeightPage(
+                                question: nextQuestion,
+                                fullname: widget.fullname,
+                                gender: widget.gender,
+                                userId: widget.userId,
+                              ),
+                            ),
+                          );
+                        }
                       }
                     },
                   ),
@@ -141,4 +193,3 @@ class _AgePageState extends State<AgePage> {
     );
   }
 }
-

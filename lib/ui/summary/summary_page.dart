@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wello_frontend/ui/main_navigation_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import '../../data/models/responses/survey_response_model.dart';
+import '../main_navigation_screen.dart';
 import 'widgets/calorie_card.dart';
 import 'widgets/bmi_card.dart';
 import 'widgets/section_title.dart';
 import 'widgets/water_card.dart';
 
 class SummaryPage extends StatelessWidget {
-  const SummaryPage({super.key});
+  final SurveyResponseModel survey;
+  const SummaryPage({super.key, required this.survey});
 
   @override
   Widget build(BuildContext context) {
@@ -37,24 +41,23 @@ class SummaryPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SectionTitle(
-              title:
-                  "Năng lượng nạp vào để giảm cân (calo thâm hụt = TDEE - 500)",
+              title: "Năng lượng cần nạp vào mỗi ngày",
             ),
 
             SizedBox(height: context.h(0.015)),
-            CalorieCard(),
+            CalorieCard(survey: survey),
 
             SizedBox(height: context.h(0.04)),
             SectionTitle(title: "Chỉ số cơ thể"),
 
             SizedBox(height: context.h(0.015)),
-            BMICard(),
+            BMICard(survey: survey),
 
             SizedBox(height: context.h(0.04)),
             SectionTitle(title: "Bạn nên uống bao nhiêu nước"),
 
             SizedBox(height: context.h(0.015)),
-            WaterCard(),
+            WaterCard(survey: survey),
             SizedBox(height: context.h(0.05)),
             Center(
               child: SizedBox(
@@ -62,7 +65,9 @@ class SummaryPage extends StatelessWidget {
                 child: AnimatedStartButton(
                   text: "Tiếp tục",
                   onPressed: () {
-                    // TODO: Xử lý logic login
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => MainNavigationScreen()),
+                    );
                   },
                 ),
               ),

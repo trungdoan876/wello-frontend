@@ -2,22 +2,52 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
-import 'package:wello_frontend/data/models/question.dart';
+import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/ui/question/activity_question/activity_level_screen.dart';
+import 'package:wello_frontend/ui/question/age_weight_question/weight_page.dart';
 import 'package:wello_frontend/ui/question/activity_question/widgets/activity_option_button.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class TargetLevelScreen extends StatefulWidget {
   final Question question;
-  const TargetLevelScreen({super.key, required this.question});
+  final String? fullname;
+  final String? gender;
+  final int? height;
+  final int? weight;
+  final int? targetWeight;
+  final int? age;
+  final int? userId;
+  final String? initialGoal;
+  final String? buttonText;
+  final Future<bool> Function(String goal)? onUpdate;
+  const TargetLevelScreen({
+    super.key,
+    required this.question,
+    this.fullname,
+    this.gender,
+    this.height,
+    this.weight,
+    this.targetWeight,
+    this.age,
+    this.userId,
+    this.initialGoal,
+    this.buttonText,
+    this.onUpdate,
+  });
 
   @override
   State<TargetLevelScreen> createState() => _TargetLevelScreenState();
 }
 
 class _TargetLevelScreenState extends State<TargetLevelScreen> {
-  String? _selectedLevel;
+  late String? _selectedLevel;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLevel = widget.initialGoal;
+  }
 
   // Mapping tạm thời cho Subtitle vì backend chưa trả về
   final Map<String, String> _subtitleMap = {
@@ -30,18 +60,18 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
     setState(() {
       _selectedLevel = level;
     });
-    print('Selected Target Level: $level'); 
+    print('Selected Target Level: $level');
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
-  // ---- APP BAR ----
+      // ---- APP BAR ----
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + context.h(0.0)),
         child: Padding(
-         padding: EdgeInsets.only(top: context.h(0.0)),
+          padding: EdgeInsets.only(top: context.h(0.0)),
           child: AppBar(
             elevation: 0,
             backgroundColor: Color(0xFFFFFBEA),
@@ -59,11 +89,11 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
               ),
             ),
           ),
-       ),
+        ),
       ),
 
       extendBodyBehindAppBar: true,
-      
+
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Stack(
@@ -85,7 +115,6 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(height: context.h(0.08)), // đẩy xuống dưới AppBar
-
                   // --- Câu hỏi chính ---
                   Text(
                     widget.question.question,
@@ -111,37 +140,58 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                   }).toList(),
                   SizedBox(height: context.h(0.05)), // Khoảng cách dưới cùng
 
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
-                  child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed:_selectedLevel == null
-                        ? null
-                        : () {
-                      final provider = Provider.of<QuestionProvider>(context, listen: false);
-                      final nextQuestion = provider.getQuestionByIndex(6);
-                      if (nextQuestion != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ActivityLevelScreen(
-                              question: nextQuestion,
-                            ),
-                          ),
-                        );
-                      }
-                    },
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
+                    child: AnimatedStartButton(
+                      text: widget.buttonText ?? "Tiếp tục",
+                      onPressed: _selectedLevel == null
+                          ? null
+                          : () async {
+                              if (widget.onUpdate != null) {
+                                // Update mode
+                                print(
+                                  '[TargetScreen] Update mode - calling onUpdate with $_selectedLevel',
+                                );
+                                final success = await widget.onUpdate!(
+                                  _selectedLevel!,
+                                );
+                                if (!mounted) return;
+                                if (success) {
+                                  Navigator.pop(context, _selectedLevel);
+                                }
+                              } else {
+                                // Normal onboarding flow
+                                final provider = Provider.of<QuestionProvider>(
+                                  context,
+                                  listen: false,
+                                );
+                                final nextQuestion = provider.getQuestionByIndex(5);
+                                if (nextQuestion != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => WeightPage(
+                                        question: nextQuestion,
+                                        fullname: widget.fullname,
+                                        gender: widget.gender,
+                                        height: widget.height,
+                                        age: widget.age,
+                                        goal: _selectedLevel,
+                                        userId: widget.userId,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                    ),
                   ),
-                ),
-                  
                 ],
-                
               ),
             ),
           ],
         ),
       ),
     );
-
   }
 }

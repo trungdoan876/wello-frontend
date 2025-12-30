@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/question.dart';
+import '../../domain/entities/question.dart';
+import '../../core/constants/app_constants.dart';
 
 /// Remote data source for questions
 /// Handles direct API calls related to questions
 class QuestionRemoteDataSource {
   final String baseUrl;
 
-  QuestionRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  QuestionRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
 
   /// Fetch questions list from backend API
   Future<List<Question>> fetchQuestions() async {
