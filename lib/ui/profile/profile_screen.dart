@@ -6,10 +6,13 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:wello_frontend/core/utils/user_session.dart';
 import 'package:wello_frontend/data/repositories/profile_repository.dart';
+import 'package:wello_frontend/data/repositories/nutrition_repository_impl.dart';
+import 'package:wello_frontend/data/data_source/nutrition_remote_data_source.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/domain/providers/survey_provider.dart';
 import 'package:wello_frontend/data/models/requests/survey_request_model.dart';
 import 'package:wello_frontend/data/models/responses/survey_response_model.dart';
+import 'package:wello_frontend/domain/entities/weight_history_item.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
@@ -19,7 +22,7 @@ import 'package:wello_frontend/core/navigation/route_observer.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/auth/initial_page.dart';
 import 'widgets/water_tracking_card.dart';
-import 'package:wello_frontend/ui/summary/widgets/bmi_card.dart';
+import 'widgets/bmi_card.dart';
 import 'widgets/physical_profile_page.dart';
 import 'package:wello_frontend/ui/widgets/water_reminder_sheet.dart';
 
@@ -37,7 +40,6 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
   int? _userId;
-  bool _surveyRequested = false;
   bool _nutritionDataLoaded = false;
   bool _routeSubscribed = false;
 
@@ -104,21 +106,22 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
       await profileProvider.loadProfile(_userId!);
 
       // Recompute BMI survey using latest profile
-      final p = profileProvider.profileData;
-      if (p != null) {
-        final surveyProvider = context.read<SurveyProvider>();
-        final req = SurveyRequestModel(
-          userId: p.userId,
-          fullname: p.fullname,
-          gender: p.gender,
-          age: p.age,
-          height: p.height,
-          weight: p.weight.toInt(),
-          goal: p.goal,
-          activityLevel: p.activityLevel,
-        );
-        await surveyProvider.submitSurvey(req);
-      }
+      // COMMENTED: Không tự động gọi submitSurvey để tránh tạo weight history không cần thiết
+      // final p = profileProvider.profileData;
+      // if (p != null) {
+      //   final surveyProvider = context.read<SurveyProvider>();
+      //   final req = SurveyRequestModel(
+      //     userId: p.userId,
+      //     fullname: p.fullname,
+      //     gender: p.gender,
+      //     age: p.age,
+      //     height: p.height,
+      //     weight: p.weight.toInt(),
+      //     goal: p.goal,
+      //     activityLevel: p.activityLevel,
+      //   );
+      //   await surveyProvider.submitSurvey(req);
+      // }
 
       // Reload today's water summary
       final credentials = await AuthHelper.getCredentials();
@@ -146,6 +149,24 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
     // TODO: điều hướng theo key
   }
 
+  /// Lấy weight history gần nhất từ backend
+  Future<List<WeightHistoryItem>> _getWeightHistory() async {
+    try {
+      if (_userId == null) return [];
+      final repository = NutritionRepositoryImpl(
+        remoteDataSource: NutritionRemoteDataSource(),
+      );
+      // Lấy 1 bản ghi gần nhất để hiển thị thời gian cập nhật
+      return await repository.getLatestWeightHistory(
+        _userId.toString(),
+        limit: 1,
+      );
+    } catch (e) {
+      print('[ProfileScreen] Error loading weight history: $e');
+      return [];
+    }
+  }
+
   Future<void> _increase() async {
     final credentials = await AuthHelper.getCredentials();
     if (credentials != null && mounted) {
@@ -158,6 +179,13 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
           credentials.token,
           credentials.userIdString,
           glassSize: 250,
+        );
+        // Reload daily summary để cập nhật lượng nước
+        final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        await nutritionProvider.loadDailySummary(
+          credentials.token,
+          credentials.userIdString,
+          today,
         );
         if (mounted) {
           ScaffoldMessenger.of(context)
@@ -608,27 +636,29 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
             final profileData = profileProvider.profileData;
 
             // Trigger BMI survey API when profile is available (once)
-            if (profileData != null && !_surveyRequested) {
-              _surveyRequested = true;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-                final surveyProvider = Provider.of<SurveyProvider>(
-                  context,
-                  listen: false,
-                );
-                final req = SurveyRequestModel(
-                  userId: profileData.userId,
-                  fullname: profileData.fullname,
-                  gender: profileData.gender,
-                  age: profileData.age,
-                  height: profileData.height,
-                  weight: profileData.weight.toInt(),
-                  goal: profileData.goal,
-                  activityLevel: profileData.activityLevel,
-                );
-                surveyProvider.submitSurvey(req);
-              });
-            }
+            // COMMENTED: Không tự động gọi submitSurvey để tránh tạo weight history không cần thiết
+            // Chỉ gọi submitSurvey khi user thực sự thay đổi thông tin
+            // if (profileData != null && !_surveyRequested) {
+            //   _surveyRequested = true;
+            //   WidgetsBinding.instance.addPostFrameCallback((_) {
+            //     if (!mounted) return;
+            //     final surveyProvider = Provider.of<SurveyProvider>(
+            //       context,
+            //       listen: false,
+            //     );
+            //     final req = SurveyRequestModel(
+            //       userId: profileData.userId,
+            //       fullname: profileData.fullname,
+            //       gender: profileData.gender,
+            //       age: profileData.age,
+            //       height: profileData.height,
+            //       weight: profileData.weight.toInt(),
+            //       goal: profileData.goal,
+            //       activityLevel: profileData.activityLevel,
+            //     );
+            //     surveyProvider.submitSurvey(req);
+            //   });
+            // }
 
             // Load nutrition data (water) when profile is available (once)
             if (profileData != null && !_nutritionDataLoaded) {
@@ -1076,84 +1106,60 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                         ),
 
                         SizedBox(height: context.h(0.015)),
-                        Consumer<SurveyProvider>(
-                          builder: (context, surveyProvider, _) {
-                            if (surveyProvider.isLoading &&
-                                !surveyProvider.hasResult) {
-                              return Center(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: context.h(0.02),
-                                  ),
-                                  child: CircularProgressIndicator(
-                                    color: const Color(0xFFEBCF23),
-                                  ),
-                                ),
+                        // Hiển thị BMI tính toán từ profile data
+                        if (profileData != null)
+                          Builder(
+                            builder: (context) {
+                              // Tính BMI từ profile data hiện tại
+                              final height = profileData.height.toDouble();
+                              final weight = profileData.weight;
+                              final bmi =
+                                  weight / ((height / 100) * (height / 100));
+
+                              // Xác định trạng thái BMI
+                              String bmiStatus;
+                              if (bmi < 18.5) {
+                                bmiStatus = 'Thiếu cân';
+                              } else if (bmi < 25) {
+                                bmiStatus = 'Bình thường';
+                              } else if (bmi < 30) {
+                                bmiStatus = 'Thừa cân';
+                              } else {
+                                bmiStatus = 'Béo phì';
+                              }
+
+                              final surveyData = SurveyResponseModel(
+                                bmi: bmi,
+                                bmiStatus: bmiStatus,
+                                bmr: 0,
+                                tdee: 0,
+                                dailyCalories: 0,
+                                proteinGram: 0,
+                                carbsGram: 0,
+                                fatGram: 0,
+                                waterIntakeMl: 0,
+                                height: height,
+                                weight: weight,
                               );
-                            }
-                            if (surveyProvider.hasError &&
-                                !surveyProvider.hasResult) {
-                              return Column(
-                                children: [
-                                  Text(
-                                    surveyProvider.errorMessage ??
-                                        'Không tải được BMI',
-                                    style: GoogleFonts.baloo2(
-                                      color: Colors.red,
-                                      fontSize: context.sp(5),
-                                    ),
-                                  ),
-                                  SizedBox(height: context.h(0.01)),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      final p = profileProvider.profileData!;
-                                      final req = SurveyRequestModel(
-                                        userId: p.userId,
-                                        fullname: p.fullname,
-                                        gender: p.gender,
-                                        age: p.age,
-                                        height: p.height,
-                                        weight: p.weight.toInt(),
-                                        goal: p.goal,
-                                        activityLevel: p.activityLevel,
-                                      );
-                                      surveyProvider.submitSurvey(req);
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFFEBCF23),
-                                    ),
-                                    child: Text(
-                                      'Thử lại',
-                                      style: GoogleFonts.baloo2(
-                                        color: Colors.white,
-                                        fontSize: context.sp(5),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+
+                              // Lấy thời gian cập nhật từ weight history
+                              return FutureBuilder<List<WeightHistoryItem>>(
+                                future: _getWeightHistory(),
+                                builder: (context, snapshot) {
+                                  DateTime? recordedAt;
+                                  if (snapshot.hasData &&
+                                      snapshot.data!.isNotEmpty) {
+                                    // Lấy bản ghi gần nhất
+                                    recordedAt = snapshot.data!.last.recordedAt;
+                                  }
+                                  return BMICard(
+                                    survey: surveyData,
+                                    recordedAt: recordedAt,
+                                  );
+                                },
                               );
-                            }
-                            if (surveyProvider.surveyResult != null) {
-                              final r = surveyProvider.surveyResult!;
-                              final p = profileProvider.profileData;
-                              final merged = SurveyResponseModel(
-                                bmi: r.bmi,
-                                bmiStatus: r.bmiStatus,
-                                bmr: r.bmr,
-                                tdee: r.tdee,
-                                dailyCalories: r.dailyCalories,
-                                proteinGram: r.proteinGram,
-                                carbsGram: r.carbsGram,
-                                fatGram: r.fatGram,
-                                waterIntakeMl: r.waterIntakeMl,
-                                height: p?.height.toDouble() ?? r.height,
-                                weight: p?.weight ?? r.weight,
-                              );
-                              return BMICard(survey: merged);
-                            }
-                            return const SizedBox.shrink();
-                          },
-                        ),
+                            },
+                          ),
 
                         //const BMICard(),
                         SizedBox(height: context.h(0.03)),

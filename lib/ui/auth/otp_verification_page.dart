@@ -16,8 +16,7 @@ class OtpVerificationPage extends StatefulWidget {
     required this.password,
     required this.verificationToken,
   });
-
-  @override
+  
   State<OtpVerificationPage> createState() => _OtpVerificationPageState();
 }
 
@@ -26,13 +25,29 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
   final AuthRepositoryImpl _authRepository = AuthRepositoryImpl();
   bool _isLoading = false;
   bool _isResending = false;
-  
+
   // Timer for OTP expiration (5 minutes)
   late Timer _timer;
   int _remainingSeconds = 300; // 5 minutes = 300 seconds
   bool _canResend = false;
 
   String _currentVerificationToken = '';
+
+  String _cleanErrorMessage(String raw) {
+    var msg = raw;
+    // Remove common prefixes
+    msg = msg.replaceAll('Exception: ', '');
+    msg = msg.replaceAll('Error verifying OTP:', '');
+    msg = msg.replaceAll('error verifying otp:', '');
+    msg = msg.replaceAll('Error:', '');
+    // Trim whitespace
+    msg = msg.trim();
+    // Fallback
+    if (msg.isEmpty) {
+      msg = 'Có lỗi xảy ra. Vui lòng thử lại.';
+    }
+    return msg;
+  }
 
   @override
   void initState() {
@@ -158,12 +173,12 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        
+
         QuickAlert.show(
           context: context,
           type: QuickAlertType.error,
           title: 'Xác thực thất bại',
-          text: e.toString().replaceAll('Exception: ', ''),
+          text: _cleanErrorMessage(e.toString()),
         );
       }
     }
@@ -204,12 +219,12 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isResending = false);
-        
+
         QuickAlert.show(
           context: context,
           type: QuickAlertType.error,
           title: 'Lỗi',
-          text: e.toString().replaceAll('Exception: ', ''),
+          text: _cleanErrorMessage(e.toString()),
         );
       }
     }
@@ -315,7 +330,9 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                       Icon(
                         Icons.access_time,
                         size: 20,
-                        color: _canResend ? Colors.red : const Color(0xFFEBCF23),
+                        color: _canResend
+                            ? Colors.red
+                            : const Color(0xFFEBCF23),
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -371,9 +388,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
               // Resend OTP
               Center(
                 child: TextButton(
-                  onPressed: _canResend && !_isResending
-                      ? _resendOtp
-                      : null,
+                  onPressed: _canResend && !_isResending ? _resendOtp : null,
                   child: _isResending
                       ? Row(
                           mainAxisSize: MainAxisSize.min,
