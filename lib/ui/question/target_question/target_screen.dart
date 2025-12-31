@@ -60,7 +60,7 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
     setState(() {
       _selectedLevel = level;
     });
-    print('Selected Target Level: $level');
+    print('Muc tieu da chon: $level');
   }
 
   @override
@@ -149,9 +149,9 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                           : () async {
                               if (widget.onUpdate != null) {
                                 // Update mode
-                                print(
-                                  '[TargetScreen] Update mode - calling onUpdate with $_selectedLevel',
-                                );
+                                  print(
+                                    '[TargetScreen] Che do cap nhat - dang goi onUpdate voi $_selectedLevel',
+                                  );
                                 final success = await widget.onUpdate!(
                                   _selectedLevel!,
                                 );

@@ -114,19 +114,19 @@ class WaterTracker extends StatelessWidget {
                   return GestureDetector(
                     onTap: () async {
                       print(
-                        '🔵 Water glass tapped! Index: $index, isFilled: $isFilled, cupsDrunk: $cupsDrunk',
+                        'Coc nuoc duoc nhan! Index: $index, Da day: $isFilled, so coc da uong: $cupsDrunk',
                       );
 
                       final credentials = await AuthHelper.getCredentials();
                       if (credentials == null) {
-                        print('❌ No credentials found! User not logged in?');
+                        print('Khong tim thay thong tin dang nhap! Nguoi dung chua dang nhap?');
                         return;
                       }
 
                       try {
                         if (!isFilled) {
                           // Add water
-                          print('🟢 Adding water...');
+                          print('Dang them nuoc...');
                           await provider.addWaterGlass(
                             credentials.token,
                             credentials.userIdString,
@@ -158,7 +158,7 @@ class WaterTracker extends StatelessWidget {
                           }
                         } else {
                           // Remove water via DELETE endpoint
-                          print('🟠 Removing water...');
+                          print('Dang bớt nuoc...');
                           await provider.subtractWaterGlass(
                             credentials.token,
                             credentials.userIdString,
@@ -191,7 +191,7 @@ class WaterTracker extends StatelessWidget {
                           }
                         }
                       } catch (e) {
-                        print('❌ Error handling water tap: $e');
+                        print('Loi khi cap nhat nuoc: $e');
 
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(

@@ -41,7 +41,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     // Validation
     if (email.isEmpty) {
-      print('🔴 [ForgotPassword] Email trống');
+      print('[ForgotPassword] Email trong');
       showPopup(
         title: "",
         message: "Vui lòng nhập email của bạn.",
@@ -51,7 +51,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     // Basic email validation
     if (!email.contains('@')) {
-      print('🔴 [ForgotPassword] Email không hợp lệ: $email');
+      print('[ForgotPassword] Email khong hop le: $email');
       showPopup(
         title: "",
         message: "Email không hợp lệ.",
@@ -59,16 +59,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       return;
     }
 
-    print('🔵 [ForgotPassword] Bắt đầu gửi OTP reset cho email: $email');
+    print('[ForgotPassword] Bat dau gui OTP reset cho email: $email');
     setState(() {
       isLoading = true;
     });
 
     try {
       final repository = AuthRepositoryImpl();
-      print('🔵 [ForgotPassword] Gọi API /forgot-password...');
+      print('[ForgotPassword] Goi API /forgot-password...');
       final response = await repository.forgotPassword(email: email);
-      print('🔵 [ForgotPassword] Nhận response: success=${response.success}, message=${response.message}');
+      print('[ForgotPassword] Nhan phan hoi: success=${response.success}, message=${response.message}');
 
       setState(() {
         isLoading = false;
@@ -77,8 +77,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       if (response.success) {
         // Navigate to OTP verification page
         if (response.verificationToken != null) {
-          print('✅ [ForgotPassword] Thành công! verificationToken: ${response.verificationToken!.substring(0, 20)}...');
-          print('🔵 [ForgotPassword] Chuyển đến ResetOtpVerificationPage');
+          print('[ForgotPassword] Thanh cong! verificationToken: ${response.verificationToken!.substring(0, 20)}...');
+          print('[ForgotPassword] Chuyen den ResetOtpVerificationPage');
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -89,17 +89,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             ),
           );
         } else {
-          print('🔴 [ForgotPassword] Thiếu verificationToken!');
+          print('[ForgotPassword] Thieu verificationToken!');
         }
       } else {
-        print('🔴 [ForgotPassword] Thất bại: ${response.message}');
+        print('[ForgotPassword] That bai: ${response.message}');
         showPopup(
           title: "",
           message: response.message,
         );
       }
     } catch (e) {
-      print('🔴 [ForgotPassword] Exception: $e');
+      print('[ForgotPassword] Ngoai le: $e');
       setState(() {
         isLoading = false;
       });

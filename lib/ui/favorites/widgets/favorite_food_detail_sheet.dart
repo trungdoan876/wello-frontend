@@ -46,16 +46,16 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
   }
 
   Future<void> _logFood() async {
-    print('👉 STARTING _logFood()');
+    print('BAT DAU _logFood()');
     setState(() {
       _isLogging = true;
       _errorMessage = null;
     });
 
     try {
-      print('🔐 Getting credentials...');
+      print('Dang lay thong tin dang nhap...');
       final credentials = await AuthHelper.getCredentials();
-      print('🔐 Credentials found: ${credentials != null}');
+      print('Da lay thong tin dang nhap: ${credentials != null}');
       if (credentials == null) throw Exception('Not authenticated');
 
       final userId = int.tryParse(credentials.userIdString) ?? 0;
@@ -102,23 +102,17 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
         }
       }
 
-      print('═══════════════════════════════════════════════════════');
-      print('📤 THÊM MÓN ĂN TỪ YÊU THÍCH');
-      print('═══════════════════════════════════════════════════════');
-      print('👤 User ID: $userId');
-      print('🍽️  Food Name: ${widget.foodName}');
-      print('🆔 Food ID: ${widget.foodId}');
-      print('🕐 Meal Type: $_selectedMealType');
-      print('───────────────────────────────────────────────────────');
-      print('📊 NUTRITION DATA (CALCULATED):');
-      print('🔥 Calories: $calories kcal');
-      print('💪 Protein: ${protein.toStringAsFixed(1)} g');
-      print('🍞 Carbs: ${carbs.toStringAsFixed(1)} g');
-      print('🥑 Fat: ${fat.toStringAsFixed(1)} g');
-      print('───────────────────────────────────────────────────────');
-      print('✅ API Call: favoritesProvider.logFavorite');
-      print('   favoriteId: ${widget.foodId} (from favorite model)');
-      print('   mealType: $_selectedMealType');
+      print('--- THEM MON AN TU YEU THICH ---');
+      print('User ID: $userId');
+      print('Ten mon an: ${widget.foodName}');
+      print('ID mon an: ${widget.foodId}');
+      print('Bua an: $_selectedMealType');
+      print('Du lieu dinh duong:');
+      print('Calories: $calories kcal');
+      print('Protein: ${protein.toStringAsFixed(1)} g');
+      print('Carbs: ${carbs.toStringAsFixed(1)} g');
+      print('Fat: ${fat.toStringAsFixed(1)} g');
+      print('Goi API: favoritesProvider.logFavorite');
       // print('   date: ${nutritionProvider.selectedDate}'); // Ensure selectedDate is available
 
       // Use FavoritesProvider to log the combo directly
@@ -135,7 +129,7 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
         throw Exception(favoritesProvider.errorMessage ?? 'Failed to log favorite');
       }
 
-      print('✅ Favorite logged successfully. Refreshing nutrition data...');
+      print('Da luu mon an yeu thich thanh cong. Dang tai lai du lieu dinh duong...');
 
       // Refresh nutrition data
       await nutritionProvider.loadDailySummary(
@@ -150,8 +144,7 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
         nutritionProvider.selectedDate,
       );
       
-      print('✅ Data refreshed');
-      print('═══════════════════════════════════════════════════════');
+      print('Da cap nhat du lieu');
 
       if (!mounted) return;
 
@@ -179,7 +172,7 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
         }
       }
     } catch (e) {
-      print('❌ ERROR in _logFood: $e');
+      print('LOI trong _logFood: $e');
       setState(() {
         _errorMessage = e.toString();
         _isLogging = false;

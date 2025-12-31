@@ -24,15 +24,15 @@ class _InitialPageState extends State<InitialPage> {
   }
 
   Future<void> _checkAuth() async {
-    print('🔍 Checking authentication...');
+    print('Dang kiem tra xac thuc...');
     
     // Get userId from SharedPreferences
     final userId = await UserPreferences.getUserId();
-    print('📱 UserId from storage: $userId');
+    print('UserId tu bo nho: $userId');
     
     if (userId == null) {
       // No userId in local storage → Go to login
-      print('❌ No userId found → StartPage');
+      print('Khong tim thay userId -> Chuyen den StartPage');
       if (!mounted) return;
       setState(() {
         _nextPage = const StartPage();
@@ -40,54 +40,50 @@ class _InitialPageState extends State<InitialPage> {
       return;
     }
     
-    // Verify userId exists in database
-    print('🌐 Verifying userId=$userId with backend...');
+    // Xác thực userId và email với backend
+    print('Dang xac thuc thong tin dang nhap voi backend...');
     try {
-      final dataSource = NutritionRemoteDataSource();
+      final isValid = await AuthHelper.verifyStoredCredentials();
       
-      // Call lightweight verify API
-      final userExists = await dataSource.verifyUser(userId.toString());
+      print('Ket qua xac thuc: hop le=$isValid');
       
-      print('📡 Verify API response: userExists=$userExists');
-      
-      if (userExists) {
-        print('✅ User verified in database!');
+      if (isValid) {
+        print('Thong tin dang nhap hop le!');
         
-        // User exists → Go to home
         if (!mounted) return;
         setState(() {
           _nextPage = MainNavigationScreen();
-          print('🎯 Next page: MainNavigation (Home)');
+          print('Trang tiep theo: NavNavigation (Home)');
         });
       } else {
-        print('❌ User not found in database (userId=$userId)');
-        print('🗑️ Clearing session...');
+        print('Thong tin dang nhap khong hop le hoac nguoi dung khong ton tai');
+        print('Dang xoa phien lam viec...');
         
-        await UserPreferences.clearAll();
+        await AuthHelper.logout();
         
         if (!mounted) return;
         setState(() {
           _nextPage = const StartPage();
-          print('🎯 Next page: StartPage (Login)');
+          print('Trang tiep theo: StartPage (Login)');
         });
       }
       
     } catch (e) {
       // Network error or server down
-      print('⚠️ User verification error: $e');
-      print('⚠️ This could be network issue or server down');
+      print('Loi xac thuc nguoi dung: $e');
+      print('Day co the la loi mang hoac server dang bao tri');
       
       // Option 1: Clear session (strict - force re-login)
       // Option 2: Allow offline mode (keep session)
       // Choosing Option 1 for security
-      print('🗑️ Clearing session due to verification failure...');
+      print('Dang xoa phien lam viec do xac thuc that bai...');
       
-      await UserPreferences.clearAll();
+      await AuthHelper.logout();
       
       if (!mounted) return;
       setState(() {
         _nextPage = const StartPage();
-        print('🎯 Next page: StartPage (Login) - Error recovery');
+        print('Trang tiep theo: StartPage (Login) - Phuc hoi sau loi');
       });
     }
   }
@@ -96,7 +92,7 @@ class _InitialPageState extends State<InitialPage> {
   Widget build(BuildContext context) {
     if (_nextPage == null) {
       // Still checking auth, show simple loading
-      print('⏳ Still checking auth...');
+      print('Dang kiem tra quyen xac thuc...');
       return const Scaffold(
         backgroundColor: Color(0xFFFFFBEA),
         body: Center(
@@ -107,7 +103,7 @@ class _InitialPageState extends State<InitialPage> {
       );
     }
     
-    print('🚀 Loading page ready, transitioning...');
+    print('Trang da san sang, dang chuyen tiep...');
     // Auth checked, show LoadingPage with transition to next page
     return LoadingPage(nextPage: _nextPage!);
   }

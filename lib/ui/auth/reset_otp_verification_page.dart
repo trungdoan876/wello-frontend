@@ -80,7 +80,7 @@ class _ResetOtpVerificationPageState extends State<ResetOtpVerificationPage> {
     }
 
     if (otp.length != 6) {
-      print('🔴 [ResetOTP] OTP không đúng 6 chữ số: ${otp.length}');
+      print('OTP khong dung 6 chu so: ${otp.length}');
       QuickAlert.show(
         context: context,
         type: QuickAlertType.warning,
@@ -90,25 +90,25 @@ class _ResetOtpVerificationPageState extends State<ResetOtpVerificationPage> {
       return;
     }
 
-    print('🔵 [ResetOTP] Bắt đầu xác thực OTP: $otp');
+    print('Bat dau xac thuc OTP: $otp');
     setState(() => _isLoading = true);
 
     try {
       // Use the unified verify-otp endpoint
-      print('🔵 [ResetOTP] Gọi API /verify-otp...');
+      print('Goi API /verify-otp...');
       final response = await _authRepository.verifyOtp(
         verificationToken: _currentVerificationToken,
         otp: otp,
       );
-      print('🔵 [ResetOTP] Nhận response: type=${response.type}, resetToken=${response.resetToken != null}');
+      print('Nhan response: type=${response.type}, resetToken=${response.resetToken != null}');
 
       if (mounted) {
         setState(() => _isLoading = false);
 
         // Check if this is password reset flow
         if (response.type == 'password_reset' && response.resetToken != null) {
-          print('✅ [ResetOTP] Xác thực thành công! resetToken: ${response.resetToken!.substring(0, 20)}...');
-          print('🔵 [ResetOTP] Chuyển đến NewPasswordPage');
+          print('Xac thuc thanh cong! resetToken: ${response.resetToken!.substring(0, 20)}...');
+          print('Chuyen den NewPasswordPage');
           // Navigate to new password page
           Navigator.pushReplacement(
             context,
@@ -119,7 +119,7 @@ class _ResetOtpVerificationPageState extends State<ResetOtpVerificationPage> {
             ),
           );
         } else if (response.type == 'password_reset') {
-          print('🔴 [ResetOTP] Thiếu resetToken!');
+          print('Thieu resetToken!');
           // Missing reset token
           QuickAlert.show(
             context: context,
@@ -128,7 +128,7 @@ class _ResetOtpVerificationPageState extends State<ResetOtpVerificationPage> {
             text: 'Không nhận được reset token từ server',
           );
         } else {
-          print('🔴 [ResetOTP] Sai loại OTP: ${response.type}');
+          print('Sai loai OTP: ${response.type}');
           // Wrong OTP type
           QuickAlert.show(
             context: context,
@@ -139,7 +139,7 @@ class _ResetOtpVerificationPageState extends State<ResetOtpVerificationPage> {
         }
       }
     } catch (e) {
-      print('🔴 [ResetOTP] Exception: $e');
+      print('Ngoai le: $e');
       if (mounted) {
         setState(() => _isLoading = false);
 

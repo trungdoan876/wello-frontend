@@ -38,12 +38,12 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     final password = passwordController.text;
     final confirmPassword = confirmPasswordController.text;
     
-    print('🔵 [NewPassword] Bắt đầu đặt lại mật khẩu');
-    print('🔵 [NewPassword] Password length: ${password.length}');
+    print('Bat dau dat lai mat khau');
+    print('Chieu dai mat khau: ${password.length}');
 
     // Validation
     if (password.isEmpty || confirmPassword.isEmpty) {
-      print('🔴 [NewPassword] Thiếu thông tin');
+      print('Thieu thong tin');
       QuickAlert.show(
         context: context,
         type: QuickAlertType.warning,
@@ -54,7 +54,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     }
 
     if (password.length < 6) {
-      print('🔴 [NewPassword] Mật khẩu quá ngắn: ${password.length} ký tự');
+      print('Mat khau qua ngan: ${password.length} ky tu');
       QuickAlert.show(
         context: context,
         type: QuickAlertType.warning,
@@ -65,7 +65,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     }
 
     if (password != confirmPassword) {
-      print('🔴 [NewPassword] Mật khẩu không khớp');
+      print('Mat khau khong khop');
       QuickAlert.show(
         context: context,
         type: QuickAlertType.warning,
@@ -75,26 +75,26 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
       return;
     }
 
-    print('🔵 [NewPassword] Validation thành công, gọi API...');
+    print('Xac thuc thanh cong, goi API...');
     setState(() {
       isLoading = true;
     });
 
     try {
-      print('🔵 [NewPassword] Gọi API /reset-password...');
+      print('Goi API /reset-password...');
       final response = await _authRepository.resetPassword(
         resetToken: widget.resetToken,
         newPassword: password,
       );
-      print('🔵 [NewPassword] Nhận response: success=${response.success}, message=${response.message}');
+      print('Nhan phan hoi: success=${response.success}, message=${response.message}');
 
       setState(() {
         isLoading = false;
       });
 
       if (response.success) {
-        print('✅ [NewPassword] Đặt lại mật khẩu thành công!');
-        print('🔵 [NewPassword] Chuyển về LoginPage');
+        print('Dat lai mat khau thanh cong!');
+        print('Chuyen ve LoginPage');
         // Show success dialog and navigate to login
         QuickAlert.show(
           context: context,
@@ -111,7 +111,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
           },
         );
       } else {
-        print('🔴 [NewPassword] Thất bại: ${response.message}');
+        print('That bai: ${response.message}');
         QuickAlert.show(
           context: context,
           type: QuickAlertType.error,
@@ -120,7 +120,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         );
       }
     } catch (e) {
-      print('🔴 [NewPassword] Exception: $e');
+      print('Ngoai le: $e');
       setState(() {
         isLoading = false;
       });

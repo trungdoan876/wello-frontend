@@ -123,7 +123,7 @@ class _GenderPageState extends State<GenderPage> {
                             if (widget.onUpdate != null) {
                               // Update mode
                               print(
-                                '[GenderPage] Update mode - calling onUpdate with $selectedGender',
+                                '[GenderPage] Che do cap nhat - dang goi onUpdate voi $selectedGender',
                               );
                               final success = await widget.onUpdate!(
                                 selectedGender,
