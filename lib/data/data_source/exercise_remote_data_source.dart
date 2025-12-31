@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/exercise.dart';
-import '../../core/constants/app_constants.dart';
+import '../../core/constants/api_endpoints.dart';
 
-/// Remote data source for exercise API calls
+/// Nguồn dữ liệu từ xa cho các API calls về exercise/bài tập
 class ExerciseRemoteDataSource {
   final String baseUrl;
 
-  ExerciseRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
+  ExerciseRemoteDataSource({this.baseUrl = ApiEndpoints.baseUrl});
 
-  /// Get list of exercises
+  /// Lấy danh sách bài tập
   /// GET /workout/exercises
   Future<List<Exercise>> getExercises(String token) async {
     final url = Uri.parse('$baseUrl/workout/exercises');

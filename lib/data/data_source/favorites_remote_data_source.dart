@@ -4,14 +4,14 @@ import '../models/requests/add_favorite_combo_request.dart';
 import '../models/requests/update_favorite_combo_request.dart';
 import '../models/requests/log_favorite_request.dart';
 import '../models/responses/favorite_combo_response.dart';
-import '../../core/constants/app_constants.dart';
+import '../../core/constants/api_endpoints.dart';
 
 class FavoritesRemoteDataSource {
   final String baseUrl;
 
-  FavoritesRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
+  FavoritesRemoteDataSource({this.baseUrl = ApiEndpoints.baseUrl});
 
-  /// Get a single favorite combo by ID
+  /// Lấy một combo yêu thích theo ID
   Future<FavoriteComboResponse> getFavoriteById({
     required int favoriteId,
     required int userId,
