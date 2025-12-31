@@ -16,8 +16,7 @@ class OtpVerificationPage extends StatefulWidget {
     required this.password,
     required this.verificationToken,
   });
-
-  @override
+  
   State<OtpVerificationPage> createState() => _OtpVerificationPageState();
 }
 

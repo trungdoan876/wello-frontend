@@ -57,6 +57,31 @@ class NutritionRemoteDataSource {
     }
   }
 
+  /// Get latest weight history for a user
+  /// Endpoint: GET /api/history/{userId}/latest?limit=5
+  Future<List<WeightHistoryItem>> getLatestWeightHistory(
+    String userId, {
+    int limit = 5,
+  }) async {
+    final url = Uri.parse('$baseUrl/history/$userId/latest?limit=$limit');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final bodyJson = jsonDecode(response.body) as List<dynamic>;
+      return bodyJson
+          .map((e) => WeightHistoryItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } else {
+      throw Exception(
+        'Failed to load latest weight history: ${response.statusCode}',
+      );
+    }
+  }
+
   /// Verify if user exists in database
   /// @param userId - User ID to verify
   /// Returns true if user exists, throws exception if not found

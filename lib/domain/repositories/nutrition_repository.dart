@@ -3,6 +3,7 @@ import '../entities/user_profile.dart';
 import '../entities/week_overview.dart';
 import '../entities/food_log_result.dart';
 import '../entities/food_history_item.dart';
+import '../entities/weight_history_item.dart';
 
 /// Repository interface for nutrition and fitness data
 abstract class NutritionRepository {
@@ -70,4 +71,13 @@ abstract class NutritionRepository {
     String userId,
     String date,
   );
+
+  /// Get weight history for a user
+  Future<List<WeightHistoryItem>> getWeightHistory(String userId);
+
+  /// Get latest weight history for a user
+  Future<List<WeightHistoryItem>> getLatestWeightHistory(
+    String userId, {
+    int limit = 5,
+  });
 }
