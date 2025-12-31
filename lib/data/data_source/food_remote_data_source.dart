@@ -16,7 +16,7 @@ class FoodRemoteDataSource {
   Future<List<Food>> getAllFoods(String token) async {
     final url = Uri.parse('$baseUrl/food/all');
 
-    print('🔍 Fetching all foods - URL: $url');
+    print('Dang lay tat ca thuc pham - URL: $url');
 
     final response = await http.get(
       url,
@@ -26,8 +26,8 @@ class FoodRemoteDataSource {
       },
     );
 
-    print('📡 Food response status: ${response.statusCode}');
-    print('📡 Food response body: ${response.body}');
+    print('Trang thai phan hoi: ${response.statusCode}');
+    print('Noi dung phan hoi: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body) as List;
@@ -42,8 +42,8 @@ class FoodRemoteDataSource {
   Future<Food> previewFood(String token, FoodPreviewRequest request) async {
     final url = Uri.parse('$baseUrl/food/preview');
 
-    print('🔍 Previewing food nutrition - URL: $url');
-    print('📦 Request: ${jsonEncode(request.toJson())}');
+    print('Dang xem truoc dinh duong thuc pham - URL: $url');
+    print('Goi tin yeu cau: ${jsonEncode(request.toJson())}');
 
     final response = await http.post(
       url,
@@ -54,8 +54,8 @@ class FoodRemoteDataSource {
       body: jsonEncode(request.toJson()),
     );
 
-    print('📡 Preview response status: ${response.statusCode}');
-    print('📡 Preview response body: ${response.body}');
+    print('Trang thai phan hoi xem truoc: ${response.statusCode}');
+    print('Noi dung phan hoi xem truoc: ${response.body}');
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonMap = jsonDecode(response.body) as Map<String, dynamic>;

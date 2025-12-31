@@ -58,10 +58,10 @@ class CaloriePreview {
   CaloriePreview({required this.estimatedCalories});
 
   factory CaloriePreview.fromJson(Map<String, dynamic> json) {
-    print('🔍 CaloriePreview.fromJson - raw json: $json');
+    // print('CaloriePreview.fromJson - json goc: $json');
     // Backend returns 'caloriesBurned' not 'estimatedCalories'
     final calories = (json['caloriesBurned'] as num?)?.toInt() ?? 0;
-    print('✅ Parsed calories: $calories');
+    // print('Da parse calo: $calories');
     return CaloriePreview(
       estimatedCalories: calories,
     );

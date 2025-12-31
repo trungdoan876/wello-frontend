@@ -134,7 +134,7 @@ class _HeightPageState extends State<HeightPage> {
                       if (widget.onUpdate != null) {
                         // Update mode
                         print(
-                          '[HeightPage] Update mode - calling onUpdate with ${height.toInt()}',
+                          '[HeightPage] Che do cap nhat - dang goi onUpdate voi ${height.toInt()}',
                         );
                         final success = await widget.onUpdate!(height.toInt());
                         if (!mounted) return;

@@ -150,10 +150,10 @@ class _AgePageState extends State<AgePage> {
                       if (widget.onUpdate != null) {
                         // Update mode
                         print(
-                          '[AgePage] Update mode - calling onUpdate with $age',
+                          '[AgePage] Che do cap nhat - dang goi onUpdate voi $age',
                         );
                         final success = await widget.onUpdate!(age);
-                        print('[AgePage] onUpdate result: success=$success');
+                        print('[AgePage] Ket qua onUpdate: thanh cong=$success');
                         if (!mounted) return;
                         if (success) {
                           // Only return the result; parent shows a single top banner

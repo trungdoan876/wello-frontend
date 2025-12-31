@@ -48,7 +48,7 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
       final credentials = await AuthHelper.getCredentials();
       if (credentials == null) throw Exception('Not authenticated');
 
-      print('🔄 Calculating calories for exercise ${widget.exerciseId}, duration: ${_durationMinutes.toInt()}');
+      print('Dang tinh calo cho bai tap ${widget.exerciseId}, thoi gian: ${_durationMinutes.toInt()}');
 
       final repository = ExerciseRepositoryImpl(
         remoteDataSource: ExerciseRemoteDataSource(),
@@ -61,14 +61,14 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
         _durationMinutes.toInt(),
       );
 
-      print('✅ Calories calculated: ${preview.estimatedCalories}');
+      print('Da tinh xong calo: ${preview.estimatedCalories}');
 
       setState(() {
         _estimatedCalories = preview.estimatedCalories;
         _isCalculating = false;
       });
     } catch (e) {
-      print('❌ Error calculating calories: $e');
+      print('Loi khi tinh calo: $e');
       setState(() {
         _errorMessage = e.toString();
         _isCalculating = false;
@@ -105,14 +105,14 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
       if (!mounted) return;
       
       // Reload nutrition data to update calories burned on HomeScreen
-      print('🔄 Reloading nutrition data after workout log...');
+      print('Dang tai lai du lieu dinh duong sau khi luu bai tap...');
       final nutritionProvider = context.read<NutritionProvider>();
       await nutritionProvider.loadDailySummary(
         credentials.token,
         credentials.userIdString,
         DateFormat('yyyy-MM-dd').format(DateTime.now()),
       );
-      print('✅ Nutrition data reloaded successfully');
+      print('Da tai lai du lieu dinh duong thanh cong');
       
       // Notify workout history to reload
       WorkoutEventNotifier.notifyWorkoutAdded();

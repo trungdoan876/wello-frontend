@@ -27,13 +27,13 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('Loading profile for userId: $userId');
+      print('Dang tai ho so cho userId: $userId');
       _profileData = await _repository.getProfileById(userId);
-      print('Profile loaded successfully: ${_profileData?.fullname}');
+      print('Tai ho so thanh cong: ${_profileData?.fullname}');
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      print('Error loading profile: $e');
+      print('Loi khi tai ho so: $e');
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
@@ -61,17 +61,17 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('Uploading avatar for userId: $userId');
+      print('Dang tai anh dai dien cho userId: $userId');
       final success = await _repository.uploadAvatar(
         userId: userId,
         imageFile: imageFile,
       );
-      print('Avatar uploaded successfully');
+      print('Tai anh dai dien thanh cong');
       _isLoading = false;
       notifyListeners();
       return success;
     } catch (e) {
-      print('Error uploading avatar: $e');
+      print('Loi khi tai anh dai dien lên: $e');
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
@@ -143,9 +143,9 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('[ProfileProvider] updateAge called: userId=$userId, age=$age');
+      print('[ProfileProvider] updateAge duoc goi: userId=$userId, age=$age');
       final success = await _repository.updateAge(userId: userId, age: age);
-      print('[ProfileProvider] updateAge result: success=$success');
+      print('[ProfileProvider] ket qua updateAge: success=$success');
       if (success) {
         // Try to refresh from server to reflect persisted state, but don't
         // treat refresh failures as update failures.
@@ -154,7 +154,7 @@ class ProfileProvider extends ChangeNotifier {
         } catch (e) {
           // Log and continue to report success for the update.
           print(
-            '[ProfileProvider] Warning: refresh after age update failed: $e',
+            '[ProfileProvider] Canh bao: tai lai sau khi cap nhat tuoi that bai: $e',
           );
         }
       }

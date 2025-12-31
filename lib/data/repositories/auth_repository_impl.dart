@@ -76,7 +76,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       // Otherwise, perform Google Sign-In flow
-      print('ὓ5 DEBUG: Starting Google Sign-In...');
+      print('DEBUG: Dang bat dau dang nhap Google...');
       
       final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: [
@@ -87,48 +87,48 @@ class AuthRepositoryImpl implements AuthRepository {
         serverClientId: AppConstants.googleWebClientId,
       );
 
-      print('ὓ5 DEBUG: GoogleSignIn initialized with serverClientId');
+      print('DEBUG: GoogleSignIn da duoc khoi tao voi serverClientId');
       
       // Sign in with Google
       final account = await googleSignIn.signIn();
       print('ὓ5 DEBUG: Sign-in completed. Account: ${account?.email ?? 'null'}');
       
       if (account == null) {
-        print('ὓ4 DEBUG: User cancelled sign-in');
+        print('DEBUG: Nguoi dung da huy dang nhap');
         return LoginResponseModel(
           success: false,
           message: 'Google sign-in cancelled',
         );
       }
 
-      print('ὓ5 DEBUG: Getting authentication...');
+      print('DEBUG: Dang lay thong tin xac thuc...');
       // Get authentication
       final auth = await account.authentication;
-      print('ὓ5 DEBUG: Authentication object received');
-      print('ὓ5 DEBUG: ID Token: ${auth.idToken != null ? "EXISTS (${auth.idToken!.substring(0, 20)}...)" : "NULL"}');
-      print('ὓ5 DEBUG: Access Token: ${auth.accessToken != null ? "EXISTS" : "NULL"}');
+      print('DEBUG: Nhan duoc doi tuong xac thuc');
+      print('DEBUG: ID Token: ${auth.idToken != null ? "TON TAI (${auth.idToken!.substring(0, 20)}...)" : "NULL"}');
+      print('DEBUG: Access Token: ${auth.accessToken != null ? "TON TAI" : "NULL"}');
       
       final token = auth.idToken;
 
       if (token == null) {
-        print('ὓ4 DEBUG: ID Token is null!');
-        print('ὓ4 DEBUG: Auth object details: accessToken=${auth.accessToken != null}, serverAuthCode=${auth.serverAuthCode}');
+        print('DEBUG: ID Token bi null!');
+        print('DEBUG: Chi tiet doi tuong xac thuc: accessToken=${auth.accessToken != null}, serverAuthCode=${auth.serverAuthCode}');
         return LoginResponseModel(
           success: false,
           message: 'Failed to get ID token',
         );
       }
 
-      print('ὓ5 DEBUG: Calling backend API with ID token...');
+      print('DEBUG: Dang goi backend API voi ID token...');
       // Call backend API
       final response = await _dataSource.loginWithGoogle(idToken: token);
-      print('ὓ5 DEBUG: Backend response: success=${response.success}');
+      print('DEBUG: Phan hoi tu backend: success=${response.success}');
       return response;
     } catch (e, stackTrace) {
-      print('ὓ4 DEBUG: Exception caught!');
-      print('ὓ4 DEBUG: Error type: ${e.runtimeType}');
-      print('ὓ4 DEBUG: Error message: $e');
-      print('ὓ4 DEBUG: Stack trace: $stackTrace');
+      print('DEBUG: Nhan duoc ngoai le!');
+      print('DEBUG: Loai loi: ${e.runtimeType}');
+      print('DEBUG: Thong bao loi: $e');
+      print('DEBUG: Stack trace: $stackTrace');
       return LoginResponseModel(
         success: false,
         message: 'Google login failed: $e',

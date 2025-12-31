@@ -94,14 +94,14 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
       );
       await profileProvider.loadProfile(_userId!);
     } catch (e) {
-      print('[ProfileScreen] Error loading profile: $e');
+      print('[ProfileScreen] Loi khi tai ho so: $e');
     }
   }
 
   Future<void> _reloadOnReturn() async {
     if (!mounted || _userId == null) return;
     try {
-      debugPrint('[ProfileScreen] didPopNext → Reloading data');
+      debugPrint('[ProfileScreen] didPopNext -> Dang tai lai du lieu');
       final profileProvider = context.read<ProfileProvider>();
       await profileProvider.loadProfile(_userId!);
 
