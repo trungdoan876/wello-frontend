@@ -119,7 +119,16 @@ class NutritionRepositoryImpl implements NutritionRepository {
     return await remoteDataSource.getFoodHistory(token, userId, date);
   }
 
+  @override
   Future<List<WeightHistoryItem>> getWeightHistory(String userId) async {
     return await remoteDataSource.getWeightHistory(userId);
+  }
+
+  @override
+  Future<List<WeightHistoryItem>> getLatestWeightHistory(
+    String userId, {
+    int limit = 5,
+  }) async {
+    return await remoteDataSource.getLatestWeightHistory(userId, limit: limit);
   }
 }

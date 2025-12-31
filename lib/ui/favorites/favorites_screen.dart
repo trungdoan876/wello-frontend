@@ -54,7 +54,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       }
       final userId = credentials.userId;
 
-      print('🔄 Đang load danh sách yêu thích của user: $userId...');
+      print('Dang tai danh sach yeu thich cua user: $userId...');
       
       final favoritesProvider = context.read<FavoritesProvider>();
       await favoritesProvider.fetchFavorites(userId);
@@ -65,7 +65,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
       setState(() {
         _favoritesMeals = favoritesProvider.favorites.map((fav) {
-          print('🍽️ Thêm: ${fav.favoriteName} - ${fav.totalNutrition.totalCalories} calo');
+          print('Them: ${fav.favoriteName} - ${fav.totalNutrition.totalCalories} calo');
           return MealItem(
             name: fav.favoriteName,
             description:
@@ -78,10 +78,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             mealType: fav.mealType,
           );
         }).toList();
-        print('📊 Tổng: ${_favoritesMeals.length} items');
+        print('Tong: ${_favoritesMeals.length} items');
       });
     } catch (e) {
-      print('❌ Lỗi: $e');
+      print('Loi: $e');
       setState(() {
         _errorMessage = e.toString();
       });
@@ -338,7 +338,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             onTap: () async {
               final mappedMealType = _mapMealTypeForSheet(item.mealType);
               print(
-                '➡️ Open FoodDetailSheet from favorites: foodId=${item.foodId}, name=${item.name}, kcal=${item.calories}, protein=${item.protein}, carbs=${item.carbs}, fat=${item.fat}, mealType=$mappedMealType',
+                'Mo chi tiet mon an tu yeu thich: foodId=${item.foodId}, name=${item.name}, kcal=${item.calories}, protein=${item.protein}, carbs=${item.carbs}, fat=${item.fat}, mealType=$mappedMealType',
               );
               await showModalBottomSheet<bool>(
                 context: context,
@@ -382,7 +382,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   _loadMyFavorites();
                 }
               } catch (e) {
-                print('❌ Error opening edit page: $e');
+                print('Loi khi mo trang chinh sua: $e');
               }
             },
             onDelete: () async {
@@ -404,7 +404,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               );
 
               if (shouldDelete) {
-                print('🗑️ Deleting favorite: favoriteId=${item.foodId}');
+                print('Dang xoa mon an yeu thich: favoriteId=${item.foodId}');
                 
                 try {
                   final credentials = await AuthHelper.getCredentials();

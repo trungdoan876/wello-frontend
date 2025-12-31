@@ -22,7 +22,7 @@ class RegisterViewModel extends ChangeNotifier {
         password: password,
       );
       if (success) {
-        print("Đăng ký thành công");
+        print("Dang ky thanh cong");
       } else {
         _error = "Đăng ký thất bại";
       }

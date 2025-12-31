@@ -5,10 +5,10 @@ import '../../data/repositories/profile_repository.dart';
 
 // Background message handler - must be top-level function
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('📬 Background message received!');
-  print('Title: ${message.notification?.title}');
-  print('Body: ${message.notification?.body}');
-  print('Data: ${message.data}');
+  print('Thong bao nen duoc nhan!');
+  print('Tieu de: ${message.notification?.title}');
+  print('Noi dung: ${message.notification?.body}');
+  print('Du lieu: ${message.data}');
 }
 
 class NotificationService {
@@ -18,17 +18,17 @@ class NotificationService {
 
   /// Setup foreground message listener (call this in main.dart)
   static void setupForegroundListener() {
-    print('Ὠ0 Setting up foreground FCM listener...');
+    print('Dang thiet lap lang nghe FCM o foreground...');
     
     // Setup foreground message handler to show local notification
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('========================================');
-      print('὎c FOREGROUND MESSAGE RECEIVED!');
-      print('Notification: ${message.notification}');
-      print('Title: ${message.notification?.title}');
-      print('Body: ${message.notification?.body}');
-      print('Data: ${message.data}');
-      print('========================================');
+      print('----------------------------------------');
+      print('NHAN DUOC THONG BAO O FOREGROUND!');
+      print('Thong bao: ${message.notification}');
+      print('Tieu de: ${message.notification?.title}');
+      print('Noi dung: ${message.notification?.body}');
+      print('Du lieu: ${message.data}');
+      print('----------------------------------------');
       
       // Get title and body from notification or data
       final title = message.notification?.title ?? 
@@ -38,7 +38,7 @@ class NotificationService {
                   message.data['body'] ?? 
                   '';
       
-      print('ὑ4 Showing local notification: $title - $body');
+      print('Dang hien thi thong bao noi bo: $title - $body');
       
       // Show local notification
       _showLocalNotification(title, body);
@@ -46,12 +46,12 @@ class NotificationService {
 
     // Handle notification tap when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('὎c Notification tapped (app was in background)');
-      print('Data: ${message.data}');
+      print('Nguoi dung nhan vao thong bao (app dang o nen)');
+      print('Du lieu: ${message.data}');
       // Handle navigation based on notification data
     });
     
-    print('✅ Foreground FCM listener setup complete!');
+    print('Thiet lap lang nghe FCM foreground hoan tat!');
   }
 
   /// Initialize notification service (call this after user login)
@@ -86,22 +86,22 @@ class NotificationService {
     String? token = await _messaging.getToken();
     
     if (token != null) {
-      print('================================================');
-      print('🚀 FCM TOKEN:');
+      print('------------------------------------------------');
+      print('FCM TOKEN:');
       print(token);
-      print('================================================');
+      print('------------------------------------------------');
       
       try {
         await _profileRepository.updateFcmToken(
           userId: userId,
           fcmToken: token,
         );
-        print('✅ FCM Token updated on backend');
+        print('Cap nhat FCM Token len backend thanh cong');
       } catch (e) {
-        print('❌ Failed to update FCM Token on backend: $e');
+        print('Loi cap nhat FCM Token len backend: $e');
       }
     } else {
-      print('⚠️ Failed to get FCM token');
+      print('Khong the lay FCM token');
     }
 
     // Setup background message handler
@@ -109,13 +109,13 @@ class NotificationService {
 
     // Setup foreground message handler to show local notification
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('========================================');
-      print('📬 FOREGROUND MESSAGE RECEIVED!');
-      print('Notification: ${message.notification}');
-      print('Title: ${message.notification?.title}');
-      print('Body: ${message.notification?.body}');
-      print('Data: ${message.data}');
-      print('========================================');
+      print('----------------------------------------');
+      print('NHAN DUOC THONG BAO FOREGROUND!');
+      print('Thong bao: ${message.notification}');
+      print('Tieu de: ${message.notification?.title}');
+      print('Noi dung: ${message.notification?.body}');
+      print('Du lieu: ${message.data}');
+      print('----------------------------------------');
       
       // Get title and body from notification or data
       final title = message.notification?.title ?? 
@@ -125,7 +125,7 @@ class NotificationService {
                   message.data['body'] ?? 
                   '';
       
-      print('🔔 Showing local notification: $title - $body');
+      print('Dang hien thi thong bao noi bo: $title - $body');
       
       // Show local notification
       _showLocalNotification(title, body);
@@ -133,15 +133,15 @@ class NotificationService {
 
     // Handle notification tap when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('📬 Notification tapped (app was in background)');
-      print('Data: ${message.data}');
+      print('Nguoi dung nhan vao thong bao (app dang o nen)');
+      print('Du lieu: ${message.data}');
       // Handle navigation based on notification data
     });
   }
 
   /// Show local notification in system tray
   static Future<void> _showLocalNotification(String title, String body) async {
-    print('὎2 _showLocalNotification called with: $title - $body');
+    print('_showLocalNotification duoc goi voi: $title - $body');
     
     const androidDetails = AndroidNotificationDetails(
       'water_reminder_channel',
@@ -169,9 +169,9 @@ class NotificationService {
 
   /// Background message handler (must be top-level function)
   static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-    print('🌙 Background message received!');
-    print('Title: ${message.notification?.title}');
-    print('Body: ${message.notification?.body}');
+    print('Thong bao nen duoc nhan!');
+    print('Tieu de: ${message.notification?.title}');
+    print('Noi dung: ${message.notification?.body}');
     // Background messages are automatically shown by FCM
   }
 

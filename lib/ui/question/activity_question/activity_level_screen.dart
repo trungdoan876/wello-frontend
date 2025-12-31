@@ -65,7 +65,7 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
 
   void _selectLevel(String level) {
     setState(() => _selectedLevel = level);
-    print("Selected Activity Level: $level");
+    print("Muc do hoat dong da chon: $level");
   }
 
   @override
@@ -165,9 +165,9 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                             : () async {
                                 if (widget.onUpdate != null) {
                                   // Update mode
-                                  print(
-                                    '[ActivityLevelScreen] Update mode - calling onUpdate with $_selectedLevel',
-                                  );
+                                    print(
+                                      '[ActivityLevelScreen] Che do cap nhat - dang goi onUpdate voi $_selectedLevel',
+                                    );
                                   final success = await widget.onUpdate!(
                                     _selectedLevel!,
                                   );
@@ -193,7 +193,7 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                                   );
 
                                   print(
-                                    'Submitting survey with userId: ${userId ?? 1}',
+                                    'Dang gui khao sat voi userId: ${userId ?? 1}',
                                   );
 
                                   try {

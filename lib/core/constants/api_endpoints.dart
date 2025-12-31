@@ -2,7 +2,7 @@
 /// Đổi baseUrl ở đây để chuyển server cho toàn bộ ứng dụng
 class ApiEndpoints {
   // ============================================
-  // 🌐 BASE URL - Đổi URL này để chuyển server
+  // BASE URL - Đổi URL này để chuyển server
   // ============================================
   
   // Server production
@@ -10,15 +10,9 @@ class ApiEndpoints {
   
   // Local development (Android Emulator)
   static const String baseUrl = 'http://10.0.2.2:8080/api';
-  
-  // Local development (iOS Simulator)
-  // static const String baseUrl = 'http://localhost:8080/api';
-  
-  // Local development (Máy vật lý - thay bằng IP của bạn)
-  // static const String baseUrl = 'http://192.168.1.100:8080/api';
 
   // ============================================
-  // 🔐 AUTH ENDPOINTS - Xác thực
+  // AUTH ENDPOINTS - Xác thực, đăng nhập, đăng ký
   // ============================================
   static String get login => '$baseUrl/login';
   static String get register => '$baseUrl/register';
@@ -27,7 +21,7 @@ class ApiEndpoints {
   static String get resetPassword => '$baseUrl/reset-password';
 
   // ============================================
-  // 👤 PROFILE ENDPOINTS - Hồ sơ người dùng
+  // PROFILE ENDPOINTS - Hồ sơ người dùng
   // ============================================
   static String profileInfo(int userId) => '$baseUrl/profile/info/$userId';
   static String uploadAvatar(int userId) => '$baseUrl/profile/$userId/avatar/base64';
@@ -52,20 +46,20 @@ class ApiEndpoints {
       '&intervalHours=$intervalHours&intervalMinutes=$intervalMinutes';
 
   // ============================================
-  // 📋 SURVEY ENDPOINTS - Khảo sát
+  // SURVEY ENDPOINTS - Khảo sát
   // ============================================
   static String get surveyQuestions => '$baseUrl/survey/questions';
   static String get surveySubmit => '$baseUrl/survey/submit';
   static String get surveyCalculateBmi => '$baseUrl/survey/calculate-bmi';
 
   // ============================================
-  // 🍎 FOOD ENDPOINTS - Thực phẩm
+  // FOOD ENDPOINTS - Thực phẩm
   // ============================================
   static String get foodAll => '$baseUrl/food/all';
   static String get foodPreview => '$baseUrl/food/preview';
 
   // ============================================
-  // ⭐ FAVORITES ENDPOINTS - Yêu thích
+  // FAVORITES ENDPOINTS - Yêu thích
   // ============================================
   static String favoriteById(int favoriteId, int userId) => 
       '$baseUrl/favorites/$favoriteId?userId=$userId';
@@ -77,7 +71,7 @@ class ApiEndpoints {
   static String favoritesByUser(int userId) => '$baseUrl/favorites/user/$userId';
 
   // ============================================
-  // 🥗 NUTRITION ENDPOINTS - Dinh dưỡng
+  // NUTRITION ENDPOINTS - Dinh dưỡng
   // ============================================
   static String userProfile(int userId) => '$baseUrl/user/profile?userId=$userId';
   static String nutritionHistory(int userId) => '$baseUrl/history/$userId';
@@ -91,7 +85,7 @@ class ApiEndpoints {
       '$baseUrl/nutrition/history/food?userId=$userId&date=$date';
 
   // ============================================
-  // 💧 WATER INTAKE ENDPOINTS - Nước uống
+  // WATER INTAKE ENDPOINTS - Nước uống
   // ============================================
   static String waterIntakeDaily(int userId, String date) => 
       '$baseUrl/water-intake/daily?userId=$userId&date=$date';
@@ -99,7 +93,7 @@ class ApiEndpoints {
   static String get waterIntakeDelete => '$baseUrl/water-intake/delete';
 
   // ============================================
-  // 💪 EXERCISE/WORKOUT ENDPOINTS - Tập luyện
+  // EXERCISE/WORKOUT ENDPOINTS - Tập luyện
   // ============================================
   static String get workoutExercises => '$baseUrl/workout/exercises';
   static String workoutCalculate(int userId, int exerciseId, int durationMinutes) => 

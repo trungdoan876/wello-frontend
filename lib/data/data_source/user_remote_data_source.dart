@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/requests/register_request_model.dart';
 import '../models/responses/register_response_model.dart';
+import '../models/responses/verify_user_response.dart';
 import '../../core/constants/api_endpoints.dart';
 
 /// Nguồn dữ liệu từ xa cho người dùng
@@ -46,6 +47,25 @@ class UserRemoteDataSource {
           message: 'Lỗi ${response.statusCode}',
         );
       }
+    }
+  }
+
+  /// Verify userId và email có khớp nhau không
+  Future<VerifyUserResponse> verifyUser({
+    required int userId,
+    required String email,
+  }) async {
+    final url = Uri.parse('$baseUrl/user/verify?userId=$userId&email=${Uri.encodeComponent(email)}');
+    print('Dang goi GET: $url');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
+      return VerifyUserResponse.fromJson(bodyJson);
+    } else {
+      // Nếu API trả về lỗi, throw exception
+      print('Loi server (VerifyUser): ${response.body}');
+      throw Exception('Không thể verify user: ${response.statusCode}');
     }
   }
 }

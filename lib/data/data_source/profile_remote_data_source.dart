@@ -64,21 +64,21 @@ class ProfileRemoteDataSource {
     }
 
     try {
-      print('📤 Uploading avatar to: $url');
-      print('📁 File path: ${imageFile.path}');
+      print('Dang tai anh dai dien len: $url');
+      print('Duong dan file: ${imageFile.path}');
 
       final bytes = await imageFile.readAsBytes();
       final base64String = base64Encode(bytes);
       final mimeType = _mimeFromPath(imageFile.path);
       final dataUri = 'data:$mimeType;base64,$base64String';
 
-      print('📊 File size: ${bytes.length} bytes');
-      print('🔐 Base64 length: ${base64String.length} characters');
-      print('🧾 MIME: $mimeType');
+      print('Kich thuoc file: ${bytes.length} bytes');
+      print('Do dai Base64: ${base64String.length} ky tu');
+      print('Loai MIME: $mimeType');
 
       final requestBody = {'base64Image': dataUri};
 
-      print('⏳ Sending request...');
+      print('Dang gui yeu cau...');
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -86,11 +86,11 @@ class ProfileRemoteDataSource {
       );
 
       final responseBody = response.body;
-      print('📨 Response status: ${response.statusCode}');
-      print('📨 Response body: $responseBody');
+      print('Phan hoi tu server: ${response.statusCode}');
+      print('Noi dung phan hoi: $responseBody');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Avatar uploaded successfully');
+        print('Tai anh dai dien thanh cong');
         return true;
       } else {
         throw Exception(
@@ -98,7 +98,7 @@ class ProfileRemoteDataSource {
         );
       }
     } catch (e) {
-      print('❌ Error uploading avatar: $e');
+      print('Loi khi tai anh dai dien: $e');
       throw Exception('Error uploading avatar: $e');
     }
   }
@@ -441,13 +441,13 @@ class ProfileRemoteDataSource {
     final url = Uri.parse('$baseUrl/profile/$userId/fcm-token?fcmToken=$fcmToken');
 
     try {
-      print('🌐 Updating FCM Token: $url');
+      print('Dang cap nhat FCM Token: $url');
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
       );
 
-      print('📥 Response status: ${response.statusCode}');
+      print('Phan hoi tu server: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
@@ -455,7 +455,7 @@ class ProfileRemoteDataSource {
         throw Exception('Failed to update FCM token: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error updating FCM token: $e');
+      print('Loi khi cap nhat FCM Token: $e');
       throw Exception('Error updating FCM token: $e');
     }
   }
@@ -476,13 +476,13 @@ class ProfileRemoteDataSource {
     );
 
     try {
-      print('🌐 Updating Water Reminder Settings: $url');
+      print('Dang cap nhat thiet lap nhac nuoc: $url');
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
       );
 
-      print('📥 Response status: ${response.statusCode}');
+      print('Phan hoi tu server: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
@@ -490,7 +490,7 @@ class ProfileRemoteDataSource {
         throw Exception('Failed to update water reminder settings: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error updating water reminder settings: $e');
+      print('Loi khi cap nhat thiet lap nhac nuoc: $e');
       throw Exception('Error updating water reminder settings: $e');
     }
   }

@@ -194,14 +194,14 @@ class _DateSelectorState extends State<DateSelector> {
                       if (i == 0) {
                         // Log once per week
                         print(
-                          '🔍 StartDate: ${provider.userProfile!.startDate}, Current: $dateStr, isBeforeStart: $isBeforeStart',
+                          'Ngay bat dau: ${provider.userProfile!.startDate}, Hien tai: $dateStr, Ngay truoc ngay bat dau: $isBeforeStart',
                         );
                       }
                     } catch (e) {
-                      print('⚠️ Error parsing startDate: $e');
+                      print('Loi khi doc startDate: $e');
                     }
                   } else {
-                    if (i == 0) print('⚠️ UserProfile or startDate is null');
+                    if (i == 0) print('UserProfile hoac startDate bi null');
                   }
 
                   final bool isDisabled = isFuture || isBeforeStart;
@@ -213,7 +213,7 @@ class _DateSelectorState extends State<DateSelector> {
                     onTap: isDisabled
                         ? null
                         : () async {
-                            print('📅 Date tapped: $dateStr');
+                            print('Ngay da chon: $dateStr');
 
                             final credentials =
                                 await AuthHelper.getCredentials();

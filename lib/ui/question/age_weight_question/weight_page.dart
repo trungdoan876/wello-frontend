@@ -72,7 +72,7 @@ class _WeightPageState extends State<WeightPage> {
         });
       }
     } catch (e) {
-      print('Error calculating BMI: $e');
+      print('Loi khi tinh BMI: $e');
     }
   }
 
@@ -189,9 +189,9 @@ class _WeightPageState extends State<WeightPage> {
                     onPressed: () async {
                       if (widget.onUpdate != null) {
                         // Update mode
-                        print(
-                          '[WeightPage] Update mode - calling onUpdate with $weight',
-                        );
+                          print(
+                            '[WeightPage] Che do cap nhat - dang goi onUpdate voi $weight',
+                          );
                         final success = await widget.onUpdate!(weight);
                         if (!mounted) return;
                         if (success) {

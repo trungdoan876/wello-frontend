@@ -67,7 +67,7 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
         });
       }
     } catch (e) {
-      print('Error calculating BMI: $e');
+      print('Loi khi tinh BMI: $e');
     }
   }
 

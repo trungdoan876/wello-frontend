@@ -42,7 +42,7 @@ class ExerciseRemoteDataSource {
       '$baseUrl/workout/calculate?userId=$userId&exerciseId=$exerciseId&durationMinutes=$durationMinutes',
     );
 
-    print('🔍 Calculating calories - URL: $url');
+    print('Dang tinh calo - URL: $url');
 
     final response = await http.get(
       url,
@@ -52,8 +52,8 @@ class ExerciseRemoteDataSource {
       },
     );
 
-    print('📡 Calculate response status: ${response.statusCode}');
-    print('📡 Calculate response body: ${response.body}');
+    print('Trang thai phan hoi tinh calo: ${response.statusCode}');
+    print('Noi dung phan hoi tinh calo: ${response.body}');
 
     if (response.statusCode == 200) {
       final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
@@ -91,7 +91,7 @@ class ExerciseRemoteDataSource {
   ) async {
     final url = Uri.parse('$baseUrl/workout/daily?userId=$userId&date=$date');
 
-    print('🔍 Fetching daily workout log - URL: $url');
+    print('Dang lay nhat ky bai tap hang ngay - URL: $url');
 
     final response = await http.get(
       url,
@@ -101,8 +101,8 @@ class ExerciseRemoteDataSource {
       },
     );
 
-    print('📡 Daily workout response status: ${response.statusCode}');
-    print('📡 Daily workout response body: ${response.body}');
+    print('Trang thai phan hoi bai tap hang ngay: ${response.statusCode}');
+    print('Noi dung phan hoi bai tap hang ngay: ${response.body}');
 
     if (response.statusCode == 200) {
       final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;

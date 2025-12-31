@@ -39,7 +39,7 @@ class _QuestionFlowPageState extends State<QuestionFlowPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading questions: $e')),
+          SnackBar(content: Text('Loi khi tai cau hoi: $e')),
         );
       }
     }

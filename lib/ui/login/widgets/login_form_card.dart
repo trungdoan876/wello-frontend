@@ -127,16 +127,18 @@ class LoginFormContent extends StatelessWidget {
                   );
 
                   print(
-                    'Login response: success=${response.success}, userId=${response.userId}, hasCompletedSurvey=${response.hasCompletedSurvey}',
+                    'Phan hoi dang nhap: thanh cong=${response.success}, userId=${response.userId}, da hoan thanh khao sat=${response.hasCompletedSurvey}',
                   );
 
                   if (response.success) {
-                    // Save userId and token for persistent auth
+                    // Save userId, token, and email for persistent auth
                     if (response.userId != null) {
                       await UserSession.saveUserId(response.userId!);
                       // TODO: Backend should return actual token
                       // For now, save userId as token for authentication
                       await UserSession.saveToken(response.userId!.toString());
+                      // Save email from input
+                      await UserSession.saveEmail(email);
                     }
 
                     // Route based on survey completion
@@ -224,6 +226,7 @@ class LoginFormContent extends StatelessWidget {
                     // TODO: Backend should return actual token
                     // For now, save userId as token for authentication
                     await UserSession.saveToken(response.userId!.toString());
+                    // Note: Google login doesn't provide email in response, would need to get from GoogleSignIn
                   }
                   // Route based on survey completion (same as email login)
                   if (response.hasCompletedSurvey == false) {
@@ -243,14 +246,14 @@ class LoginFormContent extends StatelessWidget {
                   showPopup(
                     context,
                     title: "",
-                    message: response.message ?? "Google login failed",
+                    message: response.message ?? "Dang nhap Google that bai",
                   );
                 }
               } catch (e) {
                 showPopup(
                   context,
                   title: "",
-                  message: "Cannot connect to server: $e",
+                  message: "Khong the ket noi den server: $e",
                 );
               }
             },

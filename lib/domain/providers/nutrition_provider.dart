@@ -83,13 +83,13 @@ class NutritionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('🔄 Loading user profile for userId: $userId');
+      print('Dang tai ho so nguoi dung cho userId: $userId');
       _userProfile = await _repository.getUserProfile(token, userId);
-      print('✅ UserProfile loaded: startDate=${_userProfile?.startDate}');
+      print('Da tai UserProfile: ngay bat dau=${_userProfile?.startDate}');
       _isLoadingProfile = false;
       notifyListeners();
     } catch (e) {
-      print('❌ Failed to load profile: ${e.toString()}');
+      print('Loi khi tai ho so: ${e.toString()}');
       _errorMessage = 'Failed to load profile: ${e.toString()}';
       _isLoadingProfile = false;
       notifyListeners();
@@ -116,12 +116,12 @@ class NutritionProvider extends ChangeNotifier {
       _isLoadingSummary = false;
       notifyListeners();
     } catch (e) {
-      print('⚠️ Failed to load daily summary: ${e.toString()}');
+      print('Khong the tai ban tom tat hang ngay: ${e.toString()}');
 
       // Try to load from cache when offline
       final cachedSummary = await _loadCachedDailySummary(date);
       if (cachedSummary != null) {
-        print('✅ Loaded from cache for date: $date');
+        print('Da tai tu bo nho dem cho ngay: $date');
         _dailySummary = cachedSummary;
         _errorMessage = null; // Clear error if we have cached data
       } else {
@@ -144,7 +144,7 @@ class NutritionProvider extends ChangeNotifier {
       _isLoadingHistory = false;
       notifyListeners();
     } catch (e) {
-      print('⚠️ Failed to load food history: ${e.toString()}');
+      print('Khong the tai lich su an uong: ${e.toString()}');
       // On error, clear history to avoid showing old data
       _foodHistory = [];
       _isLoadingHistory = false;
@@ -438,9 +438,9 @@ class NutritionProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = jsonEncode(summary.toJson());
       await prefs.setString('nutrition_cache_$date', jsonString);
-      print('💾 Cached nutrition data for $date');
+      print('Da luu du lieu dinh duong vao bo nho dem cho ngay $date');
     } catch (e) {
-      print('❌ Failed to cache data: $e');
+      print('Loi khi luu vao bo nho dem: $e');
     }
   }
 
@@ -454,7 +454,7 @@ class NutritionProvider extends ChangeNotifier {
         return NutritionSummary.fromJson(jsonMap);
       }
     } catch (e) {
-      print('❌ Failed to load cached data: $e');
+      print('Loi khi tai du lieu tu bo nho dem: $e');
     }
     return null;
   }

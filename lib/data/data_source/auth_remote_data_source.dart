@@ -151,8 +151,8 @@ class AuthRemoteDataSource {
         body: jsonEncode(request.toJson()),
       );
 
-      print('🔵 [sendOtp] Status: ${response.statusCode}');
-      print('🔵 [sendOtp] Response body: ${response.body}');
+      print('[sendOtp] Trang thai: ${response.statusCode}');
+      print('[sendOtp] Noi dung phan hoi: ${response.body}');
 
       if (response.statusCode == 200) {
         final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
@@ -163,9 +163,9 @@ class AuthRemoteDataSource {
         try {
           final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
           errorMessage = errorJson['message'] ?? errorMessage;
-          print('🔴 [sendOtp] Error message: $errorMessage');
+          print('[sendOtp] Thong bao loi: $errorMessage');
         } catch (parseError) {
-          print('🔴 [sendOtp] Parse error: $parseError');
+          print('[sendOtp] Loi parse: $parseError');
         }
         // Throw backend message trực tiếp không có prefix
         throw Exception(errorMessage);
@@ -197,8 +197,8 @@ class AuthRemoteDataSource {
         body: jsonEncode(request.toJson()),
       );
 
-      print('🔵 [verifyOtp] Status: ${response.statusCode}');
-      print('🔵 [verifyOtp] Response body: ${response.body}');
+      print('[verifyOtp] Trang thai: ${response.statusCode}');
+      print('[verifyOtp] Noi dung phan hoi: ${response.body}');
 
       if (response.statusCode == 200) {
         final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
@@ -209,9 +209,9 @@ class AuthRemoteDataSource {
         try {
           final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
           errorMessage = errorJson['message'] ?? errorMessage;
-          print('🔴 [verifyOtp] Error message: $errorMessage');
+          print('[verifyOtp] Thong bao loi: $errorMessage');
         } catch (parseError) {
-          print('🔴 [verifyOtp] Parse error: $parseError');
+          print('[verifyOtp] Loi parse: $parseError');
         }
         // Throw backend message trực tiếp không có prefix
         throw Exception(errorMessage);
@@ -232,9 +232,9 @@ class AuthRemoteDataSource {
     final url = Uri.parse('$baseUrl/forgot-password');
     final request = ForgotPasswordRequest(email: email);
 
-    print('🔵 [DataSource] forgotPassword() called');
-    print('🔵 [DataSource] URL: $url');
-    print('🔵 [DataSource] Request body: ${jsonEncode(request.toJson())}');
+    print('[DataSource] forgotPassword() duoc goi');
+    print('[DataSource] URL: $url');
+    print('[DataSource] Noi dung yeu cau: ${jsonEncode(request.toJson())}');
 
     try {
       final response = await http.post(
@@ -243,25 +243,25 @@ class AuthRemoteDataSource {
         body: jsonEncode(request.toJson()),
       );
 
-      print('🔵 [DataSource] Response status: ${response.statusCode}');
-      print('🔵 [DataSource] Response body: ${response.body}');
+      print('[DataSource] Trang thai phan hoi: ${response.statusCode}');
+      print('[DataSource] Noi dung phan hoi: ${response.body}');
 
       if (response.statusCode == 200) {
         final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
         final result = PasswordResetResponse.fromJson(bodyJson);
-        print('✅ [DataSource] Success! verificationToken: ${result.verificationToken?.substring(0, 20)}...');
+        print('[DataSource] Thanh cong! verificationToken: ${result.verificationToken?.substring(0, 20)}...');
         return result;
       } else {
         // Parse error message
         final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
-        print('🔴 [DataSource] Error: ${errorJson['message']}');
+        print('[DataSource] Loi: ${errorJson['message']}');
         return PasswordResetResponse(
           success: false,
           message: errorJson['message'] ?? 'Failed to send reset OTP',
         );
       }
     } catch (e) {
-      print('🔴 [DataSource] Exception: $e');
+      print('[DataSource] Ngoai le: $e');
       return PasswordResetResponse(
         success: false,
         message: 'Error: $e',

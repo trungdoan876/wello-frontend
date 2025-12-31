@@ -57,11 +57,13 @@ class NutritionRemoteDataSource {
     }
   }
 
-  /// Verify if user exists in database
-  /// @param userId - User ID to verify
-  /// Returns true if user exists, throws exception if not found
-  Future<bool> verifyUser(String userId) async {
-    final url = Uri.parse('$baseUrl/user/verify?userId=$userId');
+  /// Get latest weight history for a user
+  /// Endpoint: GET /api/history/{userId}/latest?limit=5
+  Future<List<WeightHistoryItem>> getLatestWeightHistory(
+    String userId, {
+    int limit = 5,
+  }) async {
+    final url = Uri.parse('$baseUrl/history/$userId/latest?limit=$limit');
 
     final response = await http.get(
       url,
@@ -69,15 +71,23 @@ class NutritionRemoteDataSource {
     );
 
     if (response.statusCode == 200) {
-      final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
-      return bodyJson['exists'] == true;
-    } else if (response.statusCode == 404) {
-      // User not found
-      return false;
+      final bodyJson = jsonDecode(response.body) as List<dynamic>;
+      return bodyJson
+          .map((e) => WeightHistoryItem.fromJson(e as Map<String, dynamic>))
+          .toList();
     } else {
-      throw Exception('Failed to verify user: ${response.statusCode}');
+      throw Exception(
+        'Failed to load latest weight history: ${response.statusCode}',
+      );
     }
   }
+
+  /// Verify if user exists in database
+  /// @param userId - User ID to verify
+  /// Returns true if user exists, throws exception if not found
+  Future<bool> verifyUser(String userId) async {
+    final url = Uri.parse('$baseUrl/user/verify?userId=$userId');
+
 
   /// Get daily nutrition summary for a specific date
   /// @param userId - User ID
@@ -181,8 +191,8 @@ class NutritionRemoteDataSource {
       'date': date,
     };
 
-    print('🌐 Making POST request to: $url');
-    print('📦 Request body: $requestBody');
+    print('Dang goi POST den: $url');
+    print('Noi dung yeu cau: $requestBody');
 
     final response = await http.post(
       url,
@@ -190,8 +200,8 @@ class NutritionRemoteDataSource {
       body: jsonEncode(requestBody),
     );
 
-    print('📥 Response status: ${response.statusCode}');
-    print('📥 Response body: ${response.body}');
+    print('Trang thai phan hoi: ${response.statusCode}');
+    print('Noi dung phan hoi: ${response.body}');
 
     if (response.statusCode == 200) {
       // Backend returns "Water intake added successfully" message
@@ -221,8 +231,8 @@ class NutritionRemoteDataSource {
       'date': date,
     };
 
-    print('🌐 Making POST request to: $url (delete water)');
-    print('📦 Request body: $requestBody');
+    print('Dang goi POST den: $url (xoa nuoc)');
+    print('Noi dung yeu cau: $requestBody');
 
     final response = await http.post(
       url,
@@ -234,8 +244,8 @@ class NutritionRemoteDataSource {
       body: jsonEncode(requestBody),
     );
 
-    print('📥 Response status: ${response.statusCode}');
-    print('📥 Response body: ${response.body}');
+    print('Trang thai phan hoi: ${response.statusCode}');
+    print('Noi dung phan hoi: ${response.body}');
 
     if (response.statusCode == 200) {
       // Refresh daily water intake after delete
@@ -251,8 +261,8 @@ class NutritionRemoteDataSource {
   Future<LogFoodResponse> logFood(String token, LogFoodRequest request) async {
     final url = Uri.parse('$baseUrl/nutrition/log-food');
 
-    print('🌐 Making POST request to: $url');
-    print('📦 Request body: ${jsonEncode(request.toJson())}');
+    print('Dang goi POST den: $url');
+    print('Noi dung yeu cau: ${jsonEncode(request.toJson())}');
 
     final response = await http.post(
       url,
@@ -263,8 +273,8 @@ class NutritionRemoteDataSource {
       body: jsonEncode(request.toJson()),
     );
 
-    print('📥 Response status: ${response.statusCode}');
-    print('📥 Response body: ${utf8.decode(response.bodyBytes)}');
+    print('Trang thai phan hoi: ${response.statusCode}');
+    print('Noi dung phan hoi: ${utf8.decode(response.bodyBytes)}');
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final bodyJson =
@@ -287,7 +297,7 @@ class NutritionRemoteDataSource {
       '$baseUrl/nutrition/history/food?userId=$userId&date=$date',
     );
 
-    print('🌐 Making GET request to: $url');
+    print('Dang goi GET den: $url');
 
     final response = await http.get(
       url,
@@ -297,7 +307,7 @@ class NutritionRemoteDataSource {
       },
     );
 
-    print('📥 Response status: ${response.statusCode}');
+    print('Trang thai phan hoi: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       final List<dynamic> bodyJson = jsonDecode(
