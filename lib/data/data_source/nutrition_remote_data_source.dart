@@ -87,7 +87,33 @@ class NutritionRemoteDataSource {
   /// Returns true if user exists, throws exception if not found
   Future<bool> verifyUser(String userId) async {
     final url = Uri.parse('$baseUrl/user/verify?userId=$userId');
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
 
+    if (response.statusCode == 200) {
+      // Try to read common boolean flags from the response; default to true on 200
+      try {
+        final bodyJson = jsonDecode(response.body);
+        if (bodyJson is Map<String, dynamic>) {
+          if (bodyJson['exists'] is bool) return bodyJson['exists'] as bool;
+          if (bodyJson['valid'] is bool) return bodyJson['valid'] as bool;
+          if (bodyJson['success'] is bool) return bodyJson['success'] as bool;
+        }
+        if (response.body.trim().toLowerCase() == 'true') {
+          return true;
+        }
+      } catch (_) {
+        // Ignore parse errors, fall back to success on 200
+      }
+      return true;
+    } else if (response.statusCode == 404) {
+      return false;
+    } else {
+      throw Exception('Failed to verify user: ${response.statusCode}');
+    }
+  }
 
   /// Get daily nutrition summary for a specific date
   /// @param userId - User ID
