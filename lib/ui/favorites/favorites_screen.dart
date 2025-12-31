@@ -6,7 +6,6 @@ import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:wello_frontend/ui/favorites/widgets/create_meal_page.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
-import 'package:wello_frontend/data/repositories/favorites_list_repository.dart';
 import 'package:wello_frontend/ui/meal_selection/selection_screen.dart';
 import 'package:wello_frontend/ui/favorites/widgets/favorite_meal_card.dart';
 import 'package:wello_frontend/ui/favorites/widgets/favorite_food_detail_sheet.dart';
@@ -35,7 +34,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   bool _isLoadingFavorites = false;
   String? _errorMessage;
 
-  final FavoritesRepository _favoritesRepository = FavoritesRepository();
 
   @override
   void initState() {
@@ -50,13 +48,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     });
 
     try {
-      print('🔄 Đang load danh sách yêu thích...');
-      final favorites = await _favoritesRepository.getMyFavorites(1);
-      print('✅ Tải thành công: ${favorites.length} món ăn');
-      print('📋 Dữ liệu: $favorites');
+      final credentials = await AuthHelper.getCredentials();
+      if (credentials == null) {
+        throw Exception('Người dùng chưa đăng nhập');
+      }
+      final userId = credentials.userId;
+
+      print('🔄 Đang load danh sách yêu thích của user: $userId...');
+      
+      final favoritesProvider = context.read<FavoritesProvider>();
+      await favoritesProvider.fetchFavorites(userId);
+      
+      if (favoritesProvider.errorMessage != null) {
+        throw Exception(favoritesProvider.errorMessage);
+      }
 
       setState(() {
-        _favoritesMeals = favorites.map((fav) {
+        _favoritesMeals = favoritesProvider.favorites.map((fav) {
           print('🍽️ Thêm: ${fav.favoriteName} - ${fav.totalNutrition.totalCalories} calo');
           return MealItem(
             name: fav.favoriteName,
@@ -66,7 +74,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             protein: fav.totalNutrition.totalProtein,
             carbs: fav.totalNutrition.totalCarbs,
             fat: fav.totalNutrition.totalFat,
-            foodId: fav.id, // Use id from API
+            foodId: fav.id,
             mealType: fav.mealType,
           );
         }).toList();

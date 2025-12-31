@@ -2,15 +2,16 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/requests/register_request_model.dart';
 import '../models/responses/register_response_model.dart';
+import '../../core/constants/api_endpoints.dart';
 
-/// Remote data source for user
-/// Handles direct API calls related to user operations
+/// Nguồn dữ liệu từ xa cho người dùng
+/// Xử lý các API calls liên quan đến thao tác người dùng
 class UserRemoteDataSource {
   final String baseUrl;
 
-  UserRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  UserRemoteDataSource({this.baseUrl = ApiEndpoints.baseUrl});
 
-  /// Register a new user
+  /// Đăng ký người dùng mới
   Future<RegisterResponseModel> register({
     required RegisterRequestModel request,
   }) async {

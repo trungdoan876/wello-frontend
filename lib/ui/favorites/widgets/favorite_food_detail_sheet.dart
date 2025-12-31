@@ -37,6 +37,13 @@ class FavoriteFoodDetailSheet extends StatefulWidget {
 class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
   bool _isLogging = false;
   String? _errorMessage;
+  late String _selectedMealType;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMealType = widget.mealType;
+  }
 
   Future<void> _logFood() async {
     print('👉 STARTING _logFood()');
@@ -101,7 +108,7 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
       print('👤 User ID: $userId');
       print('🍽️  Food Name: ${widget.foodName}');
       print('🆔 Food ID: ${widget.foodId}');
-      print('🕐 Meal Type: ${widget.mealType}');
+      print('🕐 Meal Type: $_selectedMealType');
       print('───────────────────────────────────────────────────────');
       print('📊 NUTRITION DATA (CALCULATED):');
       print('🔥 Calories: $calories kcal');
@@ -111,7 +118,7 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
       print('───────────────────────────────────────────────────────');
       print('✅ API Call: favoritesProvider.logFavorite');
       print('   favoriteId: ${widget.foodId} (from favorite model)');
-      print('   mealType: ${widget.mealType}');
+      print('   mealType: $_selectedMealType');
       // print('   date: ${nutritionProvider.selectedDate}'); // Ensure selectedDate is available
 
       // Use FavoritesProvider to log the combo directly
@@ -121,7 +128,7 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
         userId: userId,
         favoriteId: widget.foodId, // This is the favoriteId
         date: nutritionProvider.selectedDate,
-        mealType: widget.mealType,
+        mealType: _selectedMealType,
       );
 
       if (!success) {
@@ -259,6 +266,35 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
               ],
             ),
           ),
+          SizedBox(height: context.h(0.03)),
+
+          // Meal Type Selection
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Chọn bữa ăn:',
+              style: GoogleFonts.baloo2(
+                fontSize: context.sp(4.5),
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+          SizedBox(height: context.h(0.01)),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildMealTypeChip('Sáng', 'BREAKFAST'),
+                SizedBox(width: context.w(0.02)),
+                _buildMealTypeChip('Trưa', 'LUNCH'),
+                SizedBox(width: context.w(0.02)),
+                _buildMealTypeChip('Tối', 'DINNER'),
+                SizedBox(width: context.w(0.02)),
+                _buildMealTypeChip('Phụ', 'SNACK'),
+              ],
+            ),
+          ),
           SizedBox(height: context.h(0.04)),
 
           // Error message
@@ -309,6 +345,38 @@ class _FavoriteFoodDetailSheetState extends State<FavoriteFoodDetailSheet> {
           ),
           SizedBox(height: context.h(0.02)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMealTypeChip(String label, String value) {
+    final isSelected = _selectedMealType == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedMealType = value;
+        });
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: context.w(0.04),
+          vertical: context.h(0.01),
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFEBCF23) : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(context.sp(5)),
+          border: Border.all(
+            color: isSelected ? const Color(0xFFEBCF23) : Colors.grey.shade300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.baloo2(
+            fontSize: context.sp(4),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            color: isSelected ? Colors.white : Colors.grey.shade700,
+          ),
+        ),
       ),
     );
   }

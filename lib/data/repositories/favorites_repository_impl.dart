@@ -26,7 +26,7 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> addCombo({
+  Future<FavoriteComboResponse> addCombo({
     required AddFavoriteComboRequest request,
   }) async {
     try {
@@ -68,6 +68,17 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
   }) async {
     try {
       return await remoteDataSource.logFavorite(request: request);
+    } catch (e) {
+      throw Exception('Repository error: $e');
+    }
+  }
+
+  @override
+  Future<List<FavoriteComboResponse>> getFavoritesByUserId({
+    required int userId,
+  }) async {
+    try {
+      return await remoteDataSource.getFavoritesByUserId(userId);
     } catch (e) {
       throw Exception('Repository error: $e');
     }

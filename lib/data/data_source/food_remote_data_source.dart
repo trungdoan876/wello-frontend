@@ -2,15 +2,16 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/food.dart';
 import '../models/requests/food_preview_request.dart';
+import '../../core/constants/api_endpoints.dart';
 
 
-/// Remote data source for food API calls
+/// Nguồn dữ liệu từ xa cho các API calls về thực phẩm
 class FoodRemoteDataSource {
   final String baseUrl;
 
-  FoodRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  FoodRemoteDataSource({this.baseUrl = ApiEndpoints.baseUrl});
 
-  /// Get all foods
+  /// Lấy tất cả thực phẩm
   /// GET /food/all
   Future<List<Food>> getAllFoods(String token) async {
     final url = Uri.parse('$baseUrl/food/all');

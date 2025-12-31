@@ -4,15 +4,16 @@ import '../models/requests/survey_request_model.dart';
 import '../models/requests/calculate_bmi_request_model.dart';
 import '../models/responses/survey_response_model.dart';
 import '../models/responses/calculate_bmi_response_model.dart';
+import '../../core/constants/api_endpoints.dart';
 
-/// Remote data source for survey operations
-/// Handles direct API calls for survey submission
+/// Nguồn dữ liệu từ xa cho các thao tác khảo sát
+/// Xử lý các API calls để submit khảo sát
 class SurveyRemoteDataSource {
   final String baseUrl;
 
-  SurveyRemoteDataSource({this.baseUrl = "http://10.0.2.2:8080/api"});
+  SurveyRemoteDataSource({this.baseUrl = ApiEndpoints.baseUrl});
 
-  /// Submit survey and get health metrics
+  /// Submit khảo sát và nhận metrics sức khỏe
   Future<SurveyResponseModel> submitSurvey({
     required SurveyRequestModel request,
   }) async {

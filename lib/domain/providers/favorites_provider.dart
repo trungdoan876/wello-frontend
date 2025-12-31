@@ -20,10 +20,31 @@ class FavoritesProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   bool _success = false;
+  List<FavoriteComboResponse> _favorites = [];
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get success => _success;
+  List<FavoriteComboResponse> get favorites => _favorites;
+
+  /// Fetch all favorites for a user
+  Future<void> fetchFavorites(int userId) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final result = await repository.getFavoritesByUserId(userId: userId);
+      _favorites = result;
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
 
   /// Get favorite combo by ID
   Future<FavoriteComboResponse?> getFavoriteById({

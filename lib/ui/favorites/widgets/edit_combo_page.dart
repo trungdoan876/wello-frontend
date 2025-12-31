@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -613,7 +614,7 @@ class _EditComboPageState extends State<EditComboPage> {
               // Total nutrition
               if (_items.isNotEmpty) ...[
                 Text(
-                  'Tổng dinh dưỡng',
+                  'Thành phần dinh dưỡng',
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(5.5),
                     fontWeight: FontWeight.w900,
@@ -621,30 +622,11 @@ class _EditComboPageState extends State<EditComboPage> {
                   ),
                 ),
                 SizedBox(height: context.h(0.015)),
-                Container(
-                  padding: EdgeInsets.all(context.w(0.04)),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(context.sp(4)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      _buildNutritionRow('Calories', '$totalCalories kcal', Colors.orange),
-                      Divider(),
-                      _buildNutritionRow('Protein', '${totalProtein.toStringAsFixed(1)}g', Colors.blue),
-                      Divider(),
-                      _buildNutritionRow('Carbs', '${totalCarbs.toStringAsFixed(1)}g', Colors.green),
-                      Divider(),
-                      _buildNutritionRow('Fat', '${totalFat.toStringAsFixed(1)}g', Colors.purple),
-                    ],
-                  ),
+                _NutritionSummary(
+                  totalCalories: totalCalories,
+                  totalProtein: totalProtein,
+                  totalCarbs: totalCarbs,
+                  totalFat: totalFat,
                 ),
               ],
 
@@ -720,5 +702,317 @@ class _EditComboPageState extends State<EditComboPage> {
         ],
       ),
     );
+  }
+}
+
+class _NutritionSummary extends StatelessWidget {
+  final int totalCalories;
+  final double totalProtein;
+  final double totalCarbs;
+  final double totalFat;
+
+  const _NutritionSummary({
+    Key? key,
+    required this.totalCalories,
+    required this.totalProtein,
+    required this.totalCarbs,
+    required this.totalFat,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Energy by macro
+    final energyProtein = totalProtein * 4;
+    final energyCarbs = totalCarbs * 4;
+    final energyFat = totalFat * 9;
+    final energySum = energyProtein + energyCarbs + energyFat;
+
+    double _safeShare(double v) {
+      if (v.isNaN || v.isInfinite) return 0.0;
+      return v.clamp(0.0, 1.0).toDouble();
+    }
+
+    final double pShare = _safeShare(
+      energySum > 0 ? energyProtein / energySum : 0.0,
+    );
+    final double cShare = _safeShare(
+      energySum > 0 ? energyCarbs / energySum : 0.0,
+    );
+    final double fShare = _safeShare(
+      energySum > 0 ? energyFat / energySum : 0.0,
+    );
+
+    return Container(
+      padding: EdgeInsets.all(context.w(0.04)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(context.sp(4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Donut chart
+          SizedBox(
+            width: context.w(0.35),
+            height: context.w(0.35),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 900),
+              curve: Curves.easeOutCubic,
+              builder: (context, t, _) {
+                return CustomPaint(
+                  painter: _DonutPainter(
+                    segments: [
+                      _Segment(
+                        share: cShare,
+                        color: const Color(0xFF80DEEA),
+                      ), // Carbs soft teal
+                      _Segment(
+                        share: pShare,
+                        color: const Color(0xFFFFCC80),
+                      ), // Protein soft peach
+                      _Segment(
+                        share: fShare,
+                        color: const Color(0xFFCE93D8),
+                      ), // Fat soft lavender
+                    ],
+                    centerText: '$totalCalories',
+                    animation: t,
+                    strokeWidth: 22,
+                    gapRadians: 0.06,
+                    backgroundColor: const Color(0xFFF2F5F9),
+                  ),
+                );
+              },
+            ),
+          ),
+          SizedBox(width: context.w(0.04)),
+          // Legend
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _legendItem(
+                  context,
+                  color: const Color(0xFF80DEEA),
+                  label: 'Carbs · ${(cShare * 100).round()}%',
+                  valueText: '${totalCarbs.toStringAsFixed(1)}g',
+                ),
+                SizedBox(height: context.h(0.008)),
+                _legendItem(
+                  context,
+                  color: const Color(0xFFFFCC80),
+                  label: 'Chất đạm · ${(pShare * 100).round()}%',
+                  valueText: '${totalProtein.toStringAsFixed(1)}g',
+                ),
+                SizedBox(height: context.h(0.008)),
+                _legendItem(
+                  context,
+                  color: const Color(0xFFCE93D8),
+                  label: 'Chất béo · ${(fShare * 100).round()}%',
+                  valueText: '${totalFat.toStringAsFixed(1)}g',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _legendItem(
+    BuildContext context, {
+    required Color color,
+    required String label,
+    required String valueText,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.18),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.25),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+          ),
+        ),
+        SizedBox(width: context.w(0.02)),
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.baloo2(
+              fontSize: context.sp(4.5),
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF132439),
+            ),
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: context.w(0.02),
+            vertical: context.h(0.004),
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF4F6F8),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Text(
+            valueText,
+            style: GoogleFonts.beVietnamPro(
+              fontSize: context.sp(4.0),
+              color: Colors.grey.shade800,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Segment {
+  final double share; // 0..1
+  final Color color;
+  _Segment({required this.share, required this.color});
+}
+
+class _DonutPainter extends CustomPainter {
+  final List<_Segment> segments;
+  final String centerText;
+  final double animation; // 0..1
+  final double strokeWidth;
+  final double gapRadians;
+  final Color backgroundColor;
+  _DonutPainter({
+    required this.segments,
+    required this.centerText,
+    required this.animation,
+    this.strokeWidth = 20,
+    this.gapRadians = 0.0,
+    this.backgroundColor = const Color(0xFFEFF3F7),
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final center = rect.center;
+    final radius = math.min(size.width, size.height) / 2;
+
+    // Background circle
+    final bgPaint = Paint()
+      ..color = backgroundColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    canvas.drawCircle(center, radius - strokeWidth / 2, bgPaint);
+
+    // Arc geometry
+    double startAngle = -math.pi / 2;
+    final arcRect = Rect.fromCircle(
+      center: center,
+      radius: radius - strokeWidth / 2,
+    );
+
+    // Helper: color tint
+    Color _tint(Color c, double amount) {
+      final h = HSLColor.fromColor(c);
+      final t = h.withLightness((h.lightness + amount).clamp(0.0, 1.0));
+      return t.toColor();
+    }
+
+    // Draw segments
+    for (final s in segments) {
+      if (s.share <= 0) continue;
+      final totalSweep = (s.share.clamp(0.0, 1.0)) * 2 * math.pi * animation;
+      final effectiveGap = math.min(gapRadians, totalSweep * 0.25);
+      final sweep = math.max(0.0, totalSweep - effectiveGap);
+      final start = startAngle + effectiveGap / 2;
+
+      final gradient = SweepGradient(
+        colors: [_tint(s.color, 0.18), s.color, _tint(s.color, -0.10)],
+        stops: const [0.0, 0.6, 1.0],
+      ).createShader(arcRect);
+
+      final segPaint = Paint()
+        ..shader = gradient
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = strokeWidth
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.2);
+
+      canvas.drawArc(arcRect, start, sweep, false, segPaint);
+      startAngle += totalSweep;
+    }
+
+    // Center text and sublabel
+    final gradientTextPaint = Paint()
+      ..shader = const LinearGradient(
+        colors: [Color(0xFFFFD1A1), Color(0xFFFFA66C)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: centerText,
+        style: TextStyle(
+          foreground: gradientTextPaint,
+          fontSize: size.width * 0.22,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    final textOffset =
+        center - Offset(textPainter.width / 2, textPainter.height / 2 + 6);
+    textPainter.paint(canvas, textOffset);
+
+    // Sub label 'Kcal'
+    final subPainter = TextPainter(
+      text: const TextSpan(
+        text: 'kcal',
+        style: TextStyle(
+          color: Color(0xFF9E9E9E),
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    subPainter.layout();
+    final subOffset =
+        center + Offset(-subPainter.width / 2, textPainter.height / 2 - 2);
+    subPainter.paint(canvas, subOffset);
+  }
+
+  @override
+  bool shouldRepaint(covariant _DonutPainter old) {
+    return old.segments != segments ||
+        old.centerText != centerText ||
+        old.animation != animation ||
+        old.strokeWidth != strokeWidth ||
+        old.gapRadians != gapRadians ||
+        old.backgroundColor != backgroundColor;
   }
 }

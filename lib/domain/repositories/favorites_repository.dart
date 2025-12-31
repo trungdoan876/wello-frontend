@@ -9,7 +9,7 @@ abstract class FavoritesRepository {
     required int userId,
   });
 
-  Future<Map<String, dynamic>> addCombo({
+  Future<FavoriteComboResponse> addCombo({
     required AddFavoriteComboRequest request,
   });
 
@@ -24,5 +24,9 @@ abstract class FavoritesRepository {
 
   Future<Map<String, dynamic>> logFavorite({
     required LogFavoriteRequest request,
+  });
+
+  Future<List<FavoriteComboResponse>> getFavoritesByUserId({
+    required int userId,
   });
 }

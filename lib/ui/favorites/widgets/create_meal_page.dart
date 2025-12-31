@@ -8,6 +8,7 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/meal_selection/selection_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/favorites/widgets/gram_input_bottom_sheet.dart';
+import 'package:wello_frontend/core/utils/auth_helper.dart';
 
 class CreateMealPage extends StatefulWidget {
   const CreateMealPage({Key? key}) : super(key: key);
@@ -741,8 +742,12 @@ class _AddMealBottomSheetState extends State<_AddMealBottomSheet> {
         );
       }).toList();
 
+      final credentials = await AuthHelper.getCredentials();
+      if (credentials == null) throw Exception('Người dùng chưa đăng nhập');
+      final userId = credentials.userId;
+
       final success = await favoritesProvider.addCombo(
-        userId: 1,
+        userId: userId,
         favoriteName: widget.mealName,
         mealType: _selectedTime.toString().split('.').last.toUpperCase(),
         items: items,
