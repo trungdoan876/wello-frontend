@@ -11,16 +11,16 @@ import '../models/responses/register_response_model.dart';
 import '../models/responses/send_otp_response_model.dart';
 import '../models/responses/verify_otp_response_model.dart';
 import '../models/responses/password_reset_response.dart';
-import '../../core/constants/app_constants.dart';
+import '../../core/constants/api_endpoints.dart';
 
-/// Remote data source for authentication
-/// Handles direct API calls related to auth (login, register)
+/// Nguồn dữ liệu từ xa cho xác thực
+/// Xử lý các API calls liên quan đến auth (đăng nhập, đăng ký)
 class AuthRemoteDataSource {
   final String baseUrl;
 
-  AuthRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
+  AuthRemoteDataSource({this.baseUrl = ApiEndpoints.baseUrl});
 
-  /// Login user
+  /// Đăng nhập người dùng
   Future<LoginResponseModel> login({
     required LoginRequestModel request,
   }) async {
@@ -37,11 +37,11 @@ class AuthRemoteDataSource {
         final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
         return LoginResponseModel.fromJson(bodyJson);
       } catch (e) {
-        // If response is not JSON, return a generic success
+        // Nếu response không phải JSON, trả về success chung
         return LoginResponseModel(success: true, message: response.body);
       }
     } else {
-      // Try to parse error message from JSON
+      // Thử parse error message từ JSON
       try {
         final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
         return LoginResponseModel(
@@ -49,7 +49,7 @@ class AuthRemoteDataSource {
           message: errorJson['message'] ?? 'Đăng nhập thất bại',
         );
       } catch (e) {
-        // If can't parse JSON, return status code
+        // Nếu không parse được JSON, trả về status code
         return LoginResponseModel(
           success: false,
           message: 'Lỗi ${response.statusCode}',
@@ -58,7 +58,7 @@ class AuthRemoteDataSource {
     }
   }
 
-  /// Register new user with email and hashed password
+  /// Đăng ký người dùng mới với email và mật khẩu đã hash
   Future<RegisterResponseModel> register({
     required String email,
     required String hashedPassword,
@@ -80,11 +80,11 @@ class AuthRemoteDataSource {
         final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
         return RegisterResponseModel.fromJson(bodyJson);
       } catch (e) {
-        // If response is not JSON, return a generic success
+        // Nếu response không phải JSON, trả về success chung
         return RegisterResponseModel(success: true, message: response.body);
       }
     } else {
-      // Try to parse error message from JSON
+      // Thử parse error message từ JSON
       try {
         final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
         return RegisterResponseModel(
@@ -92,7 +92,7 @@ class AuthRemoteDataSource {
           message: errorJson['message'] ?? 'Đăng ký thất bại',
         );
       } catch (e) {
-        // If can't parse JSON, return status code
+        // Nếu không parse được JSON, trả về status code
         return RegisterResponseModel(
           success: false,
           message: 'Lỗi ${response.statusCode}',
@@ -101,7 +101,7 @@ class AuthRemoteDataSource {
     }
   }
 
-  /// Login with Google ID token
+  /// Đăng nhập bằng Google ID token
   Future<LoginResponseModel> loginWithGoogle({
     required String idToken,
   }) async {
@@ -136,7 +136,7 @@ class AuthRemoteDataSource {
     }
   }
 
-  /// Send OTP to email for registration
+  /// Gửi OTP đến email để đăng ký
   Future<SendOtpResponse> sendOtp({
     required String email,
     required String password,
@@ -158,7 +158,7 @@ class AuthRemoteDataSource {
         final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
         return SendOtpResponse.fromJson(bodyJson);
       } else {
-        // Parse error message from backend
+        // Parse error message từ backend
         String errorMessage = 'Không thể gửi OTP';
         try {
           final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
@@ -167,19 +167,19 @@ class AuthRemoteDataSource {
         } catch (parseError) {
           print('🔴 [sendOtp] Parse error: $parseError');
         }
-        // Throw backend message directly without prefix
+        // Throw backend message trực tiếp không có prefix
         throw Exception(errorMessage);
       }
     } on Exception {
-      // Re-throw Exception as-is (already has proper message)
+      // Re-throw Exception nguyên trạng (đã có message đúng)
       rethrow;
     } catch (e) {
-      // Only add prefix for unexpected errors (network, etc.)
+      // Chỉ thêm prefix cho lỗi không mong đợi (network, v.v.)
       throw Exception('Lỗi kết nối: $e');
     }
   }
 
-  /// Verify OTP and create account
+  /// Xác thực OTP và tạo tài khoản
   Future<VerifyOtpResponse> verifyOtp({
     required String verificationToken,
     required String otp,
@@ -204,7 +204,7 @@ class AuthRemoteDataSource {
         final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
         return VerifyOtpResponse.fromJson(bodyJson);
       } else {
-        // Parse error message from backend
+        // Parse error message từ backend
         String errorMessage = 'Không thể xác thực OTP';
         try {
           final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
@@ -213,19 +213,19 @@ class AuthRemoteDataSource {
         } catch (parseError) {
           print('🔴 [verifyOtp] Parse error: $parseError');
         }
-        // Throw backend message directly without prefix
+        // Throw backend message trực tiếp không có prefix
         throw Exception(errorMessage);
       }
     } on Exception {
-      // Re-throw Exception as-is (already has proper message)
+      // Re-throw Exception nguyên trạng (đã có message đúng)
       rethrow;
     } catch (e) {
-      // Only add prefix for unexpected errors (network, etc.)
+      // Chỉ thêm prefix cho lỗi không mong đợi (network, v.v.)
       throw Exception('Lỗi kết nối: $e');
     }
   }
 
-  /// Send OTP for password reset
+  /// Gửi OTP để đặt lại mật khẩu
   Future<PasswordResetResponse> forgotPassword({
     required String email,
   }) async {
@@ -269,7 +269,7 @@ class AuthRemoteDataSource {
     }
   }
 
-  /// Reset password with reset token
+  /// Đặt lại mật khẩu với reset token
   Future<PasswordResetResponse> resetPassword({
     required String resetToken,
     required String newPassword,

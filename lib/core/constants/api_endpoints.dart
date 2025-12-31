@@ -1,0 +1,110 @@
+/// Quản lý tập trung các API endpoints
+/// Đổi baseUrl ở đây để chuyển server cho toàn bộ ứng dụng
+class ApiEndpoints {
+  // ============================================
+  // 🌐 BASE URL - Đổi URL này để chuyển server
+  // ============================================
+  
+  // Server production
+  // static const String baseUrl = 'https://api.memap.id.vn:8280/wello-backend/api';
+  
+  // Local development (Android Emulator)
+  static const String baseUrl = 'http://10.0.2.2:8080/api';
+  
+  // Local development (iOS Simulator)
+  // static const String baseUrl = 'http://localhost:8080/api';
+  
+  // Local development (Máy vật lý - thay bằng IP của bạn)
+  // static const String baseUrl = 'http://192.168.1.100:8080/api';
+
+  // ============================================
+  // 🔐 AUTH ENDPOINTS - Xác thực
+  // ============================================
+  static String get login => '$baseUrl/login';
+  static String get register => '$baseUrl/register';
+  static String get verifyOtp => '$baseUrl/verify-otp';
+  static String get forgotPassword => '$baseUrl/forgot-password';
+  static String get resetPassword => '$baseUrl/reset-password';
+
+  // ============================================
+  // 👤 PROFILE ENDPOINTS - Hồ sơ người dùng
+  // ============================================
+  static String profileInfo(int userId) => '$baseUrl/profile/info/$userId';
+  static String uploadAvatar(int userId) => '$baseUrl/profile/$userId/avatar/base64';
+  static String updateFullname(int userId) => '$baseUrl/profile/$userId/fullname';
+  static String updateGender(int userId) => '$baseUrl/profile/$userId/gender';
+  static String updateAge(int userId) => '$baseUrl/profile/$userId/age';
+  static String updateHeight(int userId) => '$baseUrl/profile/$userId/height';
+  static String updateWeight(int userId) => '$baseUrl/profile/$userId/weight';
+  static String updateGoal(int userId) => '$baseUrl/profile/$userId/goal';
+  static String updateActivityLevel(int userId) => '$baseUrl/profile/$userId/activity-level';
+  static String updateFcmToken(int userId, String fcmToken) => 
+      '$baseUrl/profile/$userId/fcm-token?fcmToken=$fcmToken';
+  static String updateWaterReminderSettings({
+    required int userId,
+    required bool enabled,
+    required int startHour,
+    required int endHour,
+    required int intervalHours,
+    required int intervalMinutes,
+  }) => '$baseUrl/profile/$userId/water-reminder-settings?'
+      'enabled=$enabled&startHour=$startHour&endHour=$endHour'
+      '&intervalHours=$intervalHours&intervalMinutes=$intervalMinutes';
+
+  // ============================================
+  // 📋 SURVEY ENDPOINTS - Khảo sát
+  // ============================================
+  static String get surveyQuestions => '$baseUrl/survey/questions';
+  static String get surveySubmit => '$baseUrl/survey/submit';
+  static String get surveyCalculateBmi => '$baseUrl/survey/calculate-bmi';
+
+  // ============================================
+  // 🍎 FOOD ENDPOINTS - Thực phẩm
+  // ============================================
+  static String get foodAll => '$baseUrl/food/all';
+  static String get foodPreview => '$baseUrl/food/preview';
+
+  // ============================================
+  // ⭐ FAVORITES ENDPOINTS - Yêu thích
+  // ============================================
+  static String favoriteById(int favoriteId, int userId) => 
+      '$baseUrl/favorites/$favoriteId?userId=$userId';
+  static String get favoritesAddFood => '$baseUrl/favorites/add-favorite-food';
+  static String get favoritesUpdateFood => '$baseUrl/favorites/update-favorite-food';
+  static String favoriteDelete(int favoriteId, int userId) => 
+      '$baseUrl/favorites/delete/$favoriteId?userId=$userId';
+  static String get favoritesLog => '$baseUrl/favorites/log';
+  static String favoritesByUser(int userId) => '$baseUrl/favorites/user/$userId';
+
+  // ============================================
+  // 🥗 NUTRITION ENDPOINTS - Dinh dưỡng
+  // ============================================
+  static String userProfile(int userId) => '$baseUrl/user/profile?userId=$userId';
+  static String nutritionHistory(int userId) => '$baseUrl/history/$userId';
+  static String userVerify(int userId) => '$baseUrl/user/verify?userId=$userId';
+  static String nutritionDailySummary(int userId, String date) => 
+      '$baseUrl/nutrition/daily-summary?userId=$userId&date=$date';
+  static String nutritionWeekOverview(int userId, String startDate) => 
+      '$baseUrl/nutrition/week-overview?userId=$userId&startDate=$startDate';
+  static String get nutritionLogFood => '$baseUrl/nutrition/log-food';
+  static String nutritionFoodHistory(int userId, String date) => 
+      '$baseUrl/nutrition/history/food?userId=$userId&date=$date';
+
+  // ============================================
+  // 💧 WATER INTAKE ENDPOINTS - Nước uống
+  // ============================================
+  static String waterIntakeDaily(int userId, String date) => 
+      '$baseUrl/water-intake/daily?userId=$userId&date=$date';
+  static String get waterIntakeAdd => '$baseUrl/water-intake/add';
+  static String get waterIntakeDelete => '$baseUrl/water-intake/delete';
+
+  // ============================================
+  // 💪 EXERCISE/WORKOUT ENDPOINTS - Tập luyện
+  // ============================================
+  static String get workoutExercises => '$baseUrl/workout/exercises';
+  static String workoutCalculate(int userId, int exerciseId, int durationMinutes) => 
+      '$baseUrl/workout/calculate?userId=$userId&exerciseId=$exerciseId&durationMinutes=$durationMinutes';
+  static String get workoutLog => '$baseUrl/workout/log';
+  static String workoutDaily(int userId, String date) => 
+      '$baseUrl/workout/daily?userId=$userId&date=$date';
+}

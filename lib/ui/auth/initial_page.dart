@@ -41,12 +41,14 @@ class _InitialPageState extends State<InitialPage> {
     }
     
     // Verify userId exists in database
-    print('🌐 Verifying userId with backend...');
+    print('🌐 Verifying userId=$userId with backend...');
     try {
       final dataSource = NutritionRemoteDataSource();
       
       // Call lightweight verify API
       final userExists = await dataSource.verifyUser(userId.toString());
+      
+      print('📡 Verify API response: userExists=$userExists');
       
       if (userExists) {
         print('✅ User verified in database!');
@@ -58,7 +60,7 @@ class _InitialPageState extends State<InitialPage> {
           print('🎯 Next page: MainNavigation (Home)');
         });
       } else {
-        print('❌ User not found in database');
+        print('❌ User not found in database (userId=$userId)');
         print('🗑️ Clearing session...');
         
         await UserPreferences.clearAll();
@@ -71,16 +73,21 @@ class _InitialPageState extends State<InitialPage> {
       }
       
     } catch (e) {
-      // API error → Clear session and go to login
-      print('❌ User verification failed: $e');
-      print('🗑️ Clearing session...');
+      // Network error or server down
+      print('⚠️ User verification error: $e');
+      print('⚠️ This could be network issue or server down');
+      
+      // Option 1: Clear session (strict - force re-login)
+      // Option 2: Allow offline mode (keep session)
+      // Choosing Option 1 for security
+      print('🗑️ Clearing session due to verification failure...');
       
       await UserPreferences.clearAll();
       
       if (!mounted) return;
       setState(() {
         _nextPage = const StartPage();
-        print('🎯 Next page: StartPage (Login)');
+        print('🎯 Next page: StartPage (Login) - Error recovery');
       });
     }
   }

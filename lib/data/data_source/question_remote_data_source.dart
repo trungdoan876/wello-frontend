@@ -1,16 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/question.dart';
-import '../../core/constants/app_constants.dart';
+import '../../core/constants/api_endpoints.dart';
 
-/// Remote data source for questions
-/// Handles direct API calls related to questions
+/// Nguồn dữ liệu từ xa cho câu hỏi khảo sát
+/// Xử lý các API calls liên quan đến câu hỏi
 class QuestionRemoteDataSource {
   final String baseUrl;
 
-  QuestionRemoteDataSource({this.baseUrl = AppConstants.baseUrl});
+  QuestionRemoteDataSource({this.baseUrl = ApiEndpoints.baseUrl});
 
-  /// Fetch questions list from backend API
+  /// Lấy danh sách câu hỏi từ backend API
   Future<List<Question>> fetchQuestions() async {
     final url = Uri.parse('$baseUrl/survey/questions');
 
