@@ -12,6 +12,7 @@ class HeightPage extends StatefulWidget {
   final Question question;
   final String? fullname;
   final String? gender;
+  final int? age;
   final int? userId;
   final int? initialHeight;
   final String? buttonText;
@@ -22,6 +23,7 @@ class HeightPage extends StatefulWidget {
     required this.question,
     this.fullname,
     this.gender,
+    this.age,
     this.userId,
     this.initialHeight,
     this.buttonText,
@@ -166,6 +168,7 @@ class _HeightPageState extends State<HeightPage> {
                                 question: nextQuestion,
                                 fullname: widget.fullname,
                                 gender: widget.gender,
+                                age: widget.age,  // Pass age forward
                                 height: height.toInt(),
                                 userId: widget.userId,
                               ),

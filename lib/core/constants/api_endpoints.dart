@@ -6,7 +6,7 @@ class ApiEndpoints {
   // ============================================
   
   // Server production
-  // static const String baseUrl = 'https://api.memap.id.vn:8280/wello-backend/api';
+//   static const String baseUrl = 'https://api.memap.id.vn:8280/wello-backend/api';
   
   // Local development (Android Emulator)
   static const String baseUrl = 'http://10.0.2.2:8080/api';
@@ -101,4 +101,16 @@ class ApiEndpoints {
   static String get workoutLog => '$baseUrl/workout/log';
   static String workoutDaily(int userId, String date) => 
       '$baseUrl/workout/daily?userId=$userId&date=$date';
+
+  // ============================================
+  // SLEEP TRACKING ENDPOINTS - Theo dõi giấc ngủ
+  // ============================================
+  static String get sleepLogBedtime => '$baseUrl/sleep/log-bedtime';
+  static String get sleepComplete => '$baseUrl/sleep/complete';
+  static String sleepToday(int userId, String date) => 
+      '$baseUrl/sleep/today?userId=$userId&date=$date';
+  static String sleepUpdate(int sleepId, int userId) => 
+      '$baseUrl/sleep/tracker/$sleepId?userId=$userId';
+  static String sleepDelete(int sleepId, int userId) => 
+      '$baseUrl/sleep/tracker/$sleepId?userId=$userId';
 }

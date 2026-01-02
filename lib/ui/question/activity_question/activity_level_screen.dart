@@ -210,10 +210,11 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                                         carbsGram: result.carbsGram,
                                         fatGram: result.fatGram,
                                         waterIntakeMl: result.waterIntakeMl,
-                                        height: surveyProvider.height
-                                            ?.toDouble(),
-                                        weight: surveyProvider.weight
-                                            ?.toDouble(),
+                                        height: surveyProvider.height?.toDouble(),
+                                        weight: surveyProvider.weight?.toDouble(),
+                                        sleepTargetHours: result.sleepTargetHours,
+                                        sleepBedtimeTarget: result.sleepBedtimeTarget,
+                                        sleepWakeTimeTarget: result.sleepWakeTimeTarget,
                                       );
                                       Navigator.pushReplacement(
                                         context,

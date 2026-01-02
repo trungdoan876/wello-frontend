@@ -88,6 +88,19 @@ class NutritionRemoteDataSource {
   Future<bool> verifyUser(String userId) async {
     final url = Uri.parse('$baseUrl/user/verify?userId=$userId');
 
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else if (response.statusCode == 404) {
+      return false;
+    } else {
+      throw Exception('Failed to verify user: ${response.statusCode}');
+    }
+  }
 
   /// Get daily nutrition summary for a specific date
   /// @param userId - User ID

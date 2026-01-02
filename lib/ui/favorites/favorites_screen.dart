@@ -56,6 +56,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
       print('Dang tai danh sach yeu thich cua user: $userId...');
       
+      if (!mounted) return;
+      
       final favoritesProvider = context.read<FavoritesProvider>();
       await favoritesProvider.fetchFavorites(userId);
       
@@ -367,6 +369,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   throw Exception('Invalid user ID');
                 }
 
+                if (!mounted) return;
+
                 final result = await Navigator.push<bool>(
                   context,
                   MaterialPageRoute(
@@ -416,6 +420,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   if (userId == 0) {
                     throw Exception('Invalid user ID');
                   }
+
+                  if (!mounted) return;
 
                   final favoritesProvider = context.read<FavoritesProvider>();
                   

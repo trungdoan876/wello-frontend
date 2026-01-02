@@ -13,9 +13,9 @@ class CalculateBmiResponse {
 
   factory CalculateBmiResponse.fromJson(Map<String, dynamic> json) {
     return CalculateBmiResponse(
-      bmi: (json['bmi'] as num).toDouble(),
-      status: json['status'] as String,
-      statusText: json['statusText'] as String,
+      bmi: (json['bmi'] ?? 0.0) as double,
+      status: (json['status'] ?? 'NORMAL') as String,
+      statusText: (json['statusText'] ?? 'Bình thường') as String,
       warning: json['warning'] as String?,
     );
   }
