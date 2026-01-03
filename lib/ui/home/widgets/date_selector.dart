@@ -106,7 +106,7 @@ class _DateSelectorState extends State<DateSelector> {
 
     final targetDate = weekStart.add(Duration(days: targetWeekday - 1));
 
-    // Don't select future dates
+    /* // Tạm thời bỏ chặn ngày tương lai theo yêu cầu người dùng
     if (targetDate.isAfter(DateTime.now())) {
       // Select today instead
       final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -115,14 +115,15 @@ class _DateSelectorState extends State<DateSelector> {
         credentials.userIdString,
         todayStr,
       );
-    } else {
+    } else { */
       final dateStr = DateFormat('yyyy-MM-dd').format(targetDate);
       await provider.changeDate(
         credentials.token,
         credentials.userIdString,
         dateStr,
       );
-    }
+    // } 
+
   }
 
   @override
@@ -204,9 +205,9 @@ class _DateSelectorState extends State<DateSelector> {
                     if (i == 0) print('UserProfile hoac startDate bi null');
                   }
 
-                  final bool isDisabled = isFuture || isBeforeStart;
+                  final bool isDisabled = isBeforeStart; // Chỉ chặn ngày trước ngày bắt đầu
                   final Color color = isDisabled
-                      ? inactiveColor.withOpacity(0.3) // Dim disabled dates
+                      ? inactiveColor.withOpacity(0.3)
                       : (isActive ? activeColor : inactiveColor);
 
                   return GestureDetector(
@@ -251,28 +252,23 @@ class _DateSelectorState extends State<DateSelector> {
               ),
             ),
 
-            // Next week button (only show when viewing past weeks)
-            _weekOffset < 0
-                ? IconButton(
-                    icon: Icon(
-                      Icons.chevron_right,
-                      color: activeColor,
-                      size: context.sp(5),
-                    ),
-                    padding: EdgeInsets.all(8),
-                    constraints: BoxConstraints(),
-                    onPressed: () async {
-                      setState(() {
-                        _weekOffset++;
-                      });
+            IconButton(
+              icon: Icon(
+                Icons.chevron_right,
+                color: activeColor,
+                size: context.sp(5),
+              ),
+              padding: EdgeInsets.all(8),
+              constraints: BoxConstraints(),
+              onPressed: () async {
+                setState(() {
+                  _weekOffset++;
+                });
 
-                      // Auto-select same weekday in the next week
-                      await _selectDateInWeek();
-                    },
-                  )
-                : SizedBox(
-                    width: context.sp(5) + 16,
-                  ), // Same width as IconButton for alignment
+                // Auto-select same weekday in the next week
+                await _selectDateInWeek();
+              },
+            ),
           ],
         );
       },

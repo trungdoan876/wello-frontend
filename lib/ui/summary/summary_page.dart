@@ -9,6 +9,8 @@ import 'widgets/calorie_card.dart';
 import 'widgets/bmi_card.dart';
 import 'widgets/section_title.dart';
 import 'widgets/water_card.dart';
+import 'widgets/sleep_card.dart';
+
 
 class SummaryPage extends StatelessWidget {
   final SurveyResponseModel survey;
@@ -58,6 +60,13 @@ class SummaryPage extends StatelessWidget {
 
             SizedBox(height: context.h(0.015)),
             WaterCard(survey: survey),
+
+            SizedBox(height: context.h(0.04)),
+            SectionTitle(title: "Mục tiêu giấc ngủ"),
+
+            SizedBox(height: context.h(0.015)),
+            SleepCard(survey: survey),
+
             SizedBox(height: context.h(0.05)),
             Center(
               child: SizedBox(
