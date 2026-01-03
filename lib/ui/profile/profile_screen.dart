@@ -9,8 +9,7 @@ import 'package:wello_frontend/data/repositories/profile_repository.dart';
 import 'package:wello_frontend/data/repositories/nutrition_repository_impl.dart';
 import 'package:wello_frontend/data/data_source/nutrition_remote_data_source.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
-import 'package:wello_frontend/domain/providers/survey_provider.dart';
-import 'package:wello_frontend/data/models/requests/survey_request_model.dart';
+import 'package:wello_frontend/domain/providers/seven_day_stats_provider.dart';
 import 'package:wello_frontend/data/models/responses/survey_response_model.dart';
 import 'package:wello_frontend/domain/entities/weight_history_item.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
@@ -24,6 +23,7 @@ import 'package:wello_frontend/ui/auth/initial_page.dart';
 import 'widgets/water_tracking_card.dart';
 import 'widgets/bmi_card.dart';
 import 'widgets/physical_profile_page.dart';
+import 'seven_day_stats_screen.dart';
 import 'package:wello_frontend/ui/widgets/water_reminder_sheet.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -922,7 +922,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                             ),
                           ),
 
-                        SizedBox(height: context.h(0.02)),
+                        SizedBox(height: context.h(0.025)),
 
                         // Physical profile button
                         Container(
@@ -1228,6 +1228,11 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                           },
                         ),
                         SizedBox(height: context.h(0.03)),
+
+                        // 7-day stats card - Beautiful and unique design
+                        _build7DayStatsCard(context),
+
+                        SizedBox(height: context.h(0.03)),
                         Padding(
                           padding: EdgeInsets.symmetric(
                             horizontal: context.w(0.08),
@@ -1295,6 +1300,223 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
             );
           },
         ),
+      ),
+    );
+  }
+
+  /// Build 7-day stats card with beautiful and unique design
+  Widget _build7DayStatsCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context)
+            .push(
+              MaterialPageRoute(
+                builder: (_) => ChangeNotifierProvider(
+                  create: (_) => SevenDayStatsProvider(),
+                  child: const SevenDayStatsScreen(),
+                ),
+              ),
+            )
+            .then((_) {
+              if (mounted) {
+                _reloadOnReturn();
+              }
+            });
+      },
+      child: Container(
+        padding: EdgeInsets.all(context.w(0.045)),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF8A8FFF), Color(0xFFA39AFF), Color(0xFFBBAAFF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF8A8FFF).withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with icon and title
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(context.w(0.025)),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.bar_chart_rounded,
+                    color: Colors.white,
+                    size: context.sp(7),
+                  ),
+                ),
+                SizedBox(width: context.w(0.03)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Thống kê 7 ngày',
+                        style: GoogleFonts.baloo2(
+                          fontSize: context.sp(7),
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          height: 1.1,
+                        ),
+                      ),
+                      Text(
+                        'Xem chi tiết hoạt động của bạn',
+                        style: GoogleFonts.beVietnamPro(
+                          fontSize: context.sp(4),
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withOpacity(0.85),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.all(context.w(0.02)),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: Colors.white,
+                    size: context.sp(5),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: context.h(0.02)),
+
+            // Stats preview row
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMiniStatItem(
+                    context,
+                    icon: Icons.water_drop_rounded,
+                    label: 'Nước',
+                    color: Colors.blue[300]!,
+                  ),
+                ),
+                SizedBox(width: context.w(0.02)),
+                Expanded(
+                  child: _buildMiniStatItem(
+                    context,
+                    icon: Icons.fitness_center_rounded,
+                    label: 'Tập luyện',
+                    color: Colors.green[300]!,
+                  ),
+                ),
+                SizedBox(width: context.w(0.02)),
+                Expanded(
+                  child: _buildMiniStatItem(
+                    context,
+                    icon: Icons.local_fire_department_rounded,
+                    label: 'Calo',
+                    color: Colors.orange[300]!,
+                  ),
+                ),
+                SizedBox(width: context.w(0.02)),
+                Expanded(
+                  child: _buildMiniStatItem(
+                    context,
+                    icon: Icons.restaurant_rounded,
+                    label: 'Bữa ăn',
+                    color: Colors.pink[300]!,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: context.h(0.015)),
+
+            // Call to action
+            Container(
+              padding: EdgeInsets.symmetric(vertical: context.h(0.012)),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.insights_rounded,
+                    color: Colors.white,
+                    size: context.sp(5),
+                  ),
+                  SizedBox(width: context.w(0.02)),
+                  Text(
+                    'Nhấn để xem thống kê chi tiết',
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(5),
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build mini stat item for preview
+  Widget _buildMiniStatItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        vertical: context.h(0.012),
+        horizontal: context.w(0.015),
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(context.w(0.015)),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.3),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: Colors.white, size: context.sp(5)),
+          ),
+          SizedBox(height: context.h(0.006)),
+          Text(
+            label,
+            style: GoogleFonts.baloo2(
+              fontSize: context.sp(3.8),
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
