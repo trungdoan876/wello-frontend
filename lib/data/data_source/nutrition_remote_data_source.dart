@@ -95,19 +95,8 @@ class NutritionRemoteDataSource {
     );
 
     if (response.statusCode == 200) {
-      final bodyJson = jsonDecode(response.body);
-
-      if (bodyJson is Map<String, dynamic>) {
-        if (bodyJson['exists'] is bool) return bodyJson['exists'] as bool;
-        if (bodyJson['valid'] is bool) return bodyJson['valid'] as bool;
-      } else if (bodyJson is bool) {
-        return bodyJson;
-      }
-
-      // Nếu API trả về cấu trúc khác, coi như verify thành công
       return true;
     } else if (response.statusCode == 404) {
-      // 404 nghĩa là user không tồn tại
       return false;
     } else {
       throw Exception('Failed to verify user: ${response.statusCode}');

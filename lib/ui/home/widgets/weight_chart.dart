@@ -477,8 +477,10 @@ class _WeightChartPainter extends CustomPainter {
     // build points
     final List<Offset> points = [];
     for (int i = 0; i < n; i++) {
-      final double x = leftPadding + (chartW) * (i / (n - 1));
-      final double normalized = (data[i] - minV) / vRange;
+      final double x = n > 1
+          ? leftPadding + (chartW) * (i / (n - 1))
+          : leftPadding + chartW / 2; // Center single point
+      final double normalized = vRange > 0 ? (data[i] - minV) / vRange : 0.5;
       final double y = topPadding + (1 - normalized) * chartH;
       points.add(Offset(x, y));
     }

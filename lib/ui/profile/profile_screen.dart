@@ -13,6 +13,8 @@ import 'package:wello_frontend/domain/providers/seven_day_stats_provider.dart';
 import 'package:wello_frontend/data/models/responses/survey_response_model.dart';
 import 'package:wello_frontend/domain/entities/weight_history_item.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/ui/widgets/sleep_tracking_card.dart';
+
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
@@ -105,6 +107,8 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
       final profileProvider = context.read<ProfileProvider>();
       await profileProvider.loadProfile(_userId!);
 
+      if (!mounted) return;
+
       // Recompute BMI survey using latest profile
       // COMMENTED: Không tự động gọi submitSurvey để tránh tạo weight history không cần thiết
       // final p = profileProvider.profileData;
@@ -125,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
 
       // Reload today's water summary
       final credentials = await AuthHelper.getCredentials();
-      if (credentials != null) {
+      if (credentials != null && mounted) {
         final nutritionProvider = context.read<NutritionProvider>();
         final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
         await nutritionProvider.loadDailySummary(
@@ -1232,6 +1236,49 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                         // 7-day stats card - Beautiful and unique design
                         _build7DayStatsCard(context),
 
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(context.sp(1.6)),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF6C63FF).withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(context.sp(2.5)),
+                                  border: Border.all(
+                                    color: const Color(0xFF6C63FF).withOpacity(0.35),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.nights_stay_rounded,
+                                  size: context.sp(4.8),
+                                  color: const Color(0xFF6C63FF),
+                                ),
+                              ),
+                              SizedBox(width: context.w(0.02)),
+                              Text(
+                                'Mục tiêu giấc ngủ',
+                                style: GoogleFonts.baloo2(
+                                  fontSize: context.sp(7),
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF4C494C),
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: context.h(0.015)),
+                        Consumer<ProfileProvider>(
+                          builder: (context, profileProvider, _) {
+                            final profile = profileProvider.profileData;
+                            return SleepTrackingCard(
+                              targetHours: profile?.sleepTargetHours,
+                              bedtime: profile?.sleepBedtimeTarget,
+                              wakeTime: profile?.sleepWakeTimeTarget,
+                            );
+                          },
+                        ),
                         SizedBox(height: context.h(0.03)),
                         Padding(
                           padding: EdgeInsets.symmetric(
