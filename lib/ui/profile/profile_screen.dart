@@ -1233,9 +1233,6 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                         ),
                         SizedBox(height: context.h(0.03)),
 
-                        // 7-day stats card - Beautiful and unique design
-                        _build7DayStatsCard(context),
-
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Row(
@@ -1243,10 +1240,16 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                               Container(
                                 padding: EdgeInsets.all(context.sp(1.6)),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF6C63FF).withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(context.sp(2.5)),
+                                  color: const Color(
+                                    0xFF6C63FF,
+                                  ).withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(
+                                    context.sp(2.5),
+                                  ),
                                   border: Border.all(
-                                    color: const Color(0xFF6C63FF).withOpacity(0.35),
+                                    color: const Color(
+                                      0xFF6C63FF,
+                                    ).withOpacity(0.35),
                                   ),
                                 ),
                                 child: Icon(
@@ -1279,6 +1282,11 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                             );
                           },
                         ),
+                        SizedBox(height: context.h(0.03)),
+
+                        // 7-day stats card - Beautiful and unique design
+                        _build7DayStatsCard(context),
+
                         SizedBox(height: context.h(0.03)),
                         Padding(
                           padding: EdgeInsets.symmetric(
