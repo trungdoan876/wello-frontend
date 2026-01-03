@@ -10,6 +10,9 @@ class SurveyResponseModel {
   final int? waterIntakeMl;
   final double? height;
   final double? weight;
+  final double? sleepTargetHours;
+  final String? sleepBedtimeTarget;
+  final String? sleepWakeTimeTarget;
 
   SurveyResponseModel({
     required this.bmi,
@@ -23,27 +26,27 @@ class SurveyResponseModel {
     this.waterIntakeMl,
     this.height,
     this.weight,
+    this.sleepTargetHours,
+    this.sleepBedtimeTarget,
+    this.sleepWakeTimeTarget,
   });
 
   factory SurveyResponseModel.fromJson(Map<String, dynamic> json) {
     return SurveyResponseModel(
-      bmi: (json['bmi'] as num).toDouble(),
-      bmiStatus: json['bmiStatus'] as String,
-      bmr: (json['bmr'] as num).toDouble(),
-      tdee: (json['tdee'] as num).toDouble(),
-      dailyCalories: json['dailyCalories'] as int,
-      proteinGram: json['proteinGram'] as int,
-      carbsGram: json['carbsGram'] as int,
-      fatGram: json['fatGram'] as int,
-      waterIntakeMl: json.containsKey('waterIntakeMl')
-          ? (json['waterIntakeMl'] as int)
-          : null,
-      height: json.containsKey('height')
-          ? (json['height'] as num).toDouble()
-          : null,
-      weight: json.containsKey('weight')
-          ? (json['weight'] as num).toDouble()
-          : null,
+      bmi: (json['bmi'] ?? 0.0) as double,
+      bmiStatus: (json['bmiStatus'] ?? 'NORMAL') as String,
+      bmr: (json['bmr'] ?? 0.0) as double,
+      tdee: (json['tdee'] ?? 0.0) as double,
+      dailyCalories: (json['dailyCalories'] ?? 0) as int,
+      proteinGram: (json['proteinGram'] ?? 0) as int,
+      carbsGram: (json['carbsGram'] ?? 0) as int,
+      fatGram: (json['fatGram'] ?? 0) as int,
+      waterIntakeMl: json['waterIntakeMl'] as int?,
+      height: json['height'] != null ? (json['height'] as num).toDouble() : null,
+      weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
+      sleepTargetHours: json['sleepTargetHours'] != null ? (json['sleepTargetHours'] as num).toDouble() : null,
+      sleepBedtimeTarget: json['sleepBedtimeTarget'] as String?,
+      sleepWakeTimeTarget: json['sleepWakeTimeTarget'] as String?,
     );
   }
 
@@ -60,6 +63,9 @@ class SurveyResponseModel {
       'waterIntakeMl': waterIntakeMl,
       'height': height,
       'weight': weight,
+      'sleepTargetHours': sleepTargetHours,
+      'sleepBedtimeTarget': sleepBedtimeTarget,
+      'sleepWakeTimeTarget': sleepWakeTimeTarget,
     };
   }
 }
