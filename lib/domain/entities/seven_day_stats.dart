@@ -21,6 +21,10 @@ class SevenDayStats {
   final double averageCaloriesBurned;
   final double averageCaloriesDeficit;
 
+  // Daily series (optional, used for charts)
+  final List<double> dailyWaterMl;
+  final List<double> dailyCaloriesConsumed;
+
   // Meals
   final int totalMeals;
   final double averageMealsPerDay;
@@ -58,6 +62,8 @@ class SevenDayStats {
     required this.averageCaloriesConsumed,
     required this.averageCaloriesBurned,
     required this.averageCaloriesDeficit,
+    this.dailyWaterMl = const [],
+    this.dailyCaloriesConsumed = const [],
     required this.totalMeals,
     required this.averageMealsPerDay,
     required this.breakfastCount,
@@ -95,6 +101,16 @@ class SevenDayStats {
           .toDouble(),
       averageCaloriesBurned: (json['averageCaloriesBurned'] ?? 0).toDouble(),
       averageCaloriesDeficit: (json['averageCaloriesDeficit'] ?? 0).toDouble(),
+      dailyWaterMl: json['dailyWaterMl'] is List
+          ? (json['dailyWaterMl'] as List)
+                .map<double>((e) => (e as num?)?.toDouble() ?? 0.0)
+                .toList()
+          : const <double>[],
+      dailyCaloriesConsumed: json['dailyCaloriesConsumed'] is List
+          ? (json['dailyCaloriesConsumed'] as List)
+                .map<double>((e) => (e as num?)?.toDouble() ?? 0.0)
+                .toList()
+          : const <double>[],
       totalMeals: json['totalMeals'] ?? 0,
       averageMealsPerDay: (json['averageMealsPerDay'] ?? 0).toDouble(),
       breakfastCount: json['breakfastCount'] ?? 0,
