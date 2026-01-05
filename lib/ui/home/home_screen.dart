@@ -21,7 +21,7 @@ import 'widgets/bedtime_bottom_sheet.dart';
 import 'widgets/waketime_bottom_sheet.dart';
 import 'widgets/edit_sleep_bottom_sheet.dart';
 import 'package:wello_frontend/domain/providers/sleep_provider.dart';
-
+import 'widgets/today_progress_card.dart';
 
 import 'package:wello_frontend/core/services/notification_service.dart';
 
@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
       final profileProvider = context.read<ProfileProvider>();
       _profileProviderRef = profileProvider;
       profileProvider.addListener(_onProfileChanged);
-      
+
       final nutritionProvider = context.read<NutritionProvider>();
       nutritionProvider.addListener(_onNutritionChanged);
     });
@@ -112,10 +112,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   }
 
   Future<void> _loadAll() async {
-    await Future.wait([
-      _loadNutritionData(),
-      _loadSleepData(),
-    ]);
+    await Future.wait([_loadNutritionData(), _loadSleepData()]);
   }
 
   Future<void> _reloadAll() async {
@@ -189,19 +186,28 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                         children: <Widget>[
                           const WaterTracker(),
                           SizedBox(height: context.h(0.04)),
+                          const TodayProgressCard(),
+                          SizedBox(height: context.h(0.04)),
                           // Daily Sleep Log Card
                           Consumer2<SleepProvider, NutritionProvider>(
                             builder: (context, sleepProvider, nutritionProvider, _) {
-                              final sleepTarget = nutritionProvider.userProfile?.sleepTargetHours ?? 8.0;
-                              
+                              final sleepTarget =
+                                  nutritionProvider
+                                      .userProfile
+                                      ?.sleepTargetHours ??
+                                  8.0;
+
                               return DailySleepCard(
                                 status: sleepProvider.status,
                                 completedRecord: sleepProvider.completedSleep,
                                 activeRecord: sleepProvider.activeSleep,
-                                dashboardDate: DateTime.tryParse(nutritionProvider.selectedDate),
+                                dashboardDate: DateTime.tryParse(
+                                  nutritionProvider.selectedDate,
+                                ),
                                 targetHours: sleepTarget,
                                 onLogBedtime: () async {
-                                  final credentials = await AuthHelper.getCredentials();
+                                  final credentials =
+                                      await AuthHelper.getCredentials();
                                   if (credentials == null) return;
 
                                   showModalBottomSheet(
@@ -209,8 +215,13 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                     isScrollControlled: true,
                                     backgroundColor: Colors.transparent,
                                     builder: (context) => BedtimeBottomSheet(
-                                      initialBedtime: _parseTime(nutritionProvider.userProfile?.sleepBedtimeTarget),
-                                      displayDate: nutritionProvider.selectedDate,
+                                      initialBedtime: _parseTime(
+                                        nutritionProvider
+                                            .userProfile
+                                            ?.sleepBedtimeTarget,
+                                      ),
+                                      displayDate:
+                                          nutritionProvider.selectedDate,
                                       onSaved: (bedtime) async {
                                         // bedtime is now full ISO timestamp: "2026-01-03T22:00:00"
                                         await sleepProvider.logBedtime(
@@ -222,7 +233,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                   );
                                 },
                                 onLogWaketime: () async {
-                                  final credentials = await AuthHelper.getCredentials();
+                                  final credentials =
+                                      await AuthHelper.getCredentials();
                                   if (credentials == null) return;
 
                                   showModalBottomSheet(
@@ -230,46 +242,67 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                     isScrollControlled: true,
                                     backgroundColor: Colors.transparent,
                                     builder: (context) => WaketimeBottomSheet(
-                                      bedtime: sleepProvider.bedtime ?? 
-                                               nutritionProvider.userProfile?.sleepBedtimeTarget ?? 
-                                               "21:00",
-                                      initialWakeTime: _parseTime(nutritionProvider.userProfile?.sleepWakeTimeTarget),
+                                      bedtime:
+                                          sleepProvider.bedtime ??
+                                          nutritionProvider
+                                              .userProfile
+                                              ?.sleepBedtimeTarget ??
+                                          "21:00",
+                                      initialWakeTime: _parseTime(
+                                        nutritionProvider
+                                            .userProfile
+                                            ?.sleepWakeTimeTarget,
+                                      ),
                                       targetHours: sleepTarget,
-                                      displayDate: nutritionProvider.selectedDate,
+                                      displayDate:
+                                          nutritionProvider.selectedDate,
                                       onSaved: (wakeTime, actualHours, quality, notes) async {
                                         try {
                                           // wakeTime is now full ISO timestamp: "2026-01-03T07:00:00"
-                                          final success = await sleepProvider.completeSleep(
-                                            credentials.userId,
-                                            wakeTime, // Pass ISO string directly
-                                            quality: quality,
-                                            notes: notes,
-                                          );
-                                          
+                                          final success = await sleepProvider
+                                              .completeSleep(
+                                                credentials.userId,
+                                                wakeTime, // Pass ISO string directly
+                                                quality: quality,
+                                                notes: notes,
+                                              );
+
                                           if (!success && context.mounted) {
                                             // Hiển thị lỗi nếu API không thành công
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  sleepProvider.errorMessage ?? 'Không thể lưu giấc ngủ',
+                                                  sleepProvider.errorMessage ??
+                                                      'Không thể lưu giấc ngủ',
                                                   style: GoogleFonts.baloo2(),
                                                 ),
-                                                backgroundColor: Colors.red.shade600,
-                                                behavior: SnackBarBehavior.floating,
+                                                backgroundColor:
+                                                    Colors.red.shade600,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
                                               ),
                                             );
                                           }
                                         } catch (e) {
                                           // Hiển thị lỗi exception
                                           if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  e.toString().replaceFirst('Exception: ', ''),
+                                                  e.toString().replaceFirst(
+                                                    'Exception: ',
+                                                    '',
+                                                  ),
                                                   style: GoogleFonts.baloo2(),
                                                 ),
-                                                backgroundColor: Colors.red.shade600,
-                                                behavior: SnackBarBehavior.floating,
+                                                backgroundColor:
+                                                    Colors.red.shade600,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
                                               ),
                                             );
                                           }
@@ -280,47 +313,71 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                 },
                                 onEdit: () {
                                   // TODO: Show edit bottom sheet
-                                   final current = sleepProvider.completedSleep;
-                                   if (current == null) return;
+                                  final current = sleepProvider.completedSleep;
+                                  if (current == null) return;
 
-                                   showModalBottomSheet(
-                                     context: context,
-                                     isScrollControlled: true,
-                                     backgroundColor: Colors.transparent,
-                                     builder: (context) => EditSleepBottomSheet(
-                                       initialBedtime: sleepProvider.bedtime ?? "22:00",
-                                       initialWakeTime: sleepProvider.wakeTime ?? "07:00",
-                                       initialQuality: current.quality ?? 4,
-                                       initialNotes: current.notes,
-                                       displayDate: nutritionProvider.selectedDate,
-                                       onSaved: (bedtime, wakeTime, quality, notes) async {
-                                         final credentials = await AuthHelper.getCredentials();
-                                         if (credentials == null) return;
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) => EditSleepBottomSheet(
+                                      initialBedtime:
+                                          sleepProvider.bedtime ?? "22:00",
+                                      initialWakeTime:
+                                          sleepProvider.wakeTime ?? "07:00",
+                                      initialQuality: current.quality ?? 4,
+                                      initialNotes: current.notes,
+                                      displayDate:
+                                          nutritionProvider.selectedDate,
+                                      onSaved:
+                                          (
+                                            bedtime,
+                                            wakeTime,
+                                            quality,
+                                            notes,
+                                          ) async {
+                                            final credentials =
+                                                await AuthHelper.getCredentials();
+                                            if (credentials == null) return;
 
-                                         final bedtimeParts = bedtime.split(':');
-                                         final wakeTimeParts = wakeTime.split(':');
+                                            final bedtimeParts = bedtime.split(
+                                              ':',
+                                            );
+                                            final wakeTimeParts = wakeTime
+                                                .split(':');
 
-                                         await sleepProvider.updateSleep(
-                                           userId: credentials.userId,
-                                           sleepId: current.id,
-                                           originalSleepTime: DateTime.parse(current.sleepTime),
-                                           newBedtime: TimeOfDay(
-                                             hour: int.parse(bedtimeParts[0]),
-                                             minute: int.parse(bedtimeParts[1]),
-                                           ),
-                                           newWakeTime: TimeOfDay(
-                                             hour: int.parse(wakeTimeParts[0]),
-                                             minute: int.parse(wakeTimeParts[1]),
-                                           ),
-                                           quality: quality,
-                                           notes: notes,
-                                         );
-                                       },
-                                     ),
-                                   );
+                                            await sleepProvider.updateSleep(
+                                              userId: credentials.userId,
+                                              sleepId: current.id,
+                                              originalSleepTime: DateTime.parse(
+                                                current.sleepTime,
+                                              ),
+                                              newBedtime: TimeOfDay(
+                                                hour: int.parse(
+                                                  bedtimeParts[0],
+                                                ),
+                                                minute: int.parse(
+                                                  bedtimeParts[1],
+                                                ),
+                                              ),
+                                              newWakeTime: TimeOfDay(
+                                                hour: int.parse(
+                                                  wakeTimeParts[0],
+                                                ),
+                                                minute: int.parse(
+                                                  wakeTimeParts[1],
+                                                ),
+                                              ),
+                                              quality: quality,
+                                              notes: notes,
+                                            );
+                                          },
+                                    ),
+                                  );
                                 },
                                 onDelete: () async {
-                                  final credentials = await AuthHelper.getCredentials();
+                                  final credentials =
+                                      await AuthHelper.getCredentials();
                                   if (credentials == null) return;
 
                                   final sleepId = sleepProvider.sleepId;
@@ -330,15 +387,21 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                     context: context,
                                     builder: (context) => AlertDialog(
                                       title: Text('Xóa giấc ngủ?'),
-                                      content: Text('Bạn có chắc muốn xóa dữ liệu giấc ngủ hôm nay?'),
+                                      content: Text(
+                                        'Bạn có chắc muốn xóa dữ liệu giấc ngủ hôm nay?',
+                                      ),
                                       actions: [
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context, false),
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
                                           child: Text('Hủy'),
                                         ),
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context, true),
-                                          style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: Colors.red,
+                                          ),
                                           child: Text('Xóa'),
                                         ),
                                       ],
