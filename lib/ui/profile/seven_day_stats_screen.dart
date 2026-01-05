@@ -144,13 +144,21 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                 SizedBox(height: context.h(0.02)),
 
                 // Key metrics section
-                _buildSectionTitle(context, 'Chỉ số chính', icon: Icons.dashboard_rounded),
+                _buildSectionTitle(
+                  context,
+                  'Chỉ số chính',
+                  icon: Icons.dashboard_rounded,
+                ),
                 SizedBox(height: context.h(0.015)),
                 _buildKeyMetrics(context, stats),
                 SizedBox(height: context.h(0.025)),
 
                 // Water statistics
-                _buildSectionTitle(context, 'Nước uống', icon: Icons.water_drop_rounded),
+                _buildSectionTitle(
+                  context,
+                  'Nước uống',
+                  icon: Icons.water_drop_rounded,
+                ),
                 SizedBox(height: context.h(0.01)),
                 _buildWaterStats(context, stats),
                 SizedBox(height: context.h(0.015)),
@@ -158,7 +166,11 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                 SizedBox(height: context.h(0.02)),
 
                 // Calorie statistics
-                _buildSectionTitle(context, 'Calo', icon: Icons.local_fire_department_rounded),
+                _buildSectionTitle(
+                  context,
+                  'Calo',
+                  icon: Icons.local_fire_department_rounded,
+                ),
                 SizedBox(height: context.h(0.015)),
                 _buildCalorieStats(context, stats),
                 SizedBox(height: context.h(0.015)),
@@ -166,13 +178,21 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                 SizedBox(height: context.h(0.025)),
 
                 // Meal statistics
-                _buildSectionTitle(context, 'Thống kê bữa ăn', icon: Icons.restaurant_rounded),
+                _buildSectionTitle(
+                  context,
+                  'Thống kê bữa ăn',
+                  icon: Icons.restaurant_rounded,
+                ),
                 SizedBox(height: context.h(0.015)),
                 _buildMealStats(context, stats),
                 SizedBox(height: context.h(0.025)),
 
                 // Macronutrient statistics
-                _buildSectionTitle(context, 'Đạm / Carb / Chất béo', icon: Icons.pie_chart_rounded),
+                _buildSectionTitle(
+                  context,
+                  'Đạm / Carb / Chất béo',
+                  icon: Icons.pie_chart_rounded,
+                ),
                 SizedBox(height: context.h(0.015)),
                 _buildMacroStats(context, stats),
                 SizedBox(height: context.h(0.015)),
@@ -180,7 +200,11 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                 SizedBox(height: context.h(0.025)),
 
                 // Workout statistics
-                _buildSectionTitle(context, 'Hoạt động thể chất', icon: Icons.fitness_center_rounded),
+                _buildSectionTitle(
+                  context,
+                  'Hoạt động thể chất',
+                  icon: Icons.fitness_center_rounded,
+                ),
                 SizedBox(height: context.h(0.01)),
                 _buildWorkoutStats(context, stats),
                 SizedBox(height: context.h(0.03)),
@@ -277,7 +301,11 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title, {IconData? icon}) {
+  Widget _buildSectionTitle(
+    BuildContext context,
+    String title, {
+    IconData? icon,
+  }) {
     return Container(
       margin: EdgeInsets.only(left: context.w(0.01)),
       padding: EdgeInsets.symmetric(
@@ -375,10 +403,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
       padding: EdgeInsets.all(context.w(0.035)),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Colors.white,
-            color.withOpacity(0.03),
-          ],
+          colors: [Colors.white, color.withOpacity(0.03)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -390,10 +415,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
             offset: const Offset(0, 6),
           ),
         ],
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.2), width: 1.5),
       ),
       child: Column(
         children: [
@@ -458,10 +480,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                     ),
                     borderRadius: BorderRadius.circular(3),
                     boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.3),
-                        blurRadius: 4,
-                      ),
+                      BoxShadow(color: color.withOpacity(0.3), blurRadius: 4),
                     ],
                   ),
                 ),
@@ -495,7 +514,10 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(context.w(0.04)),
-            border: Border.all(color: const Color(0xFF64B5F6).withOpacity(0.3), width: 1),
+            border: Border.all(
+              color: const Color(0xFF64B5F6).withOpacity(0.3),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF64B5F6).withOpacity(0.3),
@@ -644,81 +666,77 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
       ),
       child: IntrinsicHeight(
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(context.w(0.03)),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [borderColor.withOpacity(0.9), borderColor],
-              ),
-              borderRadius: BorderRadius.circular(context.w(0.03)),
-              boxShadow: [
-                BoxShadow(
-                  color: borderColor.withOpacity(0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(context.w(0.03)),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [borderColor.withOpacity(0.9), borderColor],
                 ),
-              ],
+                borderRadius: BorderRadius.circular(context.w(0.03)),
+                boxShadow: [
+                  BoxShadow(
+                    color: borderColor.withOpacity(0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: Colors.white, size: context.sp(8)),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: context.sp(8),
+            SizedBox(height: context.h(0.012)),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.baloo2(
+                  fontSize: context.sp(3.8),
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          SizedBox(height: context.h(0.012)),
-          Expanded(
-            child: Text(
-            label,
-            style: GoogleFonts.baloo2(
-              fontSize: context.sp(3.8),
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
+            SizedBox(height: context.h(0.008)),
+            Text(
+              value,
+              style: GoogleFonts.baloo2(
+                fontSize: context.sp(8),
+                fontWeight: FontWeight.w900,
+                color: borderColor,
+                height: 1,
+              ),
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          SizedBox(height: context.h(0.008)),
-          Text(
-            value,
-            style: GoogleFonts.baloo2(
-              fontSize: context.sp(8),
-              fontWeight: FontWeight.w900,
-              color: borderColor,
-              height: 1,
-            ),
-          ),
-          Text(
-            unit,
-            style: GoogleFonts.baloo2(
-              fontSize: context.sp(3.5),
-              fontWeight: FontWeight.w500,
-              color: borderColor.withOpacity(0.7),
-            ),
-          ),
-          SizedBox(height: context.h(0.01)),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: context.w(0.025),
-              vertical: context.h(0.006),
-            ),
-            decoration: BoxDecoration(
-              color: borderColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(context.w(0.02)),
-            ),
-            child: Text(
-              'TB: $value',
+            Text(
+              unit,
               style: GoogleFonts.baloo2(
                 fontSize: context.sp(3.5),
-                fontWeight: FontWeight.w600,
-                color: borderColor,
+                fontWeight: FontWeight.w500,
+                color: borderColor.withOpacity(0.7),
               ),
             ),
-          ),
-        ],
+            SizedBox(height: context.h(0.01)),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: context.w(0.025),
+                vertical: context.h(0.006),
+              ),
+              decoration: BoxDecoration(
+                color: borderColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(context.w(0.02)),
+              ),
+              child: Text(
+                'TB: $value',
+                style: GoogleFonts.baloo2(
+                  fontSize: context.sp(3.5),
+                  fontWeight: FontWeight.w600,
+                  color: borderColor,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -736,7 +754,8 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                 color: const Color(0xFFFF6B6B),
                 label: 'Tiêu thụ',
                 value: stats.totalCaloriesConsumed.toStringAsFixed(0),
-                subtitle: 'TB: ${stats.averageCaloriesConsumed.toStringAsFixed(0)}',
+                subtitle:
+                    'TB: ${stats.averageCaloriesConsumed.toStringAsFixed(0)}',
               ),
             ),
             SizedBox(width: context.w(0.03)),
@@ -747,7 +766,8 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                 color: const Color(0xFFFF8C42),
                 label: 'Đốt cháy',
                 value: stats.totalCaloriesBurned.toStringAsFixed(0),
-                subtitle: 'TB: ${stats.averageCaloriesBurned.toStringAsFixed(0)}',
+                subtitle:
+                    'TB: ${stats.averageCaloriesBurned.toStringAsFixed(0)}',
               ),
             ),
           ],
@@ -774,18 +794,12 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
       padding: EdgeInsets.all(context.w(0.04)),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.15),
-            color.withOpacity(0.05),
-          ],
+          colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
             color: color.withOpacity(0.1),
@@ -799,9 +813,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
           Container(
             padding: EdgeInsets.all(context.w(0.025)),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color.withOpacity(0.8), color],
-              ),
+              gradient: LinearGradient(colors: [color.withOpacity(0.8), color]),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -811,11 +823,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                 ),
               ],
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: context.sp(6),
-            ),
+            child: Icon(icon, color: Colors.white, size: context.sp(6)),
           ),
           SizedBox(height: context.h(0.012)),
           Text(
@@ -873,34 +881,29 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
     required String deficit,
     required String avgDeficit,
   }) {
-    final isPositive = double.tryParse(deficit) != null && double.parse(deficit) < 0;
-    final color = isPositive ? const Color(0xFF51CF66) : const Color(0xFF8A8FFF);
-    
+    final isPositive =
+        double.tryParse(deficit) != null && double.parse(deficit) < 0;
+    final color = isPositive
+        ? const Color(0xFF51CF66)
+        : const Color(0xFF8A8FFF);
+
     return Container(
       padding: EdgeInsets.all(context.w(0.04)),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.15),
-            color.withOpacity(0.05),
-          ],
+          colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
       ),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(context.w(0.03)),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color.withOpacity(0.8), color],
-              ),
+              gradient: LinearGradient(colors: [color.withOpacity(0.8), color]),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -911,7 +914,9 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
               ],
             ),
             child: Icon(
-              isPositive ? Icons.trending_down_rounded : Icons.trending_up_rounded,
+              isPositive
+                  ? Icons.trending_down_rounded
+                  : Icons.trending_up_rounded,
               color: Colors.white,
               size: context.sp(7),
             ),
@@ -949,10 +954,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
             decoration: BoxDecoration(
               color: color.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: color.withOpacity(0.3),
-                width: 1,
-              ),
+              border: Border.all(color: color.withOpacity(0.3), width: 1),
             ),
             child: Column(
               children: [
@@ -988,10 +990,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
           padding: EdgeInsets.all(context.w(0.04)),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [
-                Color(0xFFFFF3CD),
-                Color(0xFFFFE5B4),
-              ],
+              colors: [Color(0xFFFFF3CD), Color(0xFFFFE5B4)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -1153,27 +1152,19 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
       padding: EdgeInsets.all(context.w(0.035)),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.15),
-            color.withOpacity(0.05),
-          ],
+          colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
       ),
       child: Column(
         children: [
           Container(
             padding: EdgeInsets.all(context.w(0.025)),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color.withOpacity(0.8), color],
-              ),
+              gradient: LinearGradient(colors: [color.withOpacity(0.8), color]),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -1183,11 +1174,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                 ),
               ],
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: context.sp(5.5),
-            ),
+            child: Icon(icon, color: Colors.white, size: context.sp(5.5)),
           ),
           SizedBox(height: context.h(0.01)),
           Text(
@@ -1275,18 +1262,12 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
       padding: EdgeInsets.all(context.w(0.035)),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.08),
-            color.withOpacity(0.03),
-          ],
+          colors: [color.withOpacity(0.08), color.withOpacity(0.03)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
       ),
       child: Row(
         children: [
@@ -1307,11 +1288,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                 ),
               ],
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: context.sp(6),
-            ),
+            child: Icon(icon, color: Colors.white, size: context.sp(6)),
           ),
           SizedBox(width: context.w(0.035)),
           Expanded(
@@ -1358,10 +1335,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
             decoration: BoxDecoration(
               color: color.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: color.withOpacity(0.3),
-                width: 1,
-              ),
+              border: Border.all(color: color.withOpacity(0.3), width: 1),
             ),
             child: Column(
               children: [
@@ -1403,7 +1377,10 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(context.w(0.04)),
-            border: Border.all(color: const Color(0xFF7EC8FF).withOpacity(0.3), width: 1),
+            border: Border.all(
+              color: const Color(0xFF7EC8FF).withOpacity(0.3),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF7EC8FF).withOpacity(0.3),
@@ -1552,11 +1529,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                 ),
               ],
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: context.sp(8),
-            ),
+            child: Icon(icon, color: Colors.white, size: context.sp(8)),
           ),
           SizedBox(height: context.h(0.012)),
           Text(
@@ -1612,8 +1585,6 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
     );
   }
 
-
-
   Widget _buildEmptyChartCard(BuildContext context, String message) {
     return Container(
       height: context.h(0.22),
@@ -1662,7 +1633,9 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
     }
 
     final maxWater = waterData.reduce((a, b) => a > b ? a : b);
-    final maxY = (maxWater > 0 ? maxWater * 1.25 : 800).clamp(600.0, 4000.0).toDouble();
+    final maxY = (maxWater > 0 ? maxWater * 1.25 : 800)
+        .clamp(600.0, 4000.0)
+        .toDouble();
 
     return Container(
       height: context.h(0.3),
@@ -1679,9 +1652,8 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
-                  const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
                   return Text(
-                    days[value.toInt() % days.length],
+                    '${value.toInt() + 1}',
                     style: GoogleFonts.baloo2(
                       fontSize: context.sp(3.5),
                       fontWeight: FontWeight.w600,
@@ -1744,14 +1716,13 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
     final calorieData = stats.dailyCaloriesConsumed;
 
     if (calorieData.isEmpty) {
-      return _buildEmptyChartCard(
-        context,
-        'Chưa có dữ liệu calo từng ngày.',
-      );
+      return _buildEmptyChartCard(context, 'Chưa có dữ liệu calo từng ngày.');
     }
 
     final maxCalorie = calorieData.reduce((a, b) => a > b ? a : b);
-    final maxY = (maxCalorie > 0 ? maxCalorie * 1.25 : 800).clamp(400.0, 3200.0).toDouble();
+    final maxY = (maxCalorie > 0 ? maxCalorie * 1.25 : 800)
+        .clamp(400.0, 3200.0)
+        .toDouble();
 
     return Container(
       height: context.h(0.24),
@@ -1768,9 +1739,8 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
-                  const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
                   return Text(
-                    days[value.toInt() % days.length],
+                    '${value.toInt() + 1}',
                     style: GoogleFonts.baloo2(
                       fontSize: context.sp(3.5),
                       fontWeight: FontWeight.w500,
@@ -1835,13 +1805,13 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
     final avgFat = stats.averageFatPerDay.toDouble();
 
     if (avgProtein <= 0 && avgCarbs <= 0 && avgFat <= 0) {
-      return _buildEmptyChartCard(
-        context,
-        'Chưa có dữ liệu từng ngày.',
-      );
+      return _buildEmptyChartCard(context, 'Chưa có dữ liệu từng ngày.');
     }
 
-    final totalMacro = (avgProtein + avgCarbs + avgFat).clamp(0.0001, double.infinity);
+    final totalMacro = (avgProtein + avgCarbs + avgFat).clamp(
+      0.0001,
+      double.infinity,
+    );
     final baseRing = (totalMacro * 0.25).clamp(0.0001, double.infinity);
     final totalKcal = (avgProtein * 4 + avgCarbs * 4 + avgFat * 9)
         .clamp(0, double.infinity)
@@ -1878,21 +1848,30 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
                         color: const Color(0xFF30C6D9), // aqua
                         showTitle: false,
                         radius: 50,
-                        borderSide: const BorderSide(color: Colors.white, width: 2.5),
+                        borderSide: const BorderSide(
+                          color: Colors.white,
+                          width: 2.5,
+                        ),
                       ),
                       PieChartSectionData(
                         value: avgCarbs,
                         color: const Color(0xFFFF7BA0), // pink
                         showTitle: false,
                         radius: 50,
-                        borderSide: const BorderSide(color: Colors.white, width: 2.5),
+                        borderSide: const BorderSide(
+                          color: Colors.white,
+                          width: 2.5,
+                        ),
                       ),
                       PieChartSectionData(
                         value: avgFat,
                         color: const Color(0xFFB27BFF), // violet
                         showTitle: false,
                         radius: 50,
-                        borderSide: const BorderSide(color: Colors.white, width: 2.5),
+                        borderSide: const BorderSide(
+                          color: Colors.white,
+                          width: 2.5,
+                        ),
                       ),
                     ],
                   ),
@@ -1934,10 +1913,7 @@ class _SevenDayStatsScreenState extends State<SevenDayStatsScreen> {
         Container(
           width: context.w(0.03),
           height: context.w(0.03),
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         SizedBox(width: context.w(0.015)),
         Text(

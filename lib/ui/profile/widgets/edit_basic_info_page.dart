@@ -66,6 +66,14 @@ class _EditBasicInfoPageState extends State<EditBasicInfoPage> {
       }
     }
 
+    // Debug: Print all available questions
+    print('=== Available Questions ===');
+    for (var q in questionProvider.questions) {
+      print(
+        'ID: ${q.id}, Type: ${q.type}, Key: ${q.key}, Question: ${q.question}',
+      );
+    }
+
     try {
       return questionProvider.questions.firstWhere(matcher);
     } catch (_) {
@@ -216,8 +224,14 @@ class _EditBasicInfoPageState extends State<EditBasicInfoPage> {
         final text = q.question.toLowerCase();
         final key = q.key?.toLowerCase();
         return q.type == 'height' ||
+            q.type == 'number' &&
+                (text.contains('cao') ||
+                    text.contains('chiều cao') ||
+                    text.contains('chieu cao')) ||
             key == 'height' ||
-            text.contains('chiều cao');
+            text.contains('chiều cao') ||
+            text.contains('cao') && text.contains('bạn') ||
+            text.contains('chieu cao');
       }, 'Không tìm thấy cấu hình câu hỏi chiều cao.');
       if (heightQuestion == null) return;
 

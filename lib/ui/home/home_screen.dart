@@ -21,7 +21,6 @@ import 'widgets/bedtime_bottom_sheet.dart';
 import 'widgets/waketime_bottom_sheet.dart';
 import 'widgets/edit_sleep_bottom_sheet.dart';
 import 'package:wello_frontend/domain/providers/sleep_provider.dart';
-import 'widgets/today_progress_card.dart';
 
 import 'package:wello_frontend/core/services/notification_service.dart';
 
@@ -185,8 +184,6 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           const WaterTracker(),
-                          SizedBox(height: context.h(0.04)),
-                          const TodayProgressCard(),
                           SizedBox(height: context.h(0.04)),
                           // Daily Sleep Log Card
                           Consumer2<SleepProvider, NutritionProvider>(
