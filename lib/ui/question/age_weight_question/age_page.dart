@@ -176,6 +176,7 @@ class _AgePageState extends State<AgePage> {
                                 question: nextQuestion,
                                 fullname: widget.fullname,
                                 gender: widget.gender,
+                                age: age,  // Pass the age value user just entered
                                 userId: widget.userId,
                               ),
                             ),

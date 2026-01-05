@@ -8,6 +8,9 @@ class UserProfile {
   final int dailyCalorieBurned;
   final int dailyWaterTarget;
   final MacroTargets macroTargets;
+  final double? sleepTargetHours;
+  final String? sleepBedtimeTarget;
+  final String? sleepWakeTimeTarget;
 
   UserProfile({
     required this.userId,
@@ -18,6 +21,9 @@ class UserProfile {
     this.dailyCalorieBurned = 0,
     this.dailyWaterTarget = 1950,
     required this.macroTargets,
+    this.sleepTargetHours,
+    this.sleepBedtimeTarget,
+    this.sleepWakeTimeTarget,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -30,6 +36,9 @@ class UserProfile {
       dailyCalorieBurned: (json['dailyCalorieBurned'] ?? 0).toInt(),
       dailyWaterTarget: (json['dailyWaterTarget'] ?? 1950).toInt(),
       macroTargets: MacroTargets.fromJson(json['macroTargets'] ?? {}),
+      sleepTargetHours: json['sleepTargetHours'] != null ? (json['sleepTargetHours'] as num).toDouble() : null,
+      sleepBedtimeTarget: json['sleepBedtimeTarget'] as String?,
+      sleepWakeTimeTarget: json['sleepWakeTimeTarget'] as String?,
     );
   }
 
@@ -43,6 +52,9 @@ class UserProfile {
       'dailyCalorieBurned': dailyCalorieBurned,
       'dailyWaterTarget': dailyWaterTarget,
       'macroTargets': macroTargets.toJson(),
+      'sleepTargetHours': sleepTargetHours,
+      'sleepBedtimeTarget': sleepBedtimeTarget,
+      'sleepWakeTimeTarget': sleepWakeTimeTarget,
     };
   }
 

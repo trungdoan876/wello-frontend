@@ -103,10 +103,11 @@ class _WeightGoalCardState extends State<WeightGoalCard> {
     const Color mainYellow = Color(0xFFFFC107);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               'Mục tiêu',
@@ -116,13 +117,18 @@ class _WeightGoalCardState extends State<WeightGoalCard> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text(
-              '(gợi ý) ' + _target,
-              style: GoogleFonts.baloo2(
-                fontSize: context.sp(4.5),
-                color: const Color(0xff6177D0),
-                fontWeight: FontWeight.bold,
-                decoration: TextDecoration.underline,
+            Flexible(
+              child: Text(
+                '(gợi ý) ' + _target,
+                style: GoogleFonts.baloo2(
+                  fontSize: context.sp(4.5),
+                  color: const Color(0xff6177D0),
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                ),
+                textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -440,7 +446,7 @@ class _WeightChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (data.isEmpty) return;
+    if (data.isEmpty || data.length < 2) return;
 
     final paintLine = Paint()
       ..color = const Color(0xff17B2A8)
@@ -471,8 +477,10 @@ class _WeightChartPainter extends CustomPainter {
     // build points
     final List<Offset> points = [];
     for (int i = 0; i < n; i++) {
-      final double x = leftPadding + (chartW) * (i / (n - 1));
-      final double normalized = (data[i] - minV) / vRange;
+      final double x = n > 1
+          ? leftPadding + (chartW) * (i / (n - 1))
+          : leftPadding + chartW / 2; // Center single point
+      final double normalized = vRange > 0 ? (data[i] - minV) / vRange : 0.5;
       final double y = topPadding + (1 - normalized) * chartH;
       points.add(Offset(x, y));
     }

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../../domain/entities/nutrition_summary.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/week_overview.dart';
+import '../../domain/entities/seven_day_stats.dart';
 import '../models/requests/log_food_request.dart';
 import '../models/responses/log_food_response.dart';
 import '../../domain/entities/food_history_item.dart';
@@ -91,22 +92,7 @@ class NutritionRemoteDataSource {
       url,
       headers: {'Content-Type': 'application/json'},
     );
-
     if (response.statusCode == 200) {
-      // Try to read common boolean flags from the response; default to true on 200
-      try {
-        final bodyJson = jsonDecode(response.body);
-        if (bodyJson is Map<String, dynamic>) {
-          if (bodyJson['exists'] is bool) return bodyJson['exists'] as bool;
-          if (bodyJson['valid'] is bool) return bodyJson['valid'] as bool;
-          if (bodyJson['success'] is bool) return bodyJson['success'] as bool;
-        }
-        if (response.body.trim().toLowerCase() == 'true') {
-          return true;
-        }
-      } catch (_) {
-        // Ignore parse errors, fall back to success on 200
-      }
       return true;
     } else if (response.statusCode == 404) {
       return false;
@@ -342,6 +328,33 @@ class NutritionRemoteDataSource {
       return bodyJson.map((item) => FoodHistoryItem.fromJson(item)).toList();
     } else {
       throw Exception('Failed to load food history: ${response.statusCode}');
+    }
+  }
+
+  /// Get 7-day statistics summary
+  /// @param userId - User ID
+  /// Endpoint: GET /api/stats/seven-days/{userId}
+  Future<SevenDayStats> getSevenDayStats(String token, String userId) async {
+    final url = Uri.parse('$baseUrl/stats/seven-days/$userId');
+
+    print('Dang goi GET 7-day stats: $url');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print('Trang thai phan hoi: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
+      print('7-day stats response: $bodyJson');
+      return SevenDayStats.fromJson(bodyJson);
+    } else {
+      throw Exception('Failed to load 7-day stats: ${response.statusCode}');
     }
   }
 }

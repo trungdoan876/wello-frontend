@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
+import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/question/gender_question/gender_page.dart';
 import 'package:wello_frontend/ui/question/age_weight_question/age_page.dart';
@@ -49,6 +51,36 @@ class _EditBasicInfoPageState extends State<EditBasicInfoPage> {
   bool _showUpdateSuccess = false;
   String? _successMessage;
 
+  Future<Question?> _loadQuestion(
+    bool Function(Question) matcher,
+    String errorMessage,
+  ) async {
+    final questionProvider = context.read<QuestionProvider>();
+
+    if (questionProvider.questions.isEmpty && !questionProvider.isLoading) {
+      try {
+        await questionProvider.loadQuestions();
+      } catch (_) {
+        _showQuestionError('Không tải được cấu hình câu hỏi từ server');
+        return null;
+      }
+    }
+
+    try {
+      return questionProvider.questions.firstWhere(matcher);
+    } catch (_) {
+      _showQuestionError(errorMessage);
+      return null;
+    }
+  }
+
+  void _showQuestionError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -94,22 +126,20 @@ class _EditBasicInfoPageState extends State<EditBasicInfoPage> {
     }
 
     if (fieldName == 'Giới tính') {
-      final dummyQuestion = Question(
-        id: 0,
-        question: 'Giới tính của bạn?',
-        type: 'radio',
-        options: [
-          QuestionOption(answer: 'Nam', moTa: ''),
-          QuestionOption(answer: 'Nữ', moTa: ''),
-          QuestionOption(answer: 'Khác', moTa: ''),
-        ],
-        unit: '',
-      );
+      final genderQuestion = await _loadQuestion((q) {
+        final text = q.question.toLowerCase();
+        final key = q.key?.toLowerCase();
+        return q.type == 'gender' ||
+            key == 'gender' ||
+            text.contains('giới tính');
+      }, 'Không tìm thấy cấu hình câu hỏi giới tính.');
+      if (genderQuestion == null) return;
+
       final result = await Navigator.push<String>(
         context,
         MaterialPageRoute(
           builder: (_) => GenderPage(
-            question: dummyQuestion,
+            question: genderQuestion,
             initialGender: _gender,
             buttonText: 'Cập nhật',
             onUpdate: widget.onUpdateGender != null
@@ -145,18 +175,18 @@ class _EditBasicInfoPageState extends State<EditBasicInfoPage> {
     }
 
     if (fieldName == 'Tuổi') {
-      final dummyQuestion = Question(
-        id: 0,
-        question: 'Tuổi của bạn?',
-        type: 'number',
-        options: [],
-        unit: 'inputNumber',
-      );
+      final ageQuestion = await _loadQuestion((q) {
+        final text = q.question.toLowerCase();
+        final key = q.key?.toLowerCase();
+        return q.type == 'age' || key == 'age' || text.contains('tuổi');
+      }, 'Không tìm thấy cấu hình câu hỏi tuổi.');
+      if (ageQuestion == null) return;
+
       final result = await Navigator.push<int>(
         context,
         MaterialPageRoute(
           builder: (_) => AgePage(
-            question: dummyQuestion,
+            question: ageQuestion,
             initialAge: _age,
             buttonText: 'Cập nhật',
             onUpdate: (age) async {
@@ -182,18 +212,20 @@ class _EditBasicInfoPageState extends State<EditBasicInfoPage> {
     }
 
     if (fieldName == 'Chiều cao') {
-      final dummyQuestion = Question(
-        id: 0,
-        question: 'Chiều cao của bạn?',
-        type: 'slider',
-        options: [],
-        unit: 'cm',
-      );
+      final heightQuestion = await _loadQuestion((q) {
+        final text = q.question.toLowerCase();
+        final key = q.key?.toLowerCase();
+        return q.type == 'height' ||
+            key == 'height' ||
+            text.contains('chiều cao');
+      }, 'Không tìm thấy cấu hình câu hỏi chiều cao.');
+      if (heightQuestion == null) return;
+
       final result = await Navigator.push<int>(
         context,
         MaterialPageRoute(
           builder: (_) => HeightPage(
-            question: dummyQuestion,
+            question: heightQuestion,
             initialHeight: _height,
             buttonText: 'Cập nhật',
             onUpdate: (height) async {
@@ -219,18 +251,20 @@ class _EditBasicInfoPageState extends State<EditBasicInfoPage> {
     }
 
     if (fieldName == 'Cân nặng hiện tại') {
-      final dummyQuestion = Question(
-        id: 0,
-        question: 'Cân nặng hiện tại của bạn?',
-        type: 'number',
-        options: [],
-        unit: 'kg',
-      );
+      final weightQuestion = await _loadQuestion((q) {
+        final text = q.question.toLowerCase();
+        final key = q.key?.toLowerCase();
+        return q.type == 'weight' ||
+            key == 'weight' ||
+            text.contains('cân nặng');
+      }, 'Không tìm thấy cấu hình câu hỏi cân nặng.');
+      if (weightQuestion == null) return;
+
       final result = await Navigator.push<int>(
         context,
         MaterialPageRoute(
           builder: (_) => WeightPage(
-            question: dummyQuestion,
+            question: weightQuestion,
             initialWeight: _weight,
             buttonText: 'Cập nhật',
             onUpdate: (weight) async {
