@@ -16,12 +16,16 @@ class SurveyRemoteDataSource {
   /// Submit khảo sát và nhận metrics sức khỏe
   Future<SurveyResponseModel> submitSurvey({
     required SurveyRequestModel request,
+    String? token,
   }) async {
     final url = Uri.parse('$baseUrl/survey/submit');
 
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
       body: jsonEncode(request.toJson()),
     );
 
@@ -44,6 +48,7 @@ class SurveyRemoteDataSource {
     required int weight,
     required int height,
     String? goal, // Optional: LOSE_WEIGHT, GAIN_WEIGHT, MAINTAIN_WEIGHT
+    String? token,
   }) async {
     final url = Uri.parse('$baseUrl/survey/calculate-bmi');
     final request = CalculateBmiRequest(
@@ -54,7 +59,10 @@ class SurveyRemoteDataSource {
 
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
       body: jsonEncode(request.toJson()),
     );
 

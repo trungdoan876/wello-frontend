@@ -54,10 +54,17 @@ class UserRemoteDataSource {
   Future<VerifyUserResponse> verifyUser({
     required int userId,
     required String email,
+    String? token,
   }) async {
     final url = Uri.parse('$baseUrl/user/verify?userId=$userId&email=${Uri.encodeComponent(email)}');
     print('Dang goi GET: $url');
-    final response = await http.get(url);
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
 
     if (response.statusCode == 200) {
       final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;

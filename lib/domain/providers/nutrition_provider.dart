@@ -13,6 +13,7 @@ import '../../data/data_source/nutrition_remote_data_source.dart';
 import '../../data/repositories/nutrition_repository_impl.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../repositories/nutrition_repository.dart';
+import '../../core/utils/auth_helper.dart';
 
 /// Provider for managing nutrition and fitness data state
 class NutritionProvider extends ChangeNotifier {
@@ -84,7 +85,10 @@ class NutritionProvider extends ChangeNotifier {
 
     try {
       print('Dang tai ho so nguoi dung cho userId: $userId');
-      _userProfile = await _repository.getUserProfile(token, userId);
+      final credentials = await AuthHelper.getCredentials();
+      final effectiveToken = token.isNotEmpty ? token : (credentials?.token ?? '');
+      
+      _userProfile = await _repository.getUserProfile(effectiveToken, userId);
       print('Da tai UserProfile: ngay bat dau=${_userProfile?.startDate}');
       _isLoadingProfile = false;
       notifyListeners();
@@ -108,7 +112,10 @@ class NutritionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _dailySummary = await _repository.getDailySummary(token, userId, date);
+      final credentials = await AuthHelper.getCredentials();
+      final effectiveToken = token.isNotEmpty ? token : (credentials?.token ?? '');
+      
+      _dailySummary = await _repository.getDailySummary(effectiveToken, userId, date);
 
       // Cache successful data to SharedPreferences
       await _cacheDailySummary(_dailySummary!, date);
@@ -140,7 +147,10 @@ class NutritionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _foodHistory = await _repository.getFoodHistory(token, userId, date);
+      final credentials = await AuthHelper.getCredentials();
+      final effectiveToken = token.isNotEmpty ? token : (credentials?.token ?? '');
+      
+      _foodHistory = await _repository.getFoodHistory(effectiveToken, userId, date);
       _isLoadingHistory = false;
       notifyListeners();
     } catch (e) {
@@ -164,8 +174,11 @@ class NutritionProvider extends ChangeNotifier {
       final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
       final startDate = DateFormat('yyyy-MM-dd').format(startOfWeek);
 
+      final credentials = await AuthHelper.getCredentials();
+      final effectiveToken = token.isNotEmpty ? token : (credentials?.token ?? '');
+
       _weekOverview = await _repository.getWeekOverview(
-        token,
+        effectiveToken,
         userId,
         startDate,
       );
@@ -191,8 +204,11 @@ class NutritionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final credentials = await AuthHelper.getCredentials();
+      final effectiveToken = token.isNotEmpty ? token : (credentials?.token ?? '');
+
       final updatedWaterIntake = await _repository.addWaterGlass(
-        token,
+        effectiveToken,
         userId,
         _selectedDate,
         glassSize: glassSize,
@@ -235,8 +251,11 @@ class NutritionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final credentials = await AuthHelper.getCredentials();
+      final effectiveToken = token.isNotEmpty ? token : (credentials?.token ?? '');
+
       final updatedWaterIntake = await _repository.subtractWaterGlass(
-        token,
+        effectiveToken,
         userId,
         _selectedDate,
         glassSize: glassSize,
@@ -284,8 +303,11 @@ class NutritionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final credentials = await AuthHelper.getCredentials();
+      final effectiveToken = token.isNotEmpty ? token : (credentials?.token ?? '');
+
       final result = await _repository.logFood(
-        token: token,
+        token: effectiveToken,
         userId: userId,
         foodId: foodId,
         amountGrams: amountGrams,
@@ -325,7 +347,11 @@ class NutritionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token;
+
       await _profileRepository.updateWaterReminderSettings(
+        token: token ?? '',
         userId: userId,
         enabled: enabled,
         startHour: startHour,

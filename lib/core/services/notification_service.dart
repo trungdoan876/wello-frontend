@@ -91,6 +91,7 @@ class NotificationService {
       print(token);
       print('------------------------------------------------');
       
+      /* 
       try {
         await _profileRepository.updateFcmToken(
           userId: userId,
@@ -100,6 +101,7 @@ class NotificationService {
       } catch (e) {
         print('Loi cap nhat FCM Token len backend: $e');
       }
+      */
     } else {
       print('Khong the lay FCM token');
     }

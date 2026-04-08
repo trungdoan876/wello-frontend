@@ -13,15 +13,20 @@ class FavoritesRemoteDataSource {
 
   /// Lấy một combo yêu thích theo ID
   Future<FavoriteComboResponse> getFavoriteById({
+    required String token,
     required int favoriteId,
     required int userId,
   }) async {
     final url = Uri.parse('$baseUrl/favorites/$favoriteId?userId=$userId');
 
     try {
-      final response = await http
-          .get(url)
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         return FavoriteComboResponse.fromJson(
@@ -37,18 +42,20 @@ class FavoritesRemoteDataSource {
 
   /// Add a combo to favorites
   Future<FavoriteComboResponse> addCombo({
+    required String token,
     required AddFavoriteComboRequest request,
   }) async {
     final url = Uri.parse('$baseUrl/favorites/add-favorite-food');
 
     try {
-      final response = await http
-          .post(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(request.toJson()),
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(request.toJson()),
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return FavoriteComboResponse.fromJson(
@@ -64,6 +71,7 @@ class FavoritesRemoteDataSource {
 
   /// Update a favorite combo
   Future<Map<String, dynamic>> updateCombo({
+    required String token,
     required UpdateFavoriteComboRequest request,
   }) async {
     final url = Uri.parse('$baseUrl/favorites/update-favorite-food');
@@ -72,7 +80,10 @@ class FavoritesRemoteDataSource {
       final response = await http
           .put(
             url,
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
             body: jsonEncode(request.toJson()),
           )
           .timeout(const Duration(seconds: 10));
@@ -89,15 +100,20 @@ class FavoritesRemoteDataSource {
 
   /// Delete a favorite combo
   Future<void> deleteFavorite({
+    required String token,
     required int favoriteId,
     required int userId,
   }) async {
     final url = Uri.parse('$baseUrl/favorites/delete/$favoriteId?userId=$userId');
 
     try {
-      final response = await http
-          .delete(url)
-          .timeout(const Duration(seconds: 10));
+      final response = await http.delete(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
         throw Exception('Failed to delete favorite: ${response.statusCode}');
@@ -109,18 +125,20 @@ class FavoritesRemoteDataSource {
 
   /// Log a favorite combo to daily nutrition
   Future<Map<String, dynamic>> logFavorite({
+    required String token,
     required LogFavoriteRequest request,
   }) async {
     final url = Uri.parse('$baseUrl/favorites/log');
 
     try {
-      final response = await http
-          .post(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(request.toJson()),
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(request.toJson()),
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return jsonDecode(response.body) as Map<String, dynamic>;
@@ -133,13 +151,20 @@ class FavoritesRemoteDataSource {
   }
 
   /// Get all favorites for a user
-  Future<List<FavoriteComboResponse>> getFavoritesByUserId(int userId) async {
+  Future<List<FavoriteComboResponse>> getFavoritesByUserId({
+    required String token,
+    required int userId,
+  }) async {
     final url = Uri.parse('$baseUrl/favorites/user/$userId');
 
     try {
-      final response = await http
-          .get(url)
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);

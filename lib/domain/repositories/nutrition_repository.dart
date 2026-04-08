@@ -73,10 +73,11 @@ abstract class NutritionRepository {
   );
 
   /// Get weight history for a user
-  Future<List<WeightHistoryItem>> getWeightHistory(String userId);
+  Future<List<WeightHistoryItem>> getWeightHistory(String token, String userId);
 
   /// Get latest weight history for a user
   Future<List<WeightHistoryItem>> getLatestWeightHistory(
+    String token,
     String userId, {
     int limit = 5,
   });

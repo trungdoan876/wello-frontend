@@ -6,6 +6,7 @@ import 'package:wello_frontend/data/models/requests/log_favorite_request.dart';
 import '../../data/models/requests/favorite_combo_item.dart';
 import '../../data/models/responses/favorite_combo_response.dart';
 import '../../data/repositories/favorites_repository_impl.dart';
+import '../../core/utils/auth_helper.dart';
 
 class FavoritesProvider extends ChangeNotifier {
   final FavoritesRepositoryImpl repository;
@@ -34,7 +35,13 @@ class FavoritesProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final result = await repository.getFavoritesByUserId(userId: userId);
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token;
+
+      final result = await repository.getFavoritesByUserId(
+        token: token ?? '',
+        userId: userId,
+      );
       _favorites = result;
 
       _isLoading = false;
@@ -56,7 +63,11 @@ class FavoritesProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token;
+
       final favorite = await repository.getFavoriteById(
+        token: token ?? '',
         favoriteId: favoriteId,
         userId: userId,
       );
@@ -93,7 +104,13 @@ class FavoritesProvider extends ChangeNotifier {
         items: items,
       );
 
-      final result = await repository.addCombo(request: request);
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token;
+
+      final result = await repository.addCombo(
+        token: token ?? '',
+        request: request,
+      );
 
       _isLoading = false;
       _success = true;
@@ -131,7 +148,13 @@ class FavoritesProvider extends ChangeNotifier {
         items: items,
       );
 
-      final result = await repository.updateCombo(request: request);
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token;
+
+      final result = await repository.updateCombo(
+        token: token ?? '',
+        request: request,
+      );
 
       _isLoading = false;
       _success = true;
@@ -158,7 +181,11 @@ class FavoritesProvider extends ChangeNotifier {
       _success = false;
       notifyListeners();
 
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token;
+
       await repository.deleteFavorite(
+        token: token ?? '',
         favoriteId: favoriteId,
         userId: userId,
       );
@@ -197,7 +224,10 @@ class FavoritesProvider extends ChangeNotifier {
         mealType: mealType,
       );
 
-      await repository.logFavorite(request: request);
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token;
+
+      await repository.logFavorite(token: token ?? '', request: request);
 
       _isLoading = false;
       _success = true;

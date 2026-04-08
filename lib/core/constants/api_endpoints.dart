@@ -32,8 +32,7 @@ class ApiEndpoints {
   static String updateWeight(int userId) => '$baseUrl/profile/$userId/weight';
   static String updateGoal(int userId) => '$baseUrl/profile/$userId/goal';
   static String updateActivityLevel(int userId) => '$baseUrl/profile/$userId/activity-level';
-  static String updateFcmToken(int userId, String fcmToken) => 
-      '$baseUrl/profile/$userId/fcm-token?fcmToken=$fcmToken';
+
   static String updateWaterReminderSettings({
     required int userId,
     required bool enabled,
@@ -57,6 +56,7 @@ class ApiEndpoints {
   // ============================================
   static String get foodAll => '$baseUrl/food/all';
   static String get foodPreview => '$baseUrl/food/preview';
+  static String get foodRequest => '$baseUrl/food/request'; // New endpoint
 
   // ============================================
   // FAVORITES ENDPOINTS - Yêu thích
@@ -101,4 +101,5 @@ class ApiEndpoints {
   static String get workoutLog => '$baseUrl/workout/log';
   static String workoutDaily(int userId, String date) => 
       '$baseUrl/workout/daily?userId=$userId&date=$date';
+  static String get workoutRequestExercise => '$baseUrl/workout/request'; // New endpoint
 }

@@ -12,11 +12,13 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
 
   @override
   Future<FavoriteComboResponse> getFavoriteById({
+    required String token,
     required int favoriteId,
     required int userId,
   }) async {
     try {
       return await remoteDataSource.getFavoriteById(
+        token: token,
         favoriteId: favoriteId,
         userId: userId,
       );
@@ -27,10 +29,11 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
 
   @override
   Future<FavoriteComboResponse> addCombo({
+    required String token,
     required AddFavoriteComboRequest request,
   }) async {
     try {
-      return await remoteDataSource.addCombo(request: request);
+      return await remoteDataSource.addCombo(token: token, request: request);
     } catch (e) {
       throw Exception('Repository error: $e');
     }
@@ -38,10 +41,11 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
 
   @override
   Future<Map<String, dynamic>> updateCombo({
+    required String token,
     required UpdateFavoriteComboRequest request,
   }) async {
     try {
-      return await remoteDataSource.updateCombo(request: request);
+      return await remoteDataSource.updateCombo(token: token, request: request);
     } catch (e) {
       throw Exception('Repository error: $e');
     }
@@ -49,11 +53,13 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
 
   @override
   Future<void> deleteFavorite({
+    required String token,
     required int favoriteId,
     required int userId,
   }) async {
     try {
       await remoteDataSource.deleteFavorite(
+        token: token,
         favoriteId: favoriteId,
         userId: userId,
       );
@@ -64,10 +70,11 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
 
   @override
   Future<Map<String, dynamic>> logFavorite({
+    required String token,
     required LogFavoriteRequest request,
   }) async {
     try {
-      return await remoteDataSource.logFavorite(request: request);
+      return await remoteDataSource.logFavorite(token: token, request: request);
     } catch (e) {
       throw Exception('Repository error: $e');
     }
@@ -75,10 +82,14 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
 
   @override
   Future<List<FavoriteComboResponse>> getFavoritesByUserId({
+    required String token,
     required int userId,
   }) async {
     try {
-      return await remoteDataSource.getFavoritesByUserId(userId);
+      return await remoteDataSource.getFavoritesByUserId(
+        token: token,
+        userId: userId,
+      );
     } catch (e) {
       throw Exception('Repository error: $e');
     }

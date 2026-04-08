@@ -8,9 +8,9 @@ class QuestionRepository {
       : _dataSource = dataSource ?? QuestionRemoteDataSource();
 
   /// Fetch questions from backend
-  Future<List<Question>> getQuestions() async {
+  Future<List<Question>> getQuestions(String token) async {
     try {
-      return await _dataSource.fetchQuestions();
+      return await _dataSource.fetchQuestions(token);
     } catch (e) {
       throw Exception('Failed to fetch questions: $e');
     }

@@ -43,6 +43,7 @@ class AuthHelper {
       final response = await remoteDataSource.verifyUser(
         userId: credentials.userId,
         email: credentials.email!,
+        token: credentials.token,
       );
       
       // Kiểm tra cả exists và valid

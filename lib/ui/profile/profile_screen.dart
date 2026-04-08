@@ -153,11 +153,16 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
   Future<List<WeightHistoryItem>> _getWeightHistory() async {
     try {
       if (_userId == null) return [];
+      
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token ?? '';
+      
       final repository = NutritionRepositoryImpl(
         remoteDataSource: NutritionRemoteDataSource(),
       );
       // Lấy 1 bản ghi gần nhất để hiển thị thời gian cập nhật
       return await repository.getLatestWeightHistory(
+        token,
         _userId.toString(),
         limit: 1,
       );
@@ -484,7 +489,11 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
       // Use repository directly instead of provider to avoid context issues
       final repository = ProfileRepository();
 
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token ?? '';
+
       final success = await repository.uploadAvatar(
+        token: token,
         userId: _userId!,
         imageFile: imageFile,
       );

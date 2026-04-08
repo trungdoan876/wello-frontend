@@ -20,15 +20,15 @@ class FavoritesTabBar extends StatelessWidget {
       child: Row(
         children: [
           _buildTab(
-            'Gợi ý thực phẩm',
+            'Món ăn đã lưu',
             0,
             selectedIndex == 0,
             () => onTabChanged(0),
             context,
           ),
-          SizedBox(width: context.w(0.15)),
+          SizedBox(width: context.w(0.12)),
           _buildTab(
-            'Món ăn của tôi',
+            'Yêu cầu & Đóng góp',
             1,
             selectedIndex == 1,
             () => onTabChanged(1),

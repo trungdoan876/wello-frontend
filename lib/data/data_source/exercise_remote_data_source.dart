@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/exercise.dart';
+import '../../domain/entities/exercise_request.dart';
 import '../../core/constants/api_endpoints.dart';
 
 /// Nguồn dữ liệu từ xa cho các API calls về exercise/bài tập
@@ -12,7 +13,7 @@ class ExerciseRemoteDataSource {
   /// Lấy danh sách bài tập
   /// GET /workout/exercises
   Future<List<Exercise>> getExercises(String token) async {
-    final url = Uri.parse('$baseUrl/workout/exercises');
+    final url = Uri.parse(ApiEndpoints.workoutExercises);
 
     final response = await http.get(
       url,
@@ -39,7 +40,7 @@ class ExerciseRemoteDataSource {
     int durationMinutes,
   ) async {
     final url = Uri.parse(
-      '$baseUrl/workout/calculate?userId=$userId&exerciseId=$exerciseId&durationMinutes=$durationMinutes',
+      ApiEndpoints.workoutCalculate(int.parse(userId), exerciseId, durationMinutes),
     );
 
     print('Dang tinh calo - URL: $url');
@@ -66,7 +67,7 @@ class ExerciseRemoteDataSource {
   /// Log workout session
   /// POST /workout/log
   Future<void> logWorkout(String token, WorkoutLog workoutLog) async {
-    final url = Uri.parse('$baseUrl/workout/log');
+    final url = Uri.parse(ApiEndpoints.workoutLog);
 
     final response = await http.post(
       url,
@@ -89,7 +90,7 @@ class ExerciseRemoteDataSource {
     String userId,
     String date,
   ) async {
-    final url = Uri.parse('$baseUrl/workout/daily?userId=$userId&date=$date');
+    final url = Uri.parse(ApiEndpoints.workoutDaily(int.parse(userId), date));
 
     print('Dang lay nhat ky bai tap hang ngay - URL: $url');
 
@@ -109,6 +110,27 @@ class ExerciseRemoteDataSource {
       return DailyWorkoutLog.fromJson(bodyJson);
     } else {
       throw Exception('Failed to load daily workout log: ${response.statusCode}');
+    }
+  }
+
+  /// Request new exercise addition
+  /// POST /workout/request
+  Future<void> requestExercise(String token, ExerciseRequest exerciseRequest) async {
+    final url = Uri.parse(ApiEndpoints.workoutRequestExercise);
+
+    print('Dang gui yeu cau bai tap moi - URL: $url');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(exerciseRequest.toJson()),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to request exercise: ${response.statusCode}');
     }
   }
 }

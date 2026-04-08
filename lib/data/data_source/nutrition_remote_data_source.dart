@@ -39,12 +39,18 @@ class NutritionRemoteDataSource {
 
   /// Get weight change history for a user
   /// Endpoint: GET /api/history/{userId}
-  Future<List<WeightHistoryItem>> getWeightHistory(String userId) async {
+  Future<List<WeightHistoryItem>> getWeightHistory(
+    String token,
+    String userId,
+  ) async {
     final url = Uri.parse('$baseUrl/history/$userId');
 
     final response = await http.get(
       url,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
 
     if (response.statusCode == 200) {
@@ -60,6 +66,7 @@ class NutritionRemoteDataSource {
   /// Get latest weight history for a user
   /// Endpoint: GET /api/history/{userId}/latest?limit=5
   Future<List<WeightHistoryItem>> getLatestWeightHistory(
+    String token,
     String userId, {
     int limit = 5,
   }) async {
@@ -67,7 +74,10 @@ class NutritionRemoteDataSource {
 
     final response = await http.get(
       url,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
 
     if (response.statusCode == 200) {
@@ -85,12 +95,15 @@ class NutritionRemoteDataSource {
   /// Verify if user exists in database
   /// @param userId - User ID to verify
   /// Returns true if user exists, throws exception if not found
-  Future<bool> verifyUser(String userId) async {
+  Future<bool> verifyUser(String token, String userId) async {
     final url = Uri.parse('$baseUrl/user/verify?userId=$userId');
 
     final response = await http.get(
       url,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
 
     if (response.statusCode == 200) {
@@ -207,7 +220,10 @@ class NutritionRemoteDataSource {
 
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
       body: jsonEncode(requestBody),
     );
 
@@ -249,8 +265,7 @@ class NutritionRemoteDataSource {
       url,
       headers: {
         'Content-Type': 'application/json',
-        // Include auth if backend requires; remove if not used
-        // 'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $token',
       },
       body: jsonEncode(requestBody),
     );

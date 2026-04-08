@@ -1,4 +1,5 @@
 import '../entities/exercise.dart';
+import '../entities/exercise_request.dart';
 
 /// Abstract repository for exercise operations
 abstract class ExerciseRepository {
@@ -31,4 +32,7 @@ abstract class ExerciseRepository {
     String userId,
     String date,
   );
+
+  /// Request new exercise addition
+  Future<void> requestExercise(String token, ExerciseRequest request);
 }

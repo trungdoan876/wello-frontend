@@ -12,6 +12,7 @@ import 'package:wello_frontend/ui/favorites/widgets/favorite_food_detail_sheet.d
 import 'package:wello_frontend/ui/favorites/widgets/edit_combo_page.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/domain/providers/favorites_provider.dart';
+import 'package:wello_frontend/ui/contribution/contribution_screen.dart';
 import 'models/favorite_item.dart';
 import 'widgets/empty_favorite_state.dart';
 import 'widgets/favorites_tab_bar.dart';
@@ -135,51 +136,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
         ),
         centerTitle: false,
-        actions: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: context.w(0.08)),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CreateMealPage(),
-                      ),
-                    );
-                  },
-                  child: Icon(
-                    Icons.add,
-                    size: context.sp(6),
-                    color: Colors.white,
-                  ),
-                ),
-                // Search icon removed
-                // SizedBox(width: context.w(0.03)),
-                // Icon(Icons.search, size: context.sp(6), color: Colors.white),
-              ],
-            ),
-          ),
-        ],
+        actions: [],
       ),
       body: Stack(
         children: [
           Column(
             children: [
-              // Tab bar (commented out)
-              // FavoritesTabBar(
-              //   selectedIndex: _selectedTabIndex,
-              //   onTabChanged: (index) =>
-              //       setState(() => _selectedTabIndex = index),
-              // ),
-              // SizedBox(height: context.h(0.02)),
+              FavoritesTabBar(
+                selectedIndex: _selectedTabIndex,
+                onTabChanged: (index) =>
+                    setState(() => _selectedTabIndex = index),
+              ),
               // Content
               Expanded(
-                child: _buildFavoritesContent(context), // Always show favorites content
-                // child: _selectedTabIndex == 0
-                //     ? const EmptyFavoriteState() // Suggestions tab commented out
-                //     : _buildFavoritesContent(context),
+                child: _selectedTabIndex == 0
+                    ? _buildFavoritesContent(context)
+                    : _buildRequestsContent(context),
               ),
             ],
           ),
@@ -474,6 +446,176 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
         );
       },
+    );
+  }
+
+  /// New Tab content for Requests & Contributions
+  Widget _buildRequestsContent(BuildContext context) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(context.w(0.06)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildRequestHeader(
+            context,
+            'Đóng góp cho thư viện Wello',
+            'Nếu không tìm thấy món ăn hoặc bài tập, hãy gửi yêu cầu để chúng tôi cập nhật nhé!',
+          ),
+          SizedBox(height: context.h(0.03)),
+          _buildBigRequestButton(
+            context,
+            'Yêu cầu Thực phẩm mới',
+            'Thêm món ăn, đồ uống vào cơ sở dữ liệu',
+            Icons.restaurant_menu,
+            const Color(0xFFEBCF23),
+            () => _showContributionModal(context, 'food'),
+          ),
+          SizedBox(height: context.h(0.02)),
+          _buildBigRequestButton(
+            context,
+            'Yêu cầu Bài tập mới',
+            'Thêm các dạng bài tập, hoạt động thể chất',
+            Icons.fitness_center,
+            const Color(0xFF6177D0),
+            () => _showContributionModal(context, 'exercise'),
+          ),
+          SizedBox(height: context.h(0.04)),
+          const Divider(),
+          SizedBox(height: context.h(0.02)),
+          Text(
+            'Lợi ích khi đóng góp',
+            style: GoogleFonts.baloo2(
+              fontSize: context.sp(5.5),
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          SizedBox(height: context.h(0.01)),
+          _buildBenefitItem(context, Icons.verified_user_outlined, 'Dữ liệu được kiểm duyệt bởi chuyên gia'),
+          _buildBenefitItem(context, Icons.group_outlined, 'Giúp đỡ cộng đồng Wello có kho dữ liệu phong phú'),
+          _buildBenefitItem(context, Icons.history_edu_outlined, 'Ghi lại dấu ấn đóng góp của cá nhân bạn'),
+        ],
+      ),
+    );
+  }
+
+  void _showContributionModal(BuildContext context, String type) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ContributionScreen(initialType: type),
+    );
+  }
+
+  Widget _buildRequestHeader(BuildContext context, String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.baloo2(
+            fontSize: context.sp(6.5),
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFFEBCF23),
+          ),
+        ),
+        Text(
+          subtitle,
+          style: GoogleFonts.baloo2(
+            fontSize: context.sp(4.5),
+            color: Colors.grey.shade600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBigRequestButton(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: EdgeInsets.all(context.w(0.05)),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(context.sp(3)),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: context.sp(8)),
+            ),
+            SizedBox(width: context.w(0.05)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(5.5),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(4),
+                      color: Colors.grey.shade500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, color: Colors.grey.shade300, size: context.sp(4)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBenefitItem(BuildContext context, IconData icon, String text) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: context.h(0.008)),
+      child: Row(
+        children: [
+          Icon(icon, size: context.sp(5), color: const Color(0xFF22C55E)),
+          SizedBox(width: context.w(0.03)),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.baloo2(
+                fontSize: context.sp(4),
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -1,5 +1,6 @@
 import '../../domain/entities/food.dart';
 import '../../domain/repositories/food_repository.dart';
+import '../../domain/entities/food_request.dart';
 import '../data_source/food_remote_data_source.dart';
 import '../models/requests/food_preview_request.dart';
 
@@ -21,5 +22,10 @@ class FoodRepositoryImpl implements FoodRepository {
       token,
       FoodPreviewRequest(foodId: foodId, amountGrams: amountGrams),
     );
+  }
+
+  @override
+  Future<void> requestFood(String token, FoodRequest request) async {
+    return await remoteDataSource.requestFood(token, request);
   }
 }

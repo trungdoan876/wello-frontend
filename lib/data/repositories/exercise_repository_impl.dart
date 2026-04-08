@@ -1,5 +1,6 @@
 import '../../domain/entities/exercise.dart';
 import '../../domain/repositories/exercise_repository.dart';
+import '../../domain/entities/exercise_request.dart';
 import '../data_source/exercise_remote_data_source.dart';
 
 /// Implementation of ExerciseRepository
@@ -40,5 +41,10 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
     String date,
   ) async {
     return await remoteDataSource.getDailyWorkoutLog(token, userId, date);
+  }
+
+  @override
+  Future<void> requestExercise(String token, ExerciseRequest request) async {
+    return await remoteDataSource.requestExercise(token, request);
   }
 }

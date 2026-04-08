@@ -65,6 +65,7 @@ class _WeightGoalCardState extends State<WeightGoalCard> {
         remoteDataSource: NutritionRemoteDataSource(),
       );
       final List<WeightHistoryItem> history = await repo.getWeightHistory(
+        creds?.token ?? '',
         userId.toString(),
       );
 
@@ -296,6 +297,7 @@ class _WeightGoalCardState extends State<WeightGoalCard> {
 
                           final repo = ProfileRepository();
                           final ok = await repo.updateWeight(
+                            token: creds.token,
                             userId: userId,
                             weight: intWeight,
                           );

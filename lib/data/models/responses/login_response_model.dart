@@ -3,12 +3,14 @@ class LoginResponseModel {
   final String? message;
   final bool? hasCompletedSurvey;
   final int? userId;
+  final String? token;
 
   LoginResponseModel({
     required this.success,
     this.message,
     this.hasCompletedSurvey,
     this.userId,
+    this.token,
   });
 
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
@@ -19,6 +21,7 @@ class LoginResponseModel {
       message: json['message'],
       hasCompletedSurvey: json['hasCompletedSurvey'],
       userId: json['id_user'], // Backend uses 'id_user' key
+      token: json['token'],
     );
   }
 }

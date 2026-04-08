@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../domain/entities/food.dart';
+import '../../domain/entities/food_request.dart';
 import '../models/requests/food_preview_request.dart';
 import '../../core/constants/api_endpoints.dart';
-
 
 /// Nguồn dữ liệu từ xa cho các API calls về thực phẩm
 class FoodRemoteDataSource {
@@ -14,7 +14,7 @@ class FoodRemoteDataSource {
   /// Lấy tất cả thực phẩm
   /// GET /food/all
   Future<List<Food>> getAllFoods(String token) async {
-    final url = Uri.parse('$baseUrl/food/all');
+    final url = Uri.parse(ApiEndpoints.foodAll);
 
     print('Dang lay tat ca thuc pham - URL: $url');
 
@@ -40,7 +40,7 @@ class FoodRemoteDataSource {
   /// Preview food nutrition for a specific amount
   /// POST /food/preview
   Future<Food> previewFood(String token, FoodPreviewRequest request) async {
-    final url = Uri.parse('$baseUrl/food/preview');
+    final url = Uri.parse(ApiEndpoints.foodPreview);
 
     print('Dang xem truoc dinh duong thuc pham - URL: $url');
     print('Goi tin yeu cau: ${jsonEncode(request.toJson())}');
@@ -62,6 +62,27 @@ class FoodRemoteDataSource {
       return Food.fromJson(jsonMap);
     } else {
       throw Exception('Failed to preview food: ${response.statusCode}');
+    }
+  }
+
+  /// Request new food addition
+  /// POST /food/request
+  Future<void> requestFood(String token, FoodRequest foodRequest) async {
+    final url = Uri.parse(ApiEndpoints.foodRequest);
+
+    print('Dang gui yeu cau thuc pham moi - URL: $url');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(foodRequest.toJson()),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to request food: ${response.statusCode}');
     }
   }
 }

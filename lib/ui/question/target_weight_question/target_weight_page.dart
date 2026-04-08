@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
+import 'package:wello_frontend/domain/providers/survey_provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/ui/question/activity_question/activity_level_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
@@ -42,7 +43,6 @@ class TargetWeightPage extends StatefulWidget {
 class _TargetWeightPageState extends State<TargetWeightPage> {
   late int targetWeight;
   CalculateBmiResponse? targetBmiData;
-  final SurveyRemoteDataSource _surveyDataSource = SurveyRemoteDataSource();
 
   @override
   void initState() {
@@ -55,7 +55,8 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
     if (widget.height == null) return;
     
     try {
-      final response = await _surveyDataSource.calculateBmi(
+      final surveyProvider = Provider.of<SurveyProvider>(context, listen: false);
+      final response = await surveyProvider.calculateBmi(
         weight: targetWeight,
         height: widget.height!,
         goal: widget.goal,
@@ -67,7 +68,7 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
         });
       }
     } catch (e) {
-      print('Loi khi tinh BMI: $e');
+      print('Loi khi tinh BMI trong TargetWeightPage: $e');
     }
   }
 

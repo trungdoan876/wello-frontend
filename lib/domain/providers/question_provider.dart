@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:wello_frontend/core/utils/auth_helper.dart';
 import '../entities/question.dart';
 import '../../data/repositories/question_repository.dart';
 
@@ -25,7 +26,12 @@ class QuestionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _questions = await _repository.getQuestions();
+      final credentials = await AuthHelper.getCredentials();
+      if (credentials == null) {
+        throw Exception('User is not authenticated');
+      }
+
+      _questions = await _repository.getQuestions(credentials.token);
       _isLoading = false;
       notifyListeners();
     } catch (e) {

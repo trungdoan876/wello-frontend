@@ -134,9 +134,10 @@ class LoginFormContent extends StatelessWidget {
                     // Save userId, token, and email for persistent auth
                     if (response.userId != null) {
                       await UserSession.saveUserId(response.userId!);
-                      // TODO: Backend should return actual token
-                      // For now, save userId as token for authentication
-                      await UserSession.saveToken(response.userId!.toString());
+                      // Save actual JWT token from server
+                      if (response.token != null) {
+                        await UserSession.saveToken(response.token!);
+                      }
                       // Save email from input
                       await UserSession.saveEmail(email);
                     }
@@ -223,9 +224,10 @@ class LoginFormContent extends StatelessWidget {
                   // Save userId and token for persistent auth
                   if (response.userId != null) {
                     await UserSession.saveUserId(response.userId!);
-                    // TODO: Backend should return actual token
-                    // For now, save userId as token for authentication
-                    await UserSession.saveToken(response.userId!.toString());
+                    // Save actual JWT token from server
+                    if (response.token != null) {
+                      await UserSession.saveToken(response.token!);
+                    }
                     // Note: Google login doesn't provide email in response, would need to get from GoogleSignIn
                   }
                   // Route based on survey completion (same as email login)

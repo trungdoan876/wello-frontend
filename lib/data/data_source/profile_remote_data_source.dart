@@ -19,7 +19,7 @@ class ProfileRemoteDataSource {
   }
 
   /// Fetch profile by ID
-  Future<ProfileResponseModel> fetchProfileById(int userId) async {
+  Future<ProfileResponseModel> fetchProfileById(String token, int userId) async {
     final resolved = _resolveBaseUrl();
     final url = Uri.parse('$resolved/profile/info/$userId');
     print('[ProfileRemote] GET $url');
@@ -27,7 +27,10 @@ class ProfileRemoteDataSource {
     try {
       final response = await http.get(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
 
       if (response.statusCode == 200) {
@@ -45,6 +48,7 @@ class ProfileRemoteDataSource {
 
   /// Upload profile avatar using base64 payload (data URI)
   Future<bool> uploadAvatar({
+    required String token,
     required int userId,
     required File imageFile,
   }) async {
@@ -81,7 +85,10 @@ class ProfileRemoteDataSource {
       print('Dang gui yeu cau...');
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode(requestBody),
       );
 
@@ -105,6 +112,7 @@ class ProfileRemoteDataSource {
 
   /// Update user's fullname
   Future<bool> updateFullname({
+    required String token,
     required int userId,
     required String fullname,
   }) async {
@@ -115,7 +123,10 @@ class ProfileRemoteDataSource {
     try {
       http.Response response = await http.put(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'fullname': fullname}),
       );
       print(
@@ -131,7 +142,10 @@ class ProfileRemoteDataSource {
         print('[ProfileRemote] PUT failed, trying POST $url');
         response = await http.post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
           body: jsonEncode({'fullname': fullname}),
         );
         print(
@@ -155,6 +169,7 @@ class ProfileRemoteDataSource {
 
   /// Update user's gender
   Future<bool> updateGender({
+    required String token,
     required int userId,
     required String gender,
   }) async {
@@ -165,7 +180,10 @@ class ProfileRemoteDataSource {
     try {
       http.Response response = await http.put(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'gender': gender}),
       );
       print(
@@ -180,7 +198,10 @@ class ProfileRemoteDataSource {
         print('[ProfileRemote] PUT failed, trying POST $url');
         response = await http.post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
           body: jsonEncode({'gender': gender}),
         );
         print(
@@ -203,7 +224,11 @@ class ProfileRemoteDataSource {
   }
 
   /// Update user's age
-  Future<bool> updateAge({required int userId, required int age}) async {
+  Future<bool> updateAge({
+    required String token,
+    required int userId,
+    required int age,
+  }) async {
     final resolved = _resolveBaseUrl();
     final url = Uri.parse('$resolved/profile/$userId/age');
     print('[ProfileRemote] PUT $url body={age: $age}');
@@ -211,7 +236,10 @@ class ProfileRemoteDataSource {
     try {
       http.Response response = await http.put(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'age': age}),
       );
       print(
@@ -226,7 +254,10 @@ class ProfileRemoteDataSource {
         print('[ProfileRemote] PUT failed, trying POST $url');
         response = await http.post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
           body: jsonEncode({'age': age}),
         );
         print(
@@ -249,7 +280,11 @@ class ProfileRemoteDataSource {
   }
 
   /// Update user's height
-  Future<bool> updateHeight({required int userId, required int height}) async {
+  Future<bool> updateHeight({
+    required String token,
+    required int userId,
+    required int height,
+  }) async {
     final resolved = _resolveBaseUrl();
     final url = Uri.parse('$resolved/profile/$userId/height');
     print('[ProfileRemote] PUT $url body={height: $height}');
@@ -257,7 +292,10 @@ class ProfileRemoteDataSource {
     try {
       http.Response response = await http.put(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'height': height}),
       );
       print(
@@ -272,7 +310,10 @@ class ProfileRemoteDataSource {
         print('[ProfileRemote] PUT failed, trying POST $url');
         response = await http.post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
           body: jsonEncode({'height': height}),
         );
         print(
@@ -294,7 +335,11 @@ class ProfileRemoteDataSource {
     }
   }
 
-  Future<bool> updateWeight({required int userId, required int weight}) async {
+  Future<bool> updateWeight({
+    required String token,
+    required int userId,
+    required int weight,
+  }) async {
     final resolved = _resolveBaseUrl();
     final url = Uri.parse('$resolved/profile/$userId/weight');
     print('[ProfileRemote] PUT $url body={weight: $weight}');
@@ -302,7 +347,10 @@ class ProfileRemoteDataSource {
     try {
       http.Response response = await http.put(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'weight': weight}),
       );
       print(
@@ -317,7 +365,10 @@ class ProfileRemoteDataSource {
         print('[ProfileRemote] PUT failed, trying POST $url');
         response = await http.post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
           body: jsonEncode({'weight': weight}),
         );
         print(
@@ -339,7 +390,11 @@ class ProfileRemoteDataSource {
     }
   }
 
-  Future<bool> updateGoal({required int userId, required String goal}) async {
+  Future<bool> updateGoal({
+    required String token,
+    required int userId,
+    required String goal,
+  }) async {
     final resolved = _resolveBaseUrl();
     final url = Uri.parse('$resolved/profile/$userId/goal');
     print('[ProfileRemote] PUT $url body={goal: $goal}');
@@ -347,7 +402,10 @@ class ProfileRemoteDataSource {
     try {
       http.Response response = await http.put(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'goal': goal}),
       );
       print(
@@ -362,7 +420,10 @@ class ProfileRemoteDataSource {
         print('[ProfileRemote] PUT failed, trying POST $url');
         response = await http.post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
           body: jsonEncode({'goal': goal}),
         );
         print(
@@ -385,6 +446,7 @@ class ProfileRemoteDataSource {
   }
 
   Future<bool> updateActivityLevel({
+    required String token,
     required int userId,
     required String activityLevel,
   }) async {
@@ -395,7 +457,10 @@ class ProfileRemoteDataSource {
     try {
       http.Response response = await http.put(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'activityLevel': activityLevel}),
       );
       print(
@@ -410,7 +475,10 @@ class ProfileRemoteDataSource {
         print('[ProfileRemote] PUT failed, trying POST $url');
         response = await http.post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
           body: jsonEncode({'activityLevel': activityLevel}),
         );
         print(
@@ -432,37 +500,11 @@ class ProfileRemoteDataSource {
     }
   }
 
-  /// Update FCM Token for user
-  /// POST /api/profile/{userId}/fcm-token?fcmToken=...
-  Future<bool> updateFcmToken({
-    required int userId,
-    required String fcmToken,
-  }) async {
-    final url = Uri.parse('$baseUrl/profile/$userId/fcm-token?fcmToken=$fcmToken');
-
-    try {
-      print('Dang cap nhat FCM Token: $url');
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      print('Phan hoi tu server: ${response.statusCode}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return true;
-      } else {
-        throw Exception('Failed to update FCM token: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Loi khi cap nhat FCM Token: $e');
-      throw Exception('Error updating FCM token: $e');
-    }
-  }
 
   /// Update Water Reminder Settings
   /// POST /api/profile/{userId}/water-reminder-settings?enabled=...&startHour=...&endHour=...&intervalHours=...&intervalMinutes=...
   Future<bool> updateWaterReminderSettings({
+    required String token,
     required int userId,
     required bool enabled,
     required int startHour,
@@ -479,7 +521,10 @@ class ProfileRemoteDataSource {
       print('Dang cap nhat thiet lap nhac nuoc: $url');
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
 
       print('Phan hoi tu server: ${response.statusCode}');

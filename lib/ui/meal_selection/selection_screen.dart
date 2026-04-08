@@ -11,6 +11,7 @@ import 'widgets/meal_item_card.dart';
 import 'widgets/suggestion_meal_card.dart';
 import 'widgets/exercise_detail_sheet.dart';
 import 'widgets/food_detail_sheet.dart';
+import '../contribution/contribution_screen.dart';
 
 class MealItem {
   final String name;
@@ -210,6 +211,27 @@ class _SelectionScreenState extends State<SelectionScreen> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => ContributionScreen(
+                  initialType: widget.mealType == 'tap_luyen' ? 'exercise' : 'food',
+                ),
+              );
+            },
+            icon: Icon(
+              Icons.post_add,
+              color: Colors.grey.shade600,
+              size: context.sp(7),
+            ),
+            tooltip: 'Yêu cầu thêm mới',
+          ),
+          SizedBox(width: context.w(0.02)),
+        ],
       ),
       body: Column(
         children: [
@@ -293,21 +315,108 @@ class _SelectionScreenState extends State<SelectionScreen> {
                   )
                 : _filteredItems.isEmpty
                 ? Center(
-                    child: Text(
-                      widget.mealType == 'tap_luyen'
-                          ? 'Không tìm thấy bài tập'
-                          : 'Không tìm thấy món ăn',
-                      style: GoogleFonts.baloo2(
-                        fontSize: context.sp(6),
-                        fontWeight: FontWeight.w800,
-                        color: Colors.grey.shade400,
-                      ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          widget.mealType == 'tap_luyen'
+                              ? Icons.fitness_center
+                              : Icons.restaurant_menu,
+                          size: context.sp(15),
+                          color: Colors.grey.shade200,
+                        ),
+                        SizedBox(height: context.h(0.02)),
+                        Text(
+                          widget.mealType == 'tap_luyen'
+                              ? 'Không tìm thấy bài tập'
+                              : 'Không tìm thấy món ăn',
+                          style: GoogleFonts.baloo2(
+                            fontSize: context.sp(6),
+                            fontWeight: FontWeight.w800,
+                            color: Colors.grey.shade400,
+                          ),
+                        ),
+                        SizedBox(height: context.h(0.04)),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ContributionScreen(
+                                  initialType: widget.mealType == 'tap_luyen'
+                                      ? 'exercise'
+                                      : 'food',
+                                ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xffEBCF23),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(context.sp(3)),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.w(0.08),
+                              vertical: context.h(0.015),
+                            ),
+                          ),
+                          child: Text(
+                            'Yêu cầu thêm mới',
+                            style: GoogleFonts.baloo2(
+                              fontWeight: FontWeight.bold,
+                              fontSize: context.sp(5),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 : ListView.builder(
                     padding: EdgeInsets.symmetric(horizontal: context.w(0.04)),
-                    itemCount: _filteredItems.length,
+                    itemCount: _filteredItems.length + 1,
                     itemBuilder: (context, index) {
+                      if (index == _filteredItems.length) {
+                        // Footer for list
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: context.h(0.04)),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Không thấy món bạn tìm?',
+                                style: GoogleFonts.baloo2(
+                                  color: Colors.grey.shade500,
+                                  fontSize: context.sp(4.5),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ContributionScreen(
+                                        initialType: widget.mealType == 'tap_luyen'
+                                            ? 'exercise'
+                                            : 'food',
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  'Gửi yêu cầu thêm mới ngay',
+                                  style: GoogleFonts.baloo2(
+                                    color: const Color(0xffEBCF23),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: context.sp(5),
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: context.h(0.1)),
+                            ],
+                          ),
+                        );
+                      }
                       final item = _filteredItems[index];
                       return Padding(
                         padding: EdgeInsets.only(bottom: context.h(0.015)),

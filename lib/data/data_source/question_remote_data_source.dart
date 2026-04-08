@@ -11,14 +11,28 @@ class QuestionRemoteDataSource {
   QuestionRemoteDataSource({this.baseUrl = ApiEndpoints.baseUrl});
 
   /// Lấy danh sách câu hỏi từ backend API
-  Future<List<Question>> fetchQuestions() async {
-    final url = Uri.parse('$baseUrl/survey/questions');
+  Future<List<Question>> fetchQuestions(String token) async {
+    final url = Uri.parse(ApiEndpoints.surveyQuestions);
+
+    print('Dang lay danh sach cau hoi - URL: $url');
+    print('Token length: ${token.length}');
+    if (token.length > 20) {
+      print('Token start: ${token.substring(0, 10)}...${token.substring(token.length - 10)}');
+    }
 
     try {
+      final headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+      print('Request Headers: $headers');
+
       final response = await http.get(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       );
+
+      print('Trang thai phan hoi cau hoi: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = jsonDecode(response.body);

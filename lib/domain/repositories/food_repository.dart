@@ -1,4 +1,5 @@
 import '../entities/food.dart';
+import '../entities/food_request.dart';
 
 /// Abstract repository for food operations
 abstract class FoodRepository {
@@ -7,4 +8,7 @@ abstract class FoodRepository {
 
   /// Preview food nutrition for a specific amount
   Future<Food> previewFood(String token, int foodId, int amountGrams);
+
+  /// Request new food addition
+  Future<void> requestFood(String token, FoodRequest request);
 }

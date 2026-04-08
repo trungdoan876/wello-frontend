@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../../data/models/requests/survey_request_model.dart';
 import '../../data/models/responses/survey_response_model.dart';
+import '../../data/models/responses/calculate_bmi_response_model.dart';
 import '../../data/repositories/survey_repository_impl.dart';
 import '../repositories/survey_repository.dart';
+import '../../core/utils/auth_helper.dart';
 
 class SurveyProvider extends ChangeNotifier {
   final SurveyRepository _repository;
@@ -39,7 +41,10 @@ class SurveyProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _surveyResult = await _repository.submitSurvey(request);
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token;
+
+      _surveyResult = await _repository.submitSurvey(request, token: token);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -47,6 +52,28 @@ class SurveyProvider extends ChangeNotifier {
       _isLoading = false;
       _surveyResult = null;
       notifyListeners();
+      rethrow;
+    }
+  }
+
+  /// Calculate BMI with health warnings
+  Future<CalculateBmiResponse> calculateBmi({
+    required int weight,
+    required int height,
+    String? goal,
+  }) async {
+    try {
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token;
+
+      return await _repository.calculateBmi(
+        weight: weight,
+        height: height,
+        goal: goal,
+        token: token,
+      );
+    } catch (e) {
+      print('Loi khi tinh BMI trong Provider: $e');
       rethrow;
     }
   }

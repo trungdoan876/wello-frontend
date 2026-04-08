@@ -9,9 +9,9 @@ class ProfileRepository {
     : _dataSource = dataSource ?? ProfileRemoteDataSource();
 
   /// Fetch profile by user ID
-  Future<ProfileResponseModel> getProfileById(int userId) async {
+  Future<ProfileResponseModel> getProfileById(String token, int userId) async {
     try {
-      return await _dataSource.fetchProfileById(userId);
+      return await _dataSource.fetchProfileById(token, userId);
     } catch (e) {
       throw Exception('Failed to fetch profile: $e');
     }
@@ -19,11 +19,13 @@ class ProfileRepository {
 
   /// Upload profile avatar
   Future<bool> uploadAvatar({
+    required String token,
     required int userId,
     required File imageFile,
   }) async {
     try {
       return await _dataSource.uploadAvatar(
+        token: token,
         userId: userId,
         imageFile: imageFile,
       );
@@ -34,11 +36,13 @@ class ProfileRepository {
 
   /// Update user's fullname
   Future<bool> updateFullname({
+    required String token,
     required int userId,
     required String fullname,
   }) async {
     try {
       return await _dataSource.updateFullname(
+        token: token,
         userId: userId,
         fullname: fullname,
       );
@@ -49,47 +53,76 @@ class ProfileRepository {
 
   /// Update user's gender
   Future<bool> updateGender({
+    required String token,
     required int userId,
     required String gender,
   }) async {
     try {
-      return await _dataSource.updateGender(userId: userId, gender: gender);
+      return await _dataSource.updateGender(
+        token: token,
+        userId: userId,
+        gender: gender,
+      );
     } catch (e) {
       throw Exception('Failed to update gender: $e');
     }
   }
 
   /// Update user's age
-  Future<bool> updateAge({required int userId, required int age}) async {
+  Future<bool> updateAge({
+    required String token,
+    required int userId,
+    required int age,
+  }) async {
     try {
-      return await _dataSource.updateAge(userId: userId, age: age);
+      return await _dataSource.updateAge(token: token, userId: userId, age: age);
     } catch (e) {
       throw Exception('Failed to update age: $e');
     }
   }
 
   /// Update user's height
-  Future<bool> updateHeight({required int userId, required int height}) async {
+  Future<bool> updateHeight({
+    required String token,
+    required int userId,
+    required int height,
+  }) async {
     try {
-      return await _dataSource.updateHeight(userId: userId, height: height);
+      return await _dataSource.updateHeight(
+        token: token,
+        userId: userId,
+        height: height,
+      );
     } catch (e) {
       throw Exception('Failed to update height: $e');
     }
   }
 
   /// Update user's weight
-  Future<bool> updateWeight({required int userId, required int weight}) async {
+  Future<bool> updateWeight({
+    required String token,
+    required int userId,
+    required int weight,
+  }) async {
     try {
-      return await _dataSource.updateWeight(userId: userId, weight: weight);
+      return await _dataSource.updateWeight(
+        token: token,
+        userId: userId,
+        weight: weight,
+      );
     } catch (e) {
       throw Exception('Failed to update weight: $e');
     }
   }
 
   /// Update user's goal
-  Future<bool> updateGoal({required int userId, required String goal}) async {
+  Future<bool> updateGoal({
+    required String token,
+    required int userId,
+    required String goal,
+  }) async {
     try {
-      return await _dataSource.updateGoal(userId: userId, goal: goal);
+      return await _dataSource.updateGoal(token: token, userId: userId, goal: goal);
     } catch (e) {
       throw Exception('Failed to update goal: $e');
     }
@@ -97,11 +130,13 @@ class ProfileRepository {
 
   /// Update user's activity level
   Future<bool> updateActivityLevel({
+    required String token,
     required int userId,
     required String activityLevel,
   }) async {
     try {
       return await _dataSource.updateActivityLevel(
+        token: token,
         userId: userId,
         activityLevel: activityLevel,
       );
@@ -110,23 +145,10 @@ class ProfileRepository {
     }
   }
 
-  /// Update FCM Token
-  Future<bool> updateFcmToken({
-    required int userId,
-    required String fcmToken,
-  }) async {
-    try {
-      return await _dataSource.updateFcmToken(
-        userId: userId,
-        fcmToken: fcmToken,
-      );
-    } catch (e) {
-      throw Exception('Failed to update FCM token: $e');
-    }
-  }
 
   /// Update Water Reminder Settings
   Future<bool> updateWaterReminderSettings({
+    required String token,
     required int userId,
     required bool enabled,
     required int startHour,
@@ -136,6 +158,7 @@ class ProfileRepository {
   }) async {
     try {
       return await _dataSource.updateWaterReminderSettings(
+        token: token,
         userId: userId,
         enabled: enabled,
         startHour: startHour,
