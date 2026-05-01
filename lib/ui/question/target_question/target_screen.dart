@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
-import 'package:wello_frontend/ui/question/activity_question/activity_level_screen.dart';
 import 'package:wello_frontend/ui/question/age_weight_question/weight_page.dart';
 import 'package:wello_frontend/ui/question/activity_question/widgets/activity_option_button.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
@@ -149,9 +148,9 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                           : () async {
                               if (widget.onUpdate != null) {
                                 // Update mode
-                                  print(
-                                    '[TargetScreen] Che do cap nhat - dang goi onUpdate voi $_selectedLevel',
-                                  );
+                                print(
+                                  '[TargetScreen] Che do cap nhat - dang goi onUpdate voi $_selectedLevel',
+                                );
                                 final success = await widget.onUpdate!(
                                   _selectedLevel!,
                                 );
@@ -165,7 +164,8 @@ class _TargetLevelScreenState extends State<TargetLevelScreen> {
                                   context,
                                   listen: false,
                                 );
-                                final nextQuestion = provider.getQuestionByIndex(5);
+                                final nextQuestion = provider
+                                    .getQuestionByIndex(5);
                                 if (nextQuestion != null) {
                                   Navigator.push(
                                     context,

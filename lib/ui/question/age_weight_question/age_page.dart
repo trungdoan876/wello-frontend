@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
-import 'package:wello_frontend/ui/question/target_question/target_screen.dart';
 import 'package:wello_frontend/ui/question/height_question/height_page.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
@@ -153,7 +152,9 @@ class _AgePageState extends State<AgePage> {
                           '[AgePage] Che do cap nhat - dang goi onUpdate voi $age',
                         );
                         final success = await widget.onUpdate!(age);
-                        print('[AgePage] Ket qua onUpdate: thanh cong=$success');
+                        print(
+                          '[AgePage] Ket qua onUpdate: thanh cong=$success',
+                        );
                         if (!mounted) return;
                         if (success) {
                           // Only return the result; parent shows a single top banner

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quickalert/models/quickalert_type.dart';
@@ -6,7 +5,6 @@ import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:wello_frontend/data/repositories/auth_repository_impl.dart';
 import 'package:wello_frontend/ui/auth/otp_verification_page.dart';
 import 'package:wello_frontend/ui/login/login_page.dart';
-import 'package:wello_frontend/ui/question/name_question/name_page.dart';
 import 'package:wello_frontend/ui/register/widgets/register_textfields.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
@@ -78,98 +76,104 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
             width: context.w(0.8),
             child: AnimatedStartButton(
               text: _isLoading ? "Đang gửi OTP..." : "Đăng ký",
-              onPressed: _isLoading ? () {} : () async {
-                final email = widget.emailController.text.trim();
-                final password = widget.passwordController.text;
-                final confirmPassword = widget.confirmPasswordController.text;
+              onPressed: _isLoading
+                  ? () {}
+                  : () async {
+                      final email = widget.emailController.text.trim();
+                      final password = widget.passwordController.text;
+                      final confirmPassword =
+                          widget.confirmPasswordController.text;
 
-                // Validate all fields using centralized validators
-                final emailError = Validators.validateEmail(email);
-                final passwordError = Validators.validatePassword(password);
-                final confirmPasswordError = Validators.validateConfirmPassword(
-                  password,
-                  confirmPassword,
-                );
+                      // Validate all fields using centralized validators
+                      final emailError = Validators.validateEmail(email);
+                      final passwordError = Validators.validatePassword(
+                        password,
+                      );
+                      final confirmPasswordError =
+                          Validators.validateConfirmPassword(
+                            password,
+                            confirmPassword,
+                          );
 
-                // Show first error found
-                if (emailError != null) {
-                  QuickAlert.show(
-                    context: context,
-                    type: QuickAlertType.warning,
-                    title: 'Email không hợp lệ',
-                    text: emailError,
-                  );
-                  return;
-                }
+                      // Show first error found
+                      if (emailError != null) {
+                        QuickAlert.show(
+                          context: context,
+                          type: QuickAlertType.warning,
+                          title: 'Email không hợp lệ',
+                          text: emailError,
+                        );
+                        return;
+                      }
 
-                if (passwordError != null) {
-                  QuickAlert.show(
-                    context: context,
-                    type: QuickAlertType.warning,
-                    title: 'Mật khẩu không hợp lệ',
-                    text: passwordError,
-                  );
-                  return;
-                }
+                      if (passwordError != null) {
+                        QuickAlert.show(
+                          context: context,
+                          type: QuickAlertType.warning,
+                          title: 'Mật khẩu không hợp lệ',
+                          text: passwordError,
+                        );
+                        return;
+                      }
 
-                if (confirmPasswordError != null) {
-                  QuickAlert.show(
-                    context: context,
-                    type: QuickAlertType.warning,
-                    title: 'Xác nhận mật khẩu',
-                    text: confirmPasswordError,
-                  );
-                  return;
-                }
+                      if (confirmPasswordError != null) {
+                        QuickAlert.show(
+                          context: context,
+                          type: QuickAlertType.warning,
+                          title: 'Xác nhận mật khẩu',
+                          text: confirmPasswordError,
+                        );
+                        return;
+                      }
 
-                // Show loading state
-                setState(() {
-                  _isLoading = true;
-                });
+                      // Show loading state
+                      setState(() {
+                        _isLoading = true;
+                      });
 
-                try {
-                  final repository = AuthRepositoryImpl();
+                      try {
+                        final repository = AuthRepositoryImpl();
 
-                  // Send OTP instead of direct registration
-                  final response = await repository.sendOtp(
-                    email: email,
-                    password: password,
-                  );
-
-                  // Hide loading state
-                  if (mounted) {
-                    setState(() {
-                      _isLoading = false;
-                    });
-
-                    // Navigate to OTP verification screen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => OtpVerificationPage(
+                        // Send OTP instead of direct registration
+                        final response = await repository.sendOtp(
                           email: email,
                           password: password,
-                          verificationToken: response.verificationToken,
-                        ),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  // Hide loading state on error
-                  if (mounted) {
-                    setState(() {
-                      _isLoading = false;
-                    });
+                        );
 
-                    QuickAlert.show(
-                      context: context,
-                      type: QuickAlertType.error,
-                      title: "Lỗi",
-                      text: e.toString().replaceAll('Exception: ', ''),
-                    );
-                  }
-                }
-              },
+                        // Hide loading state
+                        if (mounted) {
+                          setState(() {
+                            _isLoading = false;
+                          });
+
+                          // Navigate to OTP verification screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => OtpVerificationPage(
+                                email: email,
+                                password: password,
+                                verificationToken: response.verificationToken,
+                              ),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        // Hide loading state on error
+                        if (mounted) {
+                          setState(() {
+                            _isLoading = false;
+                          });
+
+                          QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.error,
+                            title: "Lỗi",
+                            text: e.toString().replaceAll('Exception: ', ''),
+                          );
+                        }
+                      }
+                    },
             ),
           ),
 
@@ -177,12 +181,14 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
 
           // ---- Đã có tài khoản ----
           TextButton(
-            onPressed: _isLoading ? null : () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-              );
-            },
+            onPressed: _isLoading
+                ? null
+                : () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginPage()),
+                    );
+                  },
             child: Text(
               'Bạn đã có tài khoản',
               style: TextStyle(
@@ -209,7 +215,10 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
           // Google Icon
           Opacity(
             opacity: _isLoading ? 0.5 : 1.0,
-            child: Image.asset("assets/images/google.png", width: context.w(0.08)),
+            child: Image.asset(
+              "assets/images/google.png",
+              width: context.w(0.08),
+            ),
           ),
         ],
       ),

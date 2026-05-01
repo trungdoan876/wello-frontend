@@ -7,14 +7,13 @@ import 'package:wello_frontend/domain/providers/survey_provider.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/domain/providers/favorites_provider.dart';
-import 'package:wello_frontend/domain/providers/contribution_provider.dart';
-import 'package:wello_frontend/data/repositories/food_repository_impl.dart';
-import 'package:wello_frontend/data/data_source/food_remote_data_source.dart';
-import 'package:wello_frontend/data/repositories/exercise_repository_impl.dart';
-import 'package:wello_frontend/data/data_source/exercise_remote_data_source.dart';
+import 'package:wello_frontend/domain/providers/sleep_provider.dart';
 import 'package:wello_frontend/ui/auth/initial_page.dart';
 import 'package:wello_frontend/core/services/notification_service.dart';
 import 'package:wello_frontend/core/navigation/route_observer.dart';
+import 'package:wello_frontend/data/repositories/streak_repository_impl.dart';
+import 'package:wello_frontend/data/data_source/streak_remote_data_source.dart';
+import 'package:wello_frontend/domain/providers/streak_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -39,16 +38,12 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NutritionProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
-        ChangeNotifierProvider(
-          create: (_) => ContributionProvider(
-            foodRepository: FoodRepositoryImpl(
-              remoteDataSource: FoodRemoteDataSource(),
-            ),
-            exerciseRepository: ExerciseRepositoryImpl(
-              remoteDataSource: ExerciseRemoteDataSource(),
-            ),
+        ChangeNotifierProvider(create: (_) => SleepProvider()),
+        ChangeNotifierProvider(create: (_) => StreakProvider(
+          StreakRepositoryImpl(
+            StreakRemoteDataSource(),
           ),
-        ),
+        )),
       ],
       child: MyApp(),
     ),

@@ -241,6 +241,29 @@ class NutritionProvider extends ChangeNotifier {
     }
   }
 
+  /// Add a glass of water và trả về true nếu đây là ly đầu tiên trong ngày hôm nay (dùng cho streak popup)
+  Future<bool> addWaterGlassWithStreak(
+    String token,
+    String userId, {
+    int glassSize = 250,
+  }) async {
+    // Kiểm tra xem hôm nay đã uống nước lần nào chưa
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final lastWaterDate = prefs.getString('last_water_date_$userId');
+    final bool isFirstToday = lastWaterDate != today;
+
+    // Gọi method thêm nước bình thường
+    await addWaterGlass(token, userId, glassSize: glassSize);
+
+    // Nếu thành công (không throw), lưu ngày hôm nay
+    if (isFirstToday) {
+      await prefs.setString('last_water_date_$userId', today);
+    }
+
+    return isFirstToday;
+  }
+
   /// Subtract water glass from daily intake
   Future<void> subtractWaterGlass(
     String token,

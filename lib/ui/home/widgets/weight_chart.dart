@@ -444,6 +444,10 @@ class _WeightChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (data.isEmpty) return;
 
+    // Keep only finite points to avoid NaN/Infinity painting crashes.
+    final cleaned = data.where((v) => v.isFinite).toList();
+    if (cleaned.isEmpty) return;
+
     final paintLine = Paint()
       ..color = const Color(0xff17B2A8)
       ..style = PaintingStyle.stroke
@@ -453,15 +457,15 @@ class _WeightChartPainter extends CustomPainter {
     final paintPoint = Paint()..color = const Color(0xff17B2A8);
 
     // compute min/max with padding
-    double minV = data.reduce((a, b) => a < b ? a : b);
-    double maxV = data.reduce((a, b) => a > b ? a : b);
+    double minV = cleaned.reduce((a, b) => a < b ? a : b);
+    double maxV = cleaned.reduce((a, b) => a > b ? a : b);
     if (minV == maxV) {
       minV -= 1;
       maxV += 1;
     }
     final vRange = maxV - minV;
 
-    final int n = data.length;
+    final int n = cleaned.length;
     final double leftPadding = size.width * 0.12; //chỉnh chart qua phải
     final double rightPadding = size.width * 0.04;
     final double topPadding = size.height * 0.08;
@@ -469,15 +473,23 @@ class _WeightChartPainter extends CustomPainter {
 
     final double chartW = size.width - leftPadding - rightPadding;
     final double chartH = size.height - topPadding - bottomPadding;
+    if (!chartW.isFinite || !chartH.isFinite || chartW <= 0 || chartH <= 0) {
+      return;
+    }
 
     // build points
     final List<Offset> points = [];
+    final double xStepDivisor = n > 1 ? (n - 1).toDouble() : 1.0;
     for (int i = 0; i < n; i++) {
-      final double x = leftPadding + (chartW) * (i / (n - 1));
-      final double normalized = (data[i] - minV) / vRange;
+      final double x = leftPadding + chartW * (i / xStepDivisor);
+      final double normalized = (cleaned[i] - minV) / vRange;
       final double y = topPadding + (1 - normalized) * chartH;
-      points.add(Offset(x, y));
+      if (x.isFinite && y.isFinite) {
+        points.add(Offset(x, y));
+      }
     }
+
+    if (points.isEmpty) return;
 
     // path for line
     final Path linePath = Path();
@@ -526,6 +538,7 @@ class _WeightChartPainter extends CustomPainter {
     // draw dots
     for (int i = 0; i < points.length; i++) {
       final p = points[i];
+      if (!p.dx.isFinite || !p.dy.isFinite) continue;
       // outer white border
       canvas.drawCircle(p, 6.0, Paint()..color = Colors.white);
       // green dot

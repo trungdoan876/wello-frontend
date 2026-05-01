@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../../domain/entities/nutrition_summary.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/week_overview.dart';
+import '../../domain/entities/seven_day_stats.dart';
 import '../models/requests/log_food_request.dart';
 import '../models/responses/log_food_response.dart';
 import '../../domain/entities/food_history_item.dart';
@@ -166,6 +167,26 @@ class NutritionRemoteDataSource {
       return WeekOverview.fromJson(bodyJson);
     } else {
       throw Exception('Failed to load week overview: ${response.statusCode}');
+    }
+  }
+
+  /// Get seven-day statistics for profile dashboard
+  Future<SevenDayStats> getSevenDayStats(String token, String userId) async {
+    final url = Uri.parse(ApiEndpoints.sevenDayStats(int.parse(userId)));
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
+      return SevenDayStats.fromJson(bodyJson);
+    } else {
+      throw Exception('Failed to load seven day stats: ${response.statusCode}');
     }
   }
 

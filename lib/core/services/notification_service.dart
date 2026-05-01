@@ -14,12 +14,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static final ProfileRepository _profileRepository = ProfileRepository();
-  static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  static final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+  static bool _isInitialized = false;
+  static bool _foregroundListenerAdded = false;
 
   /// Setup foreground message listener (call this in main.dart)
   static void setupForegroundListener() {
     print('Dang thiet lap lang nghe FCM o foreground...');
-    
+
     // Setup foreground message handler to show local notification
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print('----------------------------------------');
@@ -29,17 +32,14 @@ class NotificationService {
       print('Noi dung: ${message.notification?.body}');
       print('Du lieu: ${message.data}');
       print('----------------------------------------');
-      
+
       // Get title and body from notification or data
-      final title = message.notification?.title ?? 
-                   message.data['title'] ?? 
-                   'Thông báo';
-      final body = message.notification?.body ?? 
-                  message.data['body'] ?? 
-                  '';
-      
+      final title =
+          message.notification?.title ?? message.data['title'] ?? 'Thông báo';
+      final body = message.notification?.body ?? message.data['body'] ?? '';
+
       print('Dang hien thi thong bao noi bo: $title - $body');
-      
+
       // Show local notification
       _showLocalNotification(title, body);
     });
@@ -50,14 +50,20 @@ class NotificationService {
       print('Du lieu: ${message.data}');
       // Handle navigation based on notification data
     });
-    
+
     print('Thiet lap lang nghe FCM foreground hoan tat!');
   }
 
   /// Initialize notification service (call this after user login)
   static Future<void> initialize(int userId) async {
+    if (_isInitialized) {
+      return;
+    }
+
     // Initialize local notifications
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const initSettings = InitializationSettings(android: androidSettings);
     await _localNotifications.initialize(initSettings);
 
@@ -72,25 +78,23 @@ class NotificationService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(androidChannel);
 
     // Request permission for Android 13+ and iOS
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await _messaging.requestPermission(alert: true, badge: true, sound: true);
 
     // Get FCM Token
     String? token = await _messaging.getToken();
-    
+
     if (token != null) {
       print('------------------------------------------------');
       print('FCM TOKEN:');
       print(token);
       print('------------------------------------------------');
-      
+
       /* 
       try {
         await _profileRepository.updateFcmToken(
@@ -109,42 +113,45 @@ class NotificationService {
     // Setup background message handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // Setup foreground message handler to show local notification
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('----------------------------------------');
-      print('NHAN DUOC THONG BAO FOREGROUND!');
-      print('Thong bao: ${message.notification}');
-      print('Tieu de: ${message.notification?.title}');
-      print('Noi dung: ${message.notification?.body}');
-      print('Du lieu: ${message.data}');
-      print('----------------------------------------');
-      
-      // Get title and body from notification or data
-      final title = message.notification?.title ?? 
-                   message.data['title'] ?? 
-                   'Thông báo';
-      final body = message.notification?.body ?? 
-                  message.data['body'] ?? 
-                  '';
-      
-      print('Dang hien thi thong bao noi bo: $title - $body');
-      
-      // Show local notification
-      _showLocalNotification(title, body);
-    });
+    if (!_foregroundListenerAdded) {
+      // Setup foreground message handler to show local notification
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        print('----------------------------------------');
+        print('NHAN DUOC THONG BAO FOREGROUND!');
+        print('Thong bao: ${message.notification}');
+        print('Tieu de: ${message.notification?.title}');
+        print('Noi dung: ${message.notification?.body}');
+        print('Du lieu: ${message.data}');
+        print('----------------------------------------');
 
-    // Handle notification tap when app is in background
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('Nguoi dung nhan vao thong bao (app dang o nen)');
-      print('Du lieu: ${message.data}');
-      // Handle navigation based on notification data
-    });
+        // Get title and body from notification or data
+        final title =
+            message.notification?.title ?? message.data['title'] ?? 'Thông báo';
+        final body = message.notification?.body ?? message.data['body'] ?? '';
+
+        print('Dang hien thi thong bao noi bo: $title - $body');
+
+        // Show local notification
+        _showLocalNotification(title, body);
+      });
+
+      // Handle notification tap when app is in background
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        print('Nguoi dung nhan vao thong bao (app dang o nen)');
+        print('Du lieu: ${message.data}');
+        // Handle navigation based on notification data
+      });
+
+      _foregroundListenerAdded = true;
+    }
+
+    _isInitialized = true;
   }
 
   /// Show local notification in system tray
   static Future<void> _showLocalNotification(String title, String body) async {
     print('_showLocalNotification duoc goi voi: $title - $body');
-    
+
     const androidDetails = AndroidNotificationDetails(
       'water_reminder_channel',
       'Nhắc nhở uống nước',
@@ -170,7 +177,9 @@ class NotificationService {
   }
 
   /// Background message handler (must be top-level function)
-  static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  static Future<void> firebaseMessagingBackgroundHandler(
+    RemoteMessage message,
+  ) async {
     print('Thong bao nen duoc nhan!');
     print('Tieu de: ${message.notification?.title}');
     print('Noi dung: ${message.notification?.body}');

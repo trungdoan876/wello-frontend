@@ -6,6 +6,7 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/ui/widgets/info_bottom_sheet.dart';
+import 'package:wello_frontend/ui/streak/streak_popup.dart';
 
 class WaterTracker extends StatelessWidget {
   const WaterTracker({super.key});
@@ -127,10 +128,21 @@ class WaterTracker extends StatelessWidget {
                         if (!isFilled) {
                           // Add water
                           print('Dang them nuoc...');
-                          await provider.addWaterGlass(
+                          final isFirstToday = await provider.addWaterGlassWithStreak(
                             credentials.token,
                             credentials.userIdString,
                           );
+
+                          // ⭐ POPUP STREAK NƯỚC – CHỈ LY ĐẦU
+                          if (isFirstToday && context.mounted) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (_) => const StreakPopup(
+                                type: StreakType.water,
+                              ),
+                            );
+                          }
 
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(

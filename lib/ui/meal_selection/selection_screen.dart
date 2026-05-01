@@ -12,6 +12,7 @@ import 'widgets/suggestion_meal_card.dart';
 import 'widgets/exercise_detail_sheet.dart';
 import 'widgets/food_detail_sheet.dart';
 import '../contribution/contribution_screen.dart';
+import 'package:wello_frontend/ui/streak/streak_popup.dart';
 
 class MealItem {
   final String name;
@@ -470,9 +471,14 @@ class _SelectionScreenState extends State<SelectionScreen> {
                                 );
 
                                 if (result == true && mounted) {
-                                  // Success! SnackBar is already shown in the sheet
-                                  // The main_navigation_screen or home_screen should refresh
-                                  // because logFood calls loadDailySummary
+                                  // ⭐ HIỆN POPUP STREAK ĂN
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => const StreakPopup(
+                                      type: StreakType.meal,
+                                    ),
+                                  );
                                 }
                               }
                             }

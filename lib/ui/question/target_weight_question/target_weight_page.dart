@@ -7,7 +7,6 @@ import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/ui/question/activity_question/activity_level_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
-import 'package:wello_frontend/data/data_source/survey_remote_data_source.dart';
 import 'package:wello_frontend/data/models/responses/calculate_bmi_response_model.dart';
 import '../age_weight_question/widgets/number_box.dart';
 import '../age_weight_question/widgets/bmi_display_card.dart';
@@ -53,15 +52,18 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
 
   Future<void> _calculateBmi() async {
     if (widget.height == null) return;
-    
+
     try {
-      final surveyProvider = Provider.of<SurveyProvider>(context, listen: false);
+      final surveyProvider = Provider.of<SurveyProvider>(
+        context,
+        listen: false,
+      );
       final response = await surveyProvider.calculateBmi(
         weight: targetWeight,
         height: widget.height!,
         goal: widget.goal,
       );
-      
+
       if (mounted) {
         setState(() {
           targetBmiData = response;
@@ -128,93 +130,91 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                SizedBox(height: context.h(0.07)),
+                  SizedBox(height: context.h(0.07)),
 
-                // ----- TITLE -----
-                Text(
-                  widget.question.question,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.baloo2(
-                    fontSize: context.sp(7),
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xffEBCF23),
-                  ),
-                ),
-
-                SizedBox(height: context.h(0.05)),
-
-                // ----- TARGET WEIGHT BOX -----
-                Container(
-                  padding: EdgeInsets.all(context.w(0.05)),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.75),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: NumberBox(
-                    title: "Mục tiêu",
-                    unit: widget.question.unit ?? "kg",
-                    value: targetWeight,
-                    onMinus: () {
-                      setState(() {
-                        if (targetWeight > 1) targetWeight--;
-                      });
-                      _onTargetWeightChanged();
-                    },
-                    onPlus: () {
-                      setState(() => targetWeight++);
-                      _onTargetWeightChanged();
-                    },
-                  ),
-                ),
-
-                SizedBox(height: context.h(0.02)),
-
-                // ----- TARGET BMI DISPLAY -----
-                if (widget.height != null)
-                  BmiDisplayCard(
-                    bmiData: targetBmiData,
+                  // ----- TITLE -----
+                  Text(
+                    widget.question.question,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(7),
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xffEBCF23),
+                    ),
                   ),
 
-                SizedBox(height: context.h(0.05)),
+                  SizedBox(height: context.h(0.05)),
 
-                // ---- NEXT BUTTON ----
-                SizedBox(
-                  width: context.w(0.5),
-                  child: AnimatedStartButton(
-                    text: "Tiếp tục",
-                    onPressed: () async {
-                      // Navigate to Activity Level Screen
-                      final provider = Provider.of<QuestionProvider>(
-                        context,
-                        listen: false,
-                      );
-                      final nextQuestion = provider.getQuestionByIndex(7);
-                      if (nextQuestion != null) {
-                        Navigator.push(
+                  // ----- TARGET WEIGHT BOX -----
+                  Container(
+                    padding: EdgeInsets.all(context.w(0.05)),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.75),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: NumberBox(
+                      title: "Mục tiêu",
+                      unit: widget.question.unit ?? "kg",
+                      value: targetWeight,
+                      onMinus: () {
+                        setState(() {
+                          if (targetWeight > 1) targetWeight--;
+                        });
+                        _onTargetWeightChanged();
+                      },
+                      onPlus: () {
+                        setState(() => targetWeight++);
+                        _onTargetWeightChanged();
+                      },
+                    ),
+                  ),
+
+                  SizedBox(height: context.h(0.02)),
+
+                  // ----- TARGET BMI DISPLAY -----
+                  if (widget.height != null)
+                    BmiDisplayCard(bmiData: targetBmiData),
+
+                  SizedBox(height: context.h(0.05)),
+
+                  // ---- NEXT BUTTON ----
+                  SizedBox(
+                    width: context.w(0.5),
+                    child: AnimatedStartButton(
+                      text: "Tiếp tục",
+                      onPressed: () async {
+                        // Navigate to Activity Level Screen
+                        final provider = Provider.of<QuestionProvider>(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => ActivityLevelScreen(
-                              question: nextQuestion,
-                              fullname: widget.fullname,
-                              gender: widget.gender,
-                              height: widget.height,
-                              weight: widget.weight,
-                              targetWeight: targetWeight,
-                              age: widget.age,
-                              goal: widget.goal,
-                              userId: widget.userId,
-                            ),
-                          ),
+                          listen: false,
                         );
-                      }
-                    },
+                        final nextQuestion = provider.getQuestionByIndex(7);
+                        if (nextQuestion != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ActivityLevelScreen(
+                                question: nextQuestion,
+                                fullname: widget.fullname,
+                                gender: widget.gender,
+                                height: widget.height,
+                                weight: widget.weight,
+                                targetWeight: targetWeight,
+                                age: widget.age,
+                                goal: widget.goal,
+                                userId: widget.userId,
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
