@@ -5,8 +5,8 @@ class ApiEndpoints {
   // BASE URL - Đổi URL này để chuyển server
   // ============================================
   
-  // Server production
-  // static const String baseUrl = 'https://api.memap.id.vn:8280/wello-backend/api';
+  // Server production (memap.id.vn)
+//   static const String baseUrl = 'https://wello.memap.id.vn/api';
   
   // Local development (Android Emulator)
   static const String baseUrl = 'http://10.0.2.2:8080/api';
