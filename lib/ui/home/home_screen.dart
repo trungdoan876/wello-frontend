@@ -11,10 +11,16 @@ import 'package:wello_frontend/ui/home/widgets/activity_summary_card.dart';
 import 'package:wello_frontend/ui/home/widgets/workout_history_card.dart';
 import 'package:wello_frontend/ui/home/widgets/food_history_card.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
+import 'package:wello_frontend/ui/streak/streak_screen.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/core/navigation/route_observer.dart';
+import 'widgets/daily_sleep_card.dart';
+import 'widgets/bedtime_bottom_sheet.dart';
+import 'widgets/waketime_bottom_sheet.dart';
+import 'widgets/edit_sleep_bottom_sheet.dart';
+import 'package:wello_frontend/domain/providers/sleep_provider.dart';
 
 import 'package:wello_frontend/core/services/notification_service.dart';
 
@@ -31,6 +37,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   bool _showQuickActions = false; // trạng thái mở panel
   bool _routeSubscribed = false;
   ProfileProvider? _profileProviderRef;
+  bool _sleepSyncInProgress = false;
+  String? _lastSyncedSleepDate;
+  DateTime? _lastProfileReloadAt;
 
   @override
   void initState() {
@@ -43,6 +52,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
       final profileProvider = context.read<ProfileProvider>();
       _profileProviderRef = profileProvider;
       profileProvider.addListener(_onProfileChanged);
+
+      final nutritionProvider = context.read<NutritionProvider>();
+      nutritionProvider.addListener(_onNutritionChanged);
     });
   }
 
@@ -59,9 +71,23 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   }
 
   void _onProfileChanged() {
-    // Reload nutrition data when profile is updated
-    _loadNutritionData();
-    _initNotifications();
+    // Profile provider can notify many times in a burst.
+    // Debounce to avoid duplicate API calls.
+    final now = DateTime.now();
+    if (_lastProfileReloadAt != null &&
+        now.difference(_lastProfileReloadAt!) < const Duration(seconds: 2)) {
+      return;
+    }
+    _lastProfileReloadAt = now;
+    _loadAll();
+  }
+
+  void _onNutritionChanged() {
+    // Khi NutritionProvider đổi ngày, chỉ sync sleep nếu ngày thực sự đổi
+    if (!mounted || _sleepSyncInProgress) return;
+    final selectedDate = context.read<NutritionProvider>().selectedDate;
+    if (selectedDate == _lastSyncedSleepDate) return;
+    _loadSleepData();
   }
 
   Future<void> _initNotifications() async {
@@ -79,8 +105,35 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     await provider.loadHomeData(credentials.token, credentials.userIdString);
   }
 
-  Future<void> _reloadAll() async {
+  Future<void> _loadSleepData() async {
+    if (_sleepSyncInProgress) return;
+    final credentials = await AuthHelper.getCredentials();
+    if (credentials == null || !mounted) return;
+
+    final nutritionProvider = context.read<NutritionProvider>();
+    final sleepProvider = context.read<SleepProvider>();
+
+    try {
+      _sleepSyncInProgress = true;
+      final selectedDate = DateTime.parse(nutritionProvider.selectedDate);
+      _lastSyncedSleepDate = nutritionProvider.selectedDate;
+      // Đồng bộ ngày xem của Dashboard vào SleepProvider
+      sleepProvider.setTestDate(selectedDate);
+      await sleepProvider.loadTodaySleep(credentials.userId);
+    } catch (e) {
+      print('[SLEEP] Error syncing date: $e');
+    } finally {
+      _sleepSyncInProgress = false;
+    }
+  }
+
+  Future<void> _loadAll() async {
+    // Sleep data is already synced by the NutritionProvider listener.
     await _loadNutritionData();
+  }
+
+  Future<void> _reloadAll() async {
+    await _loadAll();
   }
 
   @override
@@ -149,6 +202,262 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           const WaterTracker(),
+                          SizedBox(height: context.h(0.04)),
+                          // Daily Sleep Log Card
+                          Consumer2<SleepProvider, NutritionProvider>(
+                            builder: (context, sleepProvider, nutritionProvider, _) {
+                              final sleepTarget =
+                                  nutritionProvider
+                                      .userProfile
+                                      ?.sleepTargetHours ??
+                                  8.0;
+
+                              return DailySleepCard(
+                                status: sleepProvider.status,
+                                completedRecord: sleepProvider.completedSleep,
+                                activeRecord: sleepProvider.activeSleep,
+                                dashboardDate: DateTime.tryParse(
+                                  nutritionProvider.selectedDate,
+                                ),
+                                targetHours: sleepTarget,
+                                onLogBedtime: () async {
+                                  final credentials =
+                                      await AuthHelper.getCredentials();
+                                  if (credentials == null) return;
+
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) => BedtimeBottomSheet(
+                                      initialBedtime: _parseTime(
+                                        nutritionProvider
+                                            .userProfile
+                                            ?.sleepBedtimeTarget,
+                                      ),
+                                      displayDate:
+                                          nutritionProvider.selectedDate,
+                                      onSaved: (bedtime) async {
+                                        // bedtime is now full ISO timestamp: "2026-01-03T22:00:00"
+                                        final success = await sleepProvider
+                                            .logBedtime(
+                                              credentials.userId,
+                                              bedtime, // Pass ISO string directly
+                                            );
+
+                                        if (!success && context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sleepProvider.errorMessage ??
+                                                    'Không thể lưu giờ đi ngủ',
+                                                style: GoogleFonts.baloo2(),
+                                              ),
+                                              backgroundColor:
+                                                  Colors.red.shade600,
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        }
+
+                                        return success;
+                                      },
+                                    ),
+                                  );
+                                },
+                                onLogWaketime: () async {
+                                  final credentials =
+                                      await AuthHelper.getCredentials();
+                                  if (credentials == null) return;
+
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) => WaketimeBottomSheet(
+                                      bedtime:
+                                          sleepProvider.bedtime ??
+                                          nutritionProvider
+                                              .userProfile
+                                              ?.sleepBedtimeTarget ??
+                                          "21:00",
+                                      bedtimeDateTimeIso:
+                                          sleepProvider.activeSleep?.sleepTime,
+                                      initialWakeTime: _parseTime(
+                                        nutritionProvider
+                                            .userProfile
+                                            ?.sleepWakeTimeTarget,
+                                      ),
+                                      targetHours: sleepTarget,
+                                      displayDate:
+                                          nutritionProvider.selectedDate,
+                                      onSaved: (wakeTime, actualHours, quality, notes) async {
+                                        try {
+                                          // wakeTime is now full ISO timestamp: "2026-01-03T07:00:00"
+                                          final success = await sleepProvider
+                                              .completeSleep(
+                                                credentials.userId,
+                                                wakeTime, // Pass ISO string directly
+                                                sleepId:
+                                                    sleepProvider.activeSleepId,
+                                                quality: quality,
+                                                notes: notes,
+                                              );
+
+                                          if (!success && context.mounted) {
+                                            // Hiển thị lỗi nếu API không thành công
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  sleepProvider.errorMessage ??
+                                                      'Không thể lưu giấc ngủ',
+                                                  style: GoogleFonts.baloo2(),
+                                                ),
+                                                backgroundColor:
+                                                    Colors.red.shade600,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          // Hiển thị lỗi exception
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  e.toString().replaceFirst(
+                                                    'Exception: ',
+                                                    '',
+                                                  ),
+                                                  style: GoogleFonts.baloo2(),
+                                                ),
+                                                backgroundColor:
+                                                    Colors.red.shade600,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  );
+                                },
+                                onEdit: () {
+                                  // TODO: Show edit bottom sheet
+                                  final current = sleepProvider.completedSleep;
+                                  if (current == null) return;
+
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) => EditSleepBottomSheet(
+                                      initialBedtime:
+                                          sleepProvider.bedtime ?? "22:00",
+                                      initialWakeTime:
+                                          sleepProvider.wakeTime ?? "07:00",
+                                      initialQuality: current.quality ?? 4,
+                                      initialNotes: current.notes,
+                                      displayDate:
+                                          nutritionProvider.selectedDate,
+                                      onSaved:
+                                          (
+                                            bedtime,
+                                            wakeTime,
+                                            quality,
+                                            notes,
+                                          ) async {
+                                            final credentials =
+                                                await AuthHelper.getCredentials();
+                                            if (credentials == null) return;
+
+                                            final bedtimeParts = bedtime.split(
+                                              ':',
+                                            );
+                                            final wakeTimeParts = wakeTime
+                                                .split(':');
+
+                                            await sleepProvider.updateSleep(
+                                              userId: credentials.userId,
+                                              sleepId: current.id,
+                                              originalSleepTime: DateTime.parse(
+                                                current.sleepTime,
+                                              ),
+                                              newBedtime: TimeOfDay(
+                                                hour: int.parse(
+                                                  bedtimeParts[0],
+                                                ),
+                                                minute: int.parse(
+                                                  bedtimeParts[1],
+                                                ),
+                                              ),
+                                              newWakeTime: TimeOfDay(
+                                                hour: int.parse(
+                                                  wakeTimeParts[0],
+                                                ),
+                                                minute: int.parse(
+                                                  wakeTimeParts[1],
+                                                ),
+                                              ),
+                                              quality: quality,
+                                              notes: notes,
+                                            );
+                                          },
+                                    ),
+                                  );
+                                },
+                                onDelete: () async {
+                                  final credentials =
+                                      await AuthHelper.getCredentials();
+                                  if (credentials == null) return;
+
+                                  final sleepId = sleepProvider.sleepId;
+                                  if (sleepId == null) return;
+
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text('Xóa giấc ngủ?'),
+                                      content: Text(
+                                        'Bạn có chắc muốn xóa dữ liệu giấc ngủ hôm nay?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
+                                          child: Text('Hủy'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: Colors.red,
+                                          ),
+                                          child: Text('Xóa'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (confirm == true) {
+                                    await sleepProvider.deleteSleep(
+                                      credentials.userId,
+                                      sleepId,
+                                    );
+                                  }
+                                },
+                              );
+                            },
+                          ),
                           SizedBox(height: context.h(0.04)),
                           const WeightGoalCard(),
                           SizedBox(height: context.h(0.04)),
@@ -241,8 +550,19 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Empty space on left for balance
-                SizedBox(width: context.sp(6)),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const StreakScreen()),
+                    );
+                  },
+                  child: Image.asset(
+                    'assets/images/streak.png',
+                    height: context.sp(8),
+                    fit: BoxFit.contain,
+                  ),
+                ),
                 // Title centered
                 Text(
                   'Nhật ký',
@@ -288,6 +608,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           credentials.userIdString,
                           dateStr,
                         );
+                        // Sleep data sẽ tự reload nhờ listener _onNutritionChanged
                       }
                     }
                   },
@@ -307,6 +628,16 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
         ),
       ),
     );
+  }
+
+  TimeOfDay? _parseTime(String? timeStr) {
+    if (timeStr == null || !timeStr.contains(':')) return null;
+    try {
+      final parts = timeStr.split(':');
+      return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    } catch (e) {
+      return null;
+    }
   }
 }
 

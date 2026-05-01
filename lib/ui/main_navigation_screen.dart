@@ -69,6 +69,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             : CenteredBottomNavBar(
                 currentIndex: _currentIndex,
                 onTap: _onTabSelected,
+                items: const [
+                  CenteredBottomNavItem(icon: Icons.home, label: 'Nhật ký'),
+                  CenteredBottomNavItem(
+                    icon: Icons.favorite,
+                    label: 'Mục yêu thích',
+                  ),
+                  CenteredBottomNavItem(icon: Icons.person, label: 'Cá nhân'),
+                ],
               ),
       ),
     );

@@ -4,11 +4,11 @@ import 'package:wello_frontend/ui/main_navigation_screen.dart';
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import '../../data/models/responses/survey_response_model.dart';
-import '../main_navigation_screen.dart';
 import 'widgets/calorie_card.dart';
 import 'widgets/bmi_card.dart';
 import 'widgets/section_title.dart';
 import 'widgets/water_card.dart';
+import 'widgets/sleep_card.dart';
 
 class SummaryPage extends StatelessWidget {
   final SurveyResponseModel survey;
@@ -40,9 +40,7 @@ class SummaryPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SectionTitle(
-              title: "Năng lượng cần nạp vào mỗi ngày",
-            ),
+            SectionTitle(title: "Năng lượng cần nạp vào mỗi ngày"),
 
             SizedBox(height: context.h(0.015)),
             CalorieCard(survey: survey),
@@ -58,6 +56,13 @@ class SummaryPage extends StatelessWidget {
 
             SizedBox(height: context.h(0.015)),
             WaterCard(survey: survey),
+
+            SizedBox(height: context.h(0.04)),
+            SectionTitle(title: "Mục tiêu giấc ngủ"),
+
+            SizedBox(height: context.h(0.015)),
+            SleepCard(survey: survey),
+
             SizedBox(height: context.h(0.05)),
             Center(
               child: SizedBox(
@@ -66,7 +71,9 @@ class SummaryPage extends StatelessWidget {
                   text: "Tiếp tục",
                   onPressed: () {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => MainNavigationScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => MainNavigationScreen(),
+                      ),
                     );
                   },
                 ),
