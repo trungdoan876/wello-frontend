@@ -1,7 +1,9 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../../data/repositories/profile_repository.dart';
+import '../../data/repositories/user_repository_impl.dart';
+import '../../data/data_source/user_remote_data_source.dart';
+import '../../domain/repositories/user_repository.dart';
 
 // Background message handler - must be top-level function
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -13,7 +15,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  static final ProfileRepository _profileRepository = ProfileRepository();
+  static final UserRepository _userRepository =
+      UserRepositoryImpl(userRemoteDataSource: UserRemoteDataSource());
   static final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
   static bool _isInitialized = false;
@@ -55,7 +58,7 @@ class NotificationService {
   }
 
   /// Initialize notification service (call this after user login)
-  static Future<void> initialize(int userId) async {
+  static Future<void> initialize(int userId, String authToken) async {
     if (_isInitialized) {
       return;
     }
@@ -87,25 +90,23 @@ class NotificationService {
     await _messaging.requestPermission(alert: true, badge: true, sound: true);
 
     // Get FCM Token
-    String? token = await _messaging.getToken();
+    String? fcmToken = await _messaging.getToken();
 
-    if (token != null) {
+    if (fcmToken != null) {
       print('------------------------------------------------');
       print('FCM TOKEN:');
-      print(token);
+      print(fcmToken);
       print('------------------------------------------------');
 
-      /* 
       try {
-        await _profileRepository.updateFcmToken(
-          userId: userId,
-          fcmToken: token,
+        await _userRepository.updateFcmToken(
+          authToken,
+          fcmToken,
         );
         print('Cap nhat FCM Token len backend thanh cong');
       } catch (e) {
         print('Loi cap nhat FCM Token len backend: $e');
       }
-      */
     } else {
       print('Khong the lay FCM token');
     }

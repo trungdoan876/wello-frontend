@@ -2,6 +2,7 @@ import '../../domain/entities/exercise.dart';
 import '../../domain/repositories/exercise_repository.dart';
 import '../../domain/entities/exercise_request.dart';
 import '../data_source/exercise_remote_data_source.dart';
+import '../../domain/entities/engagement_result.dart';
 
 /// Implementation of ExerciseRepository
 class ExerciseRepositoryImpl implements ExerciseRepository {
@@ -30,8 +31,12 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
   }
 
   @override
-  Future<void> logWorkout(String token, WorkoutLog workoutLog) async {
-    return await remoteDataSource.logWorkout(token, workoutLog);
+  Future<EngagementResult?> logWorkout(String token, WorkoutLog workoutLog) async {
+    final response = await remoteDataSource.logWorkoutRaw(token, workoutLog);
+    if (response.containsKey('engagement')) {
+      return EngagementResult.fromJson(response['engagement']);
+    }
+    return null;
   }
 
   @override

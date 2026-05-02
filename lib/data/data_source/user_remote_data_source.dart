@@ -75,4 +75,23 @@ class UserRemoteDataSource {
       throw Exception('Không thể verify user: ${response.statusCode}');
     }
   }
+  
+  /// Cập nhật FCM Token
+  Future<bool> updateFcmToken({
+    required String token,
+    required String fcmToken,
+  }) async {
+    final url = Uri.parse('$baseUrl/user/fcm-token');
+    
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'token': fcmToken}),
+    );
+
+    return response.statusCode == 200;
+  }
 }

@@ -6,6 +6,7 @@ import 'package:wello_frontend/data/data_source/sleep_remote_data_source.dart';
 import 'package:wello_frontend/domain/entities/sleep_log.dart';
 import 'package:wello_frontend/data/models/responses/sleep_today_response.dart';
 import 'package:wello_frontend/ui/home/widgets/daily_sleep_card.dart';
+import 'package:wello_frontend/domain/entities/engagement_result.dart';
 
 class SleepProvider extends ChangeNotifier {
   final SleepRemoteDataSource _remoteDataSource = SleepRemoteDataSource();
@@ -173,7 +174,7 @@ class SleepProvider extends ChangeNotifier {
   }
 
   // Log bedtime
-  Future<bool> logBedtime(int userId, String bedtime) async {
+  Future<EngagementResult?> logBedtime(int userId, String bedtime) async {
     print('[SLEEP] 🛏️ Logging bedtime: $bedtime');
     _isLoading = true;
     _errorMessage = null;
@@ -181,20 +182,20 @@ class SleepProvider extends ChangeNotifier {
 
     try {
       final credentials = await AuthHelper.getCredentials();
-      // bedtime is already in ISO format from BedtimeBottomSheet
-      final result = await _remoteDataSource.logBedtime(
+      final response = await _remoteDataSource.logBedtimeRaw(
         userId: userId,
         bedtime: bedtime,
         token: credentials?.token,
       );
 
+      final resultData = SleepLogData.fromJson(response);
+      EngagementResult? engagement;
+      if (response.containsKey('engagement')) {
+        engagement = EngagementResult.fromJson(response['engagement']);
+      }
+
       // Cập nhật state cục bộ ngay lập tức để UI mượt mà
-      _activeSleep = SleepLogData(
-        id: result.id!,
-        sleepTime: result.sleepTime,
-        date: result.date,
-        status: result.status,
-      );
+      _activeSleep = resultData;
 
       print('[SLEEP] ✅ Bedtime logged successfully! Reloading data...');
       _isLoading = false;
@@ -202,18 +203,18 @@ class SleepProvider extends ChangeNotifier {
 
       // Vẫn reload để đảm bảo đồng bộ hoàn toàn với server logic
       await loadTodaySleep(userId);
-      return true;
+      return engagement;
     } catch (e) {
       _errorMessage = e.toString();
       print('Lỗi khi ghi giờ đi ngủ: $e');
       _isLoading = false;
       notifyListeners();
-      return false;
+      rethrow;
     }
   }
 
   // Complete sleep (log wake time)
-  Future<bool> completeSleep(
+  Future<EngagementResult?> completeSleep(
     int userId,
     String wakeTime, { // ISO format: "2026-01-03T07:00:00"
     int? sleepId,
@@ -229,8 +230,7 @@ class SleepProvider extends ChangeNotifier {
 
     try {
       final credentials = await AuthHelper.getCredentials();
-      // wakeTime is already in ISO format from WaketimeBottomSheet
-      final result = await _remoteDataSource.completeSleep(
+      final response = await _remoteDataSource.completeSleepRaw(
         userId: userId,
         wakeTime: wakeTime,
         sleepId: sleepId,
@@ -239,18 +239,14 @@ class SleepProvider extends ChangeNotifier {
         token: credentials?.token,
       );
 
+      final resultData = SleepLogData.fromJson(response);
+      EngagementResult? engagement;
+      if (response.containsKey('engagement')) {
+        engagement = EngagementResult.fromJson(response['engagement']);
+      }
+
       // Cập nhật state cục bộ ngay lập tức
-      _completedSleep = SleepLogData(
-        id: result.id!,
-        sleepTime: result.sleepTime,
-        wakeTime: result.wakeTime,
-        duration: result.duration,
-        durationHours: result.durationHours,
-        quality: result.quality,
-        notes: result.notes,
-        date: result.date,
-        status: result.status,
-      );
+      _completedSleep = resultData;
 
       print('[SLEEP] ✅ Sleep completed successfully! Reloading data...');
       _isLoading = false;
@@ -259,13 +255,13 @@ class SleepProvider extends ChangeNotifier {
       // Reload để đồng bộ với backend
       await loadTodaySleep(userId);
       print('[SLEEP] 🔄 Data reloaded after completeSleep');
-      return true;
+      return engagement;
     } catch (e) {
       _errorMessage = e.toString();
       print('Lỗi khi hoàn thành giấc ngủ: $e');
       _isLoading = false;
       notifyListeners();
-      return false;
+      rethrow;
     }
   }
 

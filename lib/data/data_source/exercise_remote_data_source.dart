@@ -64,6 +64,26 @@ class ExerciseRemoteDataSource {
     }
   }
 
+  /// Log workout session - Raw version returning full response
+  Future<Map<String, dynamic>> logWorkoutRaw(String token, WorkoutLog workoutLog) async {
+    final url = Uri.parse('$baseUrl/workout/log');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(workoutLog.toJson()),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to log workout: ${response.statusCode}');
+    }
+  }
+
   /// Log workout session
   /// POST /workout/log
   Future<void> logWorkout(String token, WorkoutLog workoutLog) async {

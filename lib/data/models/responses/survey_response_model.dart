@@ -1,3 +1,5 @@
+import '../../../domain/entities/engagement_result.dart';
+
 class SurveyResponseModel {
   final double bmi;
   final String bmiStatus;
@@ -13,6 +15,7 @@ class SurveyResponseModel {
   final double? sleepTargetHours;
   final String? sleepBedtimeTarget;
   final String? sleepWakeTimeTarget;
+  final EngagementResult? engagement;
 
   SurveyResponseModel({
     required this.bmi,
@@ -29,6 +32,7 @@ class SurveyResponseModel {
     this.sleepTargetHours,
     this.sleepBedtimeTarget,
     this.sleepWakeTimeTarget,
+    this.engagement,
   });
 
   factory SurveyResponseModel.fromJson(Map<String, dynamic> json) {
@@ -47,6 +51,7 @@ class SurveyResponseModel {
       sleepTargetHours: json['sleepTargetHours'] != null ? (json['sleepTargetHours'] as num).toDouble() : null,
       sleepBedtimeTarget: json['sleepBedtimeTarget'] as String?,
       sleepWakeTimeTarget: json['sleepWakeTimeTarget'] as String?,
+      engagement: json['engagement'] != null ? EngagementResult.fromJson(json['engagement']) : null,
     );
   }
 

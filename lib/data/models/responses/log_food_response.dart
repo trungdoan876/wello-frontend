@@ -5,6 +5,7 @@ class LogFoodResponse {
   final double carbs;
   final double fat;
   final String message;
+  final Map<String, dynamic>? engagement;
 
   LogFoodResponse({
     required this.foodName,
@@ -13,6 +14,7 @@ class LogFoodResponse {
     required this.carbs,
     required this.fat,
     required this.message,
+    this.engagement,
   });
 
   factory LogFoodResponse.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class LogFoodResponse {
       carbs: (json['carbs'] as num).toDouble(),
       fat: (json['fat'] as num).toDouble(),
       message: json['message'],
+      engagement: json['engagement'],
     );
   }
 }

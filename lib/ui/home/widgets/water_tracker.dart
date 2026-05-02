@@ -1,601 +1,247 @@
-// lib/ui/home/widgets/water_tracker.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:wello_frontend/ui/home/home_screen.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
-import 'package:wello_frontend/ui/widgets/info_bottom_sheet.dart';
-import 'package:wello_frontend/ui/streak/streak_popup.dart';
+import 'dart:math' as math;
 
-class WaterTracker extends StatelessWidget {
+class WaterTracker extends StatefulWidget {
   const WaterTracker({super.key});
+
+  @override
+  State<WaterTracker> createState() => _WaterTrackerState();
+}
+
+class _WaterTrackerState extends State<WaterTracker> with SingleTickerProviderStateMixin {
+  AnimationController? _waveController;
+
+  @override
+  void initState() {
+    super.initState();
+    _waveController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _waveController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<NutritionProvider>(
       builder: (context, provider, child) {
-        // Get data from provider with fallback values = 0
         final waterIntake = provider.dailySummary?.waterIntake;
-        final int consumedMl = waterIntake?.consumed ?? 0;
-        final int targetMl = waterIntake?.target ?? 0;
-        final String targetMlString = targetMl > 0 ? '${targetMl}ml' : '0ml';
+        final int consumed = waterIntake?.consumed ?? 0;
+        final int target = waterIntake?.target ?? 2000;
+        
+        const int glassCapacity = 250;
+        final int totalGlasses = (target / glassCapacity).ceil().clamp(1, 15);
 
-        // Calculate cups dynamically based on target
-        const int glassSize = 250; // ml per glass
-        final int totalCups = targetMl > 0
-            ? (targetMl / glassSize).ceil()
-            : 6; // Default 6 if no data
-        final int cupsDrunk = consumedMl > 0
-            ? (consumedMl / glassSize).floor()
-            : 0;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'Bạn đã uống bao nhiêu nước',
-                    softWrap: true,
-                    maxLines: 2,
-                    style: GoogleFonts.baloo2(
-                      fontSize: context.sp(5.2),
-                      color: const Color(0xff585755),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                SizedBox(width: context.w(0.02)),
-
-                GestureDetector(
-                  onTap: () => InfoBottomSheet.show(
-                    context,
-                      title: 'Theo dõi nước - Hydrating your body',
-                      description: 'Uống đủ nước là yếu tố then chốt để duy trì năng lượng và hỗ trợ trao đổi chất.',
-                      details: [
-                        'Mục tiêu của bạn là **$targetMlString ml** mỗi ngày.',
-                        'Mỗi ly nước bạn thêm vào ứng dụng tương đương với **250ml**.'
-                      ],
-                      note: 'Nhu cầu nước có thể tăng lên nếu bạn **tập luyện cường độ cao** hoặc ở trong môi trường nóng.',
-                      tip: 'Hãy uống nước ngay cả khi bạn chưa thấy khát để duy trì trạng thái tốt nhất!',
-                  ),
-                    child: Text(
-                      '${consumedMl}ml/$targetMlString',
-                      style: GoogleFonts.baloo2(
-                        fontSize: context.sp(4.5),
-                        color: const Color(0xff6177D0),
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
+        return Container(
+          padding: EdgeInsets.all(context.w(0.05)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(context.w(0.04)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.local_drink_rounded,
+                        color: Colors.blue.shade400,
+                        size: context.sp(6),
                       ),
+                      SizedBox(width: context.w(0.02)),
+                      Text(
+                        'Nước uống',
+                        style: GoogleFonts.baloo2(
+                          fontSize: context.sp(5),
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF4C494C),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '$consumed / $target ml',
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(4.5),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade600,
                     ),
                   ),
                 ],
               ),
+              SizedBox(height: context.h(0.025)),
+              
+              Wrap(
+                spacing: context.w(0.03),
+                runSpacing: context.h(0.015),
+                children: List.generate(totalGlasses, (index) {
+                  final double glassFill = ((consumed - (index * glassCapacity)) / glassCapacity).clamp(0.0, 1.0);
+                  final bool isEmpty = glassFill <= 0.0;
 
-            // Label showing glass size
-            Padding(
-              padding: EdgeInsets.only(top: context.h(0.005)),
-              child: Text(
-                'Mỗi cốc = ${glassSize}ml',
-                style: GoogleFonts.baloo2(
-                  fontSize: context.sp(3.5),
-                  color: Colors.grey.shade600,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-
-            SizedBox(height: context.h(0.01)),
-
-            // Cup row - wrap to multiple rows if needed
-            Container(
-              padding: EdgeInsets.all(context.w(0.02)),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(context.sp(4.5)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-                border: Border.all(color: Colors.grey.shade200, width: 1),
-              ),
-              child: Wrap(
-                spacing: context.w(0.02), // Horizontal spacing
-                runSpacing: context.h(0.01), // Vertical spacing between rows
-                children: List.generate(totalCups, (index) {
-                  final bool isFilled = index < cupsDrunk;
-
-                  return GestureDetector(
+                  return InkWell(
+                    key: ValueKey('water_glass_$index'), // Thêm Key để giữ trạng thái hiệu ứng, tránh bị giật
                     onTap: () async {
-                      print(
-                        'Coc nuoc duoc nhan! Index: $index, Da day: $isFilled, so coc da uong: $cupsDrunk',
-                      );
-
                       final credentials = await AuthHelper.getCredentials();
-                      if (credentials == null) {
-                        print('Khong tim thay thong tin dang nhap! Nguoi dung chua dang nhap?');
-                        return;
-                      }
+                      if (credentials == null) return;
+                      
+                      if (glassFill >= 1.0) {
+                        await provider.subtractWaterGlass(
+                          credentials.token,
+                          credentials.userIdString,
+                          glassSize: glassCapacity,
+                        );
+                      } else {
+                        final engagement = await provider.addWaterGlass(
+                          credentials.token,
+                          credentials.userIdString,
+                          glassSize: glassCapacity,
+                        );
 
-                      try {
-                        if (!isFilled) {
-                          // Add water
-                          print('Dang them nuoc...');
-                          final isFirstToday = await provider.addWaterGlassWithStreak(
-                            credentials.token,
-                            credentials.userIdString,
-                          );
-
-                          // ⭐ POPUP STREAK NƯỚC – CHỈ LY ĐẦU
-                          if (isFirstToday && context.mounted) {
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (_) => const StreakPopup(
-                                type: StreakType.water,
-                              ),
-                            );
-                          }
-
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.water_drop,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Đã thêm 250ml nước! 💧',
-                                      style: GoogleFonts.baloo2(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                backgroundColor: const Color(0xff61C8F5),
-                                duration: const Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          }
-                        } else {
-                          // Remove water via DELETE endpoint
-                          print('Dang bớt nuoc...');
-                          await provider.subtractWaterGlass(
-                            credentials.token,
-                            credentials.userIdString,
-                            glassSize: glassSize,
-                          );
-
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.water_drop,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Đã giảm 250ml nước',
-                                      style: GoogleFonts.baloo2(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                backgroundColor: Colors.orange,
-                                duration: const Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          }
-                        }
-                      } catch (e) {
-                        print('Loi khi cap nhat nuoc: $e');
-
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Lỗi: Không thể cập nhật nước'),
-                              backgroundColor: Colors.red,
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
+                        if (engagement != null && engagement.isStreak) {
+                          HomeScreen.homeKey.currentState?.showStreakCelebration(engagement.message);
                         }
                       }
                     },
-                    child: SizedBox(
-                      width: context.w(0.12),
-                      child: GlassCup(
-                        width: context.w(0.10),
-                        height: context.w(0.12),
-                        isFilled: isFilled,
-                        showPlus: index == cupsDrunk && cupsDrunk < totalCups,
-                        fillColor: const Color(0xff61C8F5),
-                        borderColor: Colors.grey.shade400,
-                        borderWidth: 2,
-                        radius: context.sp(1.0),
-                      ),
+                    borderRadius: BorderRadius.circular(12),
+                    child: TweenAnimationBuilder<double>(
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeOutCubic,
+                      tween: Tween<double>(begin: 0.0, end: glassFill), // Quay lại begin: 0.0 nhưng nhờ có Key nên nó sẽ không bị reset
+                      builder: (context, animatedFill, child) {
+                        return AnimatedBuilder(
+                          animation: _waveController ?? const AlwaysStoppedAnimation(0.0),
+                          builder: (context, child) {
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                CustomPaint(
+                                  size: Size(context.w(0.10), context.h(0.075)),
+                                  painter: _WavyGlassPainter(
+                                    percent: animatedFill,
+                                    wavePhase: _waveController?.value ?? 0.0,
+                                  ),
+                                ),
+                                if (isEmpty)
+                                  Icon(
+                                    Icons.add_rounded,
+                                    color: Colors.blue.shade300,
+                                    size: context.sp(5),
+                                  ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                     ),
                   );
                 }),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
   }
 }
 
-// Glass cup widget + clipper + painter
-class GlassCup extends StatelessWidget {
-  final double width;
-  final double height;
-  final bool isFilled;
-  final bool showPlus;
-  final Color fillColor;
-  final Color borderColor;
-  final double borderWidth;
-  final double radius;
+class _WavyGlassPainter extends CustomPainter {
+  final double percent;
+  final double wavePhase;
 
-  const GlassCup({
-    Key? key,
-    required this.width,
-    required this.height,
-    required this.isFilled,
-    this.showPlus = false,
-    this.fillColor = const Color(0xff61C8F5),
-    this.borderColor = Colors.grey,
-    this.borderWidth = 2,
-    this.radius = 4.0,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // outline
-          CustomPaint(
-            size: Size(width, height),
-            painter: GlassOutlinePainter(borderColor, borderWidth, radius),
-          ),
-
-          // clipped fill
-          ClipPath(
-            clipper: _GlassClipper(),
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: (width - borderWidth * 2) < 0
-                    ? 0.0
-                    : (width - borderWidth * 2),
-                height: isFilled ? height * 0.55 : 0,
-                margin: EdgeInsets.only(bottom: borderWidth),
-                decoration: BoxDecoration(
-                  color: fillColor,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(
-                      radius > borderWidth ? radius - borderWidth : radius,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          if (showPlus)
-            Icon(Icons.add, color: const Color(0xFFFFC107), size: width * 0.82),
-        ],
-      ),
-    );
-  }
-}
-
-class _GlassClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final Rect r = Rect.fromLTWH(0, 0, size.width, size.height);
-    final double topInset = 0.0;
-    final double bottomInset = size.width * 0.25;
-    final Path p = Path();
-    p.moveTo(r.left + topInset, r.top);
-    p.lineTo(r.right - topInset, r.top);
-    p.lineTo(r.right - bottomInset, r.bottom);
-    p.lineTo(r.left + bottomInset, r.bottom);
-    p.close();
-    return p;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
-}
-
-class GlassOutlinePainter extends CustomPainter {
-  final Color color;
-  final double strokeWidth;
-  final double radius;
-
-  GlassOutlinePainter(this.color, this.strokeWidth, this.radius);
+  _WavyGlassPainter({required this.percent, required this.wavePhase});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Rect r = Rect.fromLTWH(0, 0, size.width, size.height);
-    final double bottomInset = size.width * 0.15;
-    final Path p = Path();
-    p.moveTo(r.left, r.top + 0);
-    p.lineTo(r.right, r.top + 0);
-    p.lineTo(r.right - bottomInset, r.bottom);
-    p.lineTo(r.left + bottomInset, r.bottom);
-    p.close();
+    final double topW = size.width;
+    final double botW = size.width * 0.8; // Rộng hơn một chút ở đáy
+    final double xOffset = (topW - botW) / 2;
 
-    final Paint paint = Paint()
-      ..color = color
+    // 1. Tạo Path cho khung ly (hình thang)
+    Path glassPath = Path();
+    glassPath.moveTo(0, 0); // Trên trái
+    glassPath.lineTo(topW, 0); // Trên phải
+    glassPath.lineTo(topW - xOffset, size.height - 4); // Dưới phải (chừa 4px cho đế)
+    glassPath.quadraticBezierTo(topW - xOffset, size.height, topW - xOffset - 4, size.height); // Bo góc đáy
+    glassPath.lineTo(xOffset + 4, size.height); // Đáy
+    glassPath.quadraticBezierTo(xOffset, size.height, xOffset, size.height - 4); // Bo góc đáy
+    glassPath.close();
+
+    // 2. Vẽ viền ly và nền ly
+    final border = Paint()
+      ..color = Colors.blue.shade200.withOpacity(0.6)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeJoin = StrokeJoin.round;
+      ..strokeWidth = 2.0;
 
-    canvas.drawPath(p, paint);
-  }
+    final bg = Paint()..color = Colors.blue.shade50.withOpacity(0.3);
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
+    canvas.drawPath(glassPath, bg);
+    canvas.drawPath(glassPath, border);
 
-class WaterReminderSheet extends StatefulWidget {
-  const WaterReminderSheet({super.key});
+    // Vẽ thêm một đường bóng mờ nhẹ bên cạnh ly để tạo chiều sâu
+    final shine = Paint()
+      ..color = Colors.white.withOpacity(0.4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawLine(const Offset(4, 5), Offset(4, size.height - 10), shine);
 
-  @override
-  State<WaterReminderSheet> createState() => _WaterReminderSheetState();
-}
+    // 3. Vẽ nước với hiệu ứng sóng (Cắt theo glassPath)
+    if (percent > 0) {
+      canvas.save();
+      canvas.clipPath(glassPath); // Quan trọng: Nước chỉ hiện trong lòng ly
 
-class _WaterReminderSheetState extends State<WaterReminderSheet> {
-  bool _enabled = true;
-  int _startHour = 8;
-  int _endHour = 22;
-  int _intervalHours = 0;
-  int _intervalMinutes = 30;
+      // Giới hạn nước dâng lên tối đa để trông đẹp hơn
+      double availableHeight = size.height - 9; // Chừa khoảng trống 9px ở trên (hạ thấp mực nước)
+      double h = availableHeight * percent;
+      double waterY = size.height - h;
 
-  String get _intervalLabel {
-    if (_intervalHours > 0 && _intervalMinutes > 0) {
-      return 'Cách mỗi $_intervalHours giờ $_intervalMinutes phút';
-    } else if (_intervalHours > 0) {
-      return 'Cách mỗi $_intervalHours giờ';
-    } else if (_intervalMinutes > 0) {
-      return 'Cách mỗi $_intervalMinutes phút';
+      final water = Paint()
+        ..color = const Color(0xFF29B6F6).withOpacity(0.75)
+        ..style = PaintingStyle.fill;
+
+      Path waterPath = Path();
+      waterPath.moveTo(-10, waterY);
+
+      // Tạo hình sóng dập dềnh mềm mại
+      double waveAmplitude = 1.8; // Sóng nhẹ nhàng hơn
+      double waveFrequency = 1.0; // Tần số thấp hơn cho cảm giác êm đềm
+
+      for (double x = -10; x <= size.width + 10; x += 0.5) { // Tăng độ mịn bằng cách giảm bước nhảy (0.5)
+        double normalizedX = x / size.width;
+        double wave = math.sin((normalizedX * waveFrequency + wavePhase) * 2 * math.pi) * waveAmplitude;
+        waterPath.lineTo(x, waterY + wave);
+      }
+
+      waterPath.lineTo(size.width + 10, size.height);
+      waterPath.lineTo(-10, size.height);
+      waterPath.close();
+
+      canvas.drawPath(waterPath, water);
+      canvas.restore();
     }
-    return 'Chưa đặt khoảng cách';
-  }
-
-  int get _intervalInMinutes {
-    return (_intervalHours * 60) + _intervalMinutes;
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: 20,
-        left: 20,
-        right: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Nhắc nhở uống nước',
-                style: GoogleFonts.baloo2(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFFEBCF23),
-                ),
-              ),
-              Switch(
-                value: _enabled,
-                onChanged: (val) => setState(() => _enabled = val),
-                activeColor: const Color(0xFFEBCF23),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Ứng dụng sẽ gửi thông báo nhắc bạn uống nước đúng giờ.',
-            style: GoogleFonts.baloo2(fontSize: 16, color: Colors.grey.shade600),
-          ),
-          const SizedBox(height: 25),
-          _buildSettingRow(
-            'Bắt đầu nhắc (giờ)',
-            'Từ $_startHour:00 sáng',
-            _startHour,
-            24,
-            (val) => setState(() => _startHour = val),
-          ),
-          const SizedBox(height: 15),
-          _buildSettingRow(
-            'Kết thúc nhắc (giờ)',
-            'Đến $_endHour:00 tối',
-            _endHour,
-            24,
-            (val) => setState(() => _endHour = val),
-          ),
-          const SizedBox(height: 15),
-          // Interval Hours
-          _buildSettingRow(
-            'Khoảng cách (giờ)',
-            '$_intervalHours giờ',
-            _intervalHours,
-            5,
-            (val) => setState(() => _intervalHours = val),
-          ),
-          const SizedBox(height: 15),
-          // Interval Minutes
-          _buildSettingRow(
-            'Khoảng cách (phút)',
-            '$_intervalMinutes phút',
-            _intervalMinutes,
-            59,
-            (val) => setState(() => _intervalMinutes = val),
-          ),
-          const SizedBox(height: 10),
-          // Display combined interval
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEBCF23).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFEBCF23).withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.access_time,
-                  color: const Color(0xFFEBCF23),
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _intervalLabel,
-                  style: GoogleFonts.baloo2(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 25),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () async {
-                final provider = context.read<NutritionProvider>();
-                final credentials = await AuthHelper.getCredentials();
-                if (credentials != null) {
-                  try {
-                    await provider.updateWaterReminderSettings(
-                      userId: credentials.userId,
-                      enabled: _enabled,
-                      startHour: _startHour,
-                      endHour: _endHour,
-                      intervalHours: _intervalHours,
-                      intervalMinutes: _intervalMinutes,
-                    );
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Đã lưu cài đặt nhắc nhở!')),
-                      );
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lỗi: Không thể lưu cài đặt')),
-                      );
-                    }
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEBCF23),
-                foregroundColor: Colors.black87,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              child: Text(
-                'Lưu cài đặt',
-                style: GoogleFonts.baloo2(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingRow(String title, String subtitle, int value, int max, Function(int) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: GoogleFonts.baloo2(fontSize: 14, color: Colors.grey.shade500),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              subtitle,
-              style: GoogleFonts.baloo2(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade800,
-              ),
-            ),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: value > 1 ? () => onChanged(value - 1) : null,
-                ),
-                Text(
-                  '$value',
-                  style: GoogleFonts.baloo2(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  onPressed: value < max ? () => onChanged(value + 1) : null,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+  bool shouldRepaint(_WavyGlassPainter oldDelegate) =>
+      oldDelegate.percent != percent || oldDelegate.wavePhase != wavePhase;
 }

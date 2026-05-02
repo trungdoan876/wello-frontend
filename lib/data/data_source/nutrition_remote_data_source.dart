@@ -218,10 +218,55 @@ class NutritionRemoteDataSource {
     }
   }
 
+  /// Update water intake (add a glass of water) - Raw version returning full response
+  Future<Map<String, dynamic>> addWaterGlassRaw(
+    String token,
+    String userId,
+    String date, {
+    int glassSize = 250,
+  }) async {
+    final url = Uri.parse('$baseUrl/water-intake/add');
+
+    final requestBody = {
+      'userId': int.parse(userId),
+      'amountMl': glassSize,
+      'date': date,
+    };
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      final body = utf8.decode(response.bodyBytes);
+      try {
+        return jsonDecode(body) as Map<String, dynamic>;
+      } catch (e) {
+        // Nếu backend trả về chuỗi thuần túy "Water intake added successfully"
+        // Chúng ta tạo một map giả lập để tránh crash ở các lớp trên
+        return {
+          'waterIntake': {
+            'consumed': 0, 
+            'target': 2000,
+          },
+          'engagement': {
+            'isStreak': false,
+            'streakCount': 0,
+            'message': body
+          }
+        };
+      }
+    } else {
+      throw Exception('Failed to add water: ${response.statusCode}');
+    }
+  }
+
   /// Update water intake (add a glass of water)
-  /// @param userId - User ID
-  /// @param date - Date (Format: YYYY-MM-DD)
-  /// @param glassSize - Size of glass in ml (default: 250ml)
   Future<WaterIntake> addWaterGlass(
     String token,
     String userId,

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/entities/question.dart';
 import 'package:wello_frontend/domain/providers/survey_provider.dart';
+import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/data/models/requests/survey_request_model.dart';
 import 'package:wello_frontend/data/models/responses/survey_response_model.dart';
 import 'package:wello_frontend/ui/summary/summary_page.dart';
@@ -199,6 +200,11 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                                   try {
                                     await surveyProvider.submitSurvey(request);
                                     final result = surveyProvider.surveyResult;
+                                    
+                                    // ⭐ CẬP NHẬT STREAK NẾU CÓ
+                                    if (result?.engagement != null && mounted) {
+                                      Provider.of<NutritionProvider>(context, listen: false).updateStreakCount(result!.engagement!.streakCount);
+                                    }
                                     if (result != null) {
                                       final updatedResult = SurveyResponseModel(
                                         bmi: result.bmi,

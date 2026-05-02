@@ -4,6 +4,8 @@ import '../entities/week_overview.dart';
 import '../entities/food_log_result.dart';
 import '../entities/food_history_item.dart';
 import '../entities/weight_history_item.dart';
+import '../entities/engagement_result.dart';
+import '../../data/models/responses/water_log_response.dart';
 
 /// Repository interface for nutrition and fitness data
 abstract class NutritionRepository {
@@ -37,6 +39,14 @@ abstract class NutritionRepository {
   /// @param userId - User ID
   /// @param glassSize - Size of glass in ml (default: 325ml)
   Future<WaterIntake> addWaterGlass(
+    String token,
+    String userId,
+    String date, {
+    int glassSize,
+  });
+
+  /// Add a glass of water with engagement result
+  Future<WaterLogResponse> addWaterGlassWithEngagement(
     String token,
     String userId,
     String date, {

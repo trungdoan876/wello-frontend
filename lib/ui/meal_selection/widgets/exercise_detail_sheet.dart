@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:wello_frontend/ui/home/home_screen.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/core/utils/workout_event_notifier.dart';
@@ -100,7 +101,17 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
         date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
       );
 
-      await repository.logWorkout(credentials.token, workoutLog);
+      final result = await repository.logWorkout(credentials.token, workoutLog);
+
+      // ⭐ HIỂN THỊ CHÚC MỪNG CHUỖI MỚI (STREAK)
+      if (result != null && result.isStreak) {
+        HomeScreen.homeKey.currentState?.showStreakCelebration(result.message);
+        
+        // Cập nhật số ngày streak trên UI toàn ứng dụng
+        if (context.mounted) {
+          Provider.of<NutritionProvider>(context, listen: false).updateStreakCount(result.streakCount);
+        }
+      }
 
       if (!mounted) return;
       

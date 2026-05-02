@@ -98,6 +98,56 @@ class SleepRemoteDataSource {
     }
   }
 
+  // Raw version returning full response
+  Future<Map<String, dynamic>> logBedtimeRaw({
+    required int userId,
+    required String bedtime,
+    String? token,
+  }) async {
+    final response = await http.post(
+      Uri.parse(ApiEndpoints.sleepLogBedtime),
+      headers: _headers(token: token),
+      body: jsonEncode({
+        'userId': userId,
+        'sleepTime': bedtime,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to log bedtime: ${response.statusCode}');
+    }
+  }
+
+  // Raw version returning full response
+  Future<Map<String, dynamic>> completeSleepRaw({
+    required int userId,
+    required String wakeTime,
+    int? sleepId,
+    required int quality,
+    String? notes,
+    String? token,
+  }) async {
+    final response = await http.post(
+      Uri.parse(ApiEndpoints.sleepComplete),
+      headers: _headers(token: token),
+      body: jsonEncode({
+        'userId': userId,
+        'wakeTime': wakeTime,
+        'sleepId': sleepId,
+        'quality': quality,
+        'notes': notes,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to complete sleep: ${response.statusCode}');
+    }
+  }
+
   // 3. Get Today's Sleep
   Future<SleepTodayResponse> getTodaySleep({
     required int userId,

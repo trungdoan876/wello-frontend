@@ -7,6 +7,7 @@ class UserProfile {
   final int dailyCalorieTarget;
   final int dailyCalorieBurned;
   final int dailyWaterTarget;
+  final int streakCount;
   final MacroTargets macroTargets;
   final double? sleepTargetHours;
   final String? sleepBedtimeTarget;
@@ -20,6 +21,7 @@ class UserProfile {
     required this.dailyCalorieTarget,
     this.dailyCalorieBurned = 0,
     this.dailyWaterTarget = 1950,
+    this.streakCount = 0,
     required this.macroTargets,
     this.sleepTargetHours,
     this.sleepBedtimeTarget,
@@ -35,6 +37,7 @@ class UserProfile {
       dailyCalorieTarget: (json['dailyCalorieTarget'] ?? 2000).toInt(),
       dailyCalorieBurned: (json['dailyCalorieBurned'] ?? 0).toInt(),
       dailyWaterTarget: (json['dailyWaterTarget'] ?? 1950).toInt(),
+      streakCount: (json['streakCount'] ?? 0).toInt(),
       macroTargets: MacroTargets.fromJson(json['macroTargets'] ?? {}),
       sleepTargetHours: json['sleepTargetHours'] != null ? (json['sleepTargetHours'] as num).toDouble() : null,
       sleepBedtimeTarget: json['sleepBedtimeTarget'] as String?,
@@ -51,6 +54,7 @@ class UserProfile {
       'dailyCalorieTarget': dailyCalorieTarget,
       'dailyCalorieBurned': dailyCalorieBurned,
       'dailyWaterTarget': dailyWaterTarget,
+      'streakCount': streakCount,
       'macroTargets': macroTargets.toJson(),
       'sleepTargetHours': sleepTargetHours,
       'sleepBedtimeTarget': sleepBedtimeTarget,
