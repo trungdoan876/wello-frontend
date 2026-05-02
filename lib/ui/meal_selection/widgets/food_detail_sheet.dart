@@ -8,6 +8,7 @@ import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/data/data_source/food_remote_data_source.dart';
 import 'package:wello_frontend/data/repositories/food_repository_impl.dart';
+import 'package:wello_frontend/ui/home/home_screen.dart';
 import 'package:wello_frontend/domain/entities/food.dart';
 import 'package:wello_frontend/domain/entities/goal_status.dart';
 
@@ -152,13 +153,18 @@ class _FoodDetailSheetState extends State<FoodDetailSheet> {
         }
       }
 
-      await nutritionProvider.logFood(
+      final result = await nutritionProvider.logFood(
         token: credentials.token,
         userId: userId,
         foodId: widget.foodId,
         amountGrams: _amountGrams.toInt(),
         mealType: widget.mealType,
       );
+
+      // ⭐ HIỂN THỊ CHÚC MỪNG CHUỖI MỚI (STREAK)
+      if (result.engagement != null && result.engagement!.isStreak) {
+        HomeScreen.homeKey.currentState?.showStreakCelebration(result.engagement!.message);
+      }
 
       if (!mounted) return;
 

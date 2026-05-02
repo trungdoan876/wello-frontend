@@ -8,6 +8,7 @@ import '../entities/week_overview.dart';
 import '../entities/food_log_result.dart';
 import '../entities/goal_status.dart';
 import '../entities/food_history_item.dart';
+import '../entities/engagement_result.dart';
 
 import '../../data/data_source/nutrition_remote_data_source.dart';
 import '../../data/repositories/nutrition_repository_impl.dart';
@@ -66,6 +67,27 @@ class NutritionProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get hasError => _errorMessage != null;
   String get selectedDate => _selectedDate;
+
+  /// Update streakCount in profile manually
+  void updateStreakCount(int streakCount) {
+    if (_userProfile != null) {
+      _userProfile = UserProfile(
+        userId: _userProfile!.userId,
+        startDate: _userProfile!.startDate,
+        currentWeight: _userProfile!.currentWeight,
+        goalType: _userProfile!.goalType,
+        dailyCalorieTarget: _userProfile!.dailyCalorieTarget,
+        dailyCalorieBurned: _userProfile!.dailyCalorieBurned,
+        dailyWaterTarget: _userProfile!.dailyWaterTarget,
+        streakCount: streakCount,
+        macroTargets: _userProfile!.macroTargets,
+        sleepTargetHours: _userProfile!.sleepTargetHours,
+        sleepBedtimeTarget: _userProfile!.sleepBedtimeTarget,
+        sleepWakeTimeTarget: _userProfile!.sleepWakeTimeTarget,
+      );
+      notifyListeners();
+    }
+  }
 
   /// Load all home screen data
   Future<void> loadHomeData(String token, String userId) async {
@@ -192,12 +214,12 @@ class NutritionProvider extends ChangeNotifier {
   }
 
   /// Add a glass of water
-  Future<void> addWaterGlass(
+  Future<EngagementResult?> addWaterGlass(
     String token,
     String userId, {
     int glassSize = 250,
   }) async {
-    if (_isAddingWater) return; // Prevent multiple simultaneous requests
+    if (_isAddingWater) return null; // Prevent multiple simultaneous requests
 
     _isAddingWater = true;
     _errorMessage = null;
@@ -207,12 +229,15 @@ class NutritionProvider extends ChangeNotifier {
       final credentials = await AuthHelper.getCredentials();
       final effectiveToken = token.isNotEmpty ? token : (credentials?.token ?? '');
 
-      final updatedWaterIntake = await _repository.addWaterGlass(
+      final response = await _repository.addWaterGlassWithEngagement(
         effectiveToken,
         userId,
         _selectedDate,
         glassSize: glassSize,
       );
+
+      final updatedWaterIntake = response.waterIntake;
+      final engagement = response.engagement;
 
       // Update the daily summary with new water intake
       if (_dailySummary != null) {
@@ -228,16 +253,36 @@ class NutritionProvider extends ChangeNotifier {
         );
       }
 
+      // Cập nhật streakCount trong UserProfile nếu có
+      if (engagement != null && _userProfile != null) {
+        _userProfile = UserProfile(
+          userId: _userProfile!.userId,
+          startDate: _userProfile!.startDate,
+          currentWeight: _userProfile!.currentWeight,
+          goalType: _userProfile!.goalType,
+          dailyCalorieTarget: _userProfile!.dailyCalorieTarget,
+          dailyCalorieBurned: _userProfile!.dailyCalorieBurned,
+          dailyWaterTarget: _userProfile!.dailyWaterTarget,
+          streakCount: engagement.streakCount,
+          macroTargets: _userProfile!.macroTargets,
+          sleepTargetHours: _userProfile!.sleepTargetHours,
+          sleepBedtimeTarget: _userProfile!.sleepBedtimeTarget,
+          sleepWakeTimeTarget: _userProfile!.sleepWakeTimeTarget,
+        );
+      }
+
       _isAddingWater = false;
       notifyListeners();
 
       // Reload daily summary to get fresh data from backend
       await loadDailySummary(token, userId, _selectedDate);
+      
+      return engagement;
     } catch (e) {
       _errorMessage = 'Failed to add water: ${e.toString()}';
       _isAddingWater = false;
       notifyListeners();
-      rethrow; // Re-throw để widget có thể catch và show error
+      rethrow;
     }
   }
 
@@ -247,21 +292,10 @@ class NutritionProvider extends ChangeNotifier {
     String userId, {
     int glassSize = 250,
   }) async {
-    // Kiểm tra xem hôm nay đã uống nước lần nào chưa
-    final prefs = await SharedPreferences.getInstance();
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final lastWaterDate = prefs.getString('last_water_date_$userId');
-    final bool isFirstToday = lastWaterDate != today;
-
-    // Gọi method thêm nước bình thường
-    await addWaterGlass(token, userId, glassSize: glassSize);
-
-    // Nếu thành công (không throw), lưu ngày hôm nay
-    if (isFirstToday) {
-      await prefs.setString('last_water_date_$userId', today);
-    }
-
-    return isFirstToday;
+    // Method này hiện tại không còn dùng logic SharedPreferences nữa
+    // vì backend đã handle logic streak qua addWaterGlass
+    final engagement = await addWaterGlass(token, userId, glassSize: glassSize);
+    return engagement?.isStreak ?? false;
   }
 
   /// Subtract water glass from daily intake
@@ -340,6 +374,24 @@ class NutritionProvider extends ChangeNotifier {
         foodNameOverride: foodNameOverride,
       );
 
+      // Cập nhật streakCount trong UserProfile nếu có
+      if (result.engagement != null && _userProfile != null) {
+        _userProfile = UserProfile(
+          userId: _userProfile!.userId,
+          startDate: _userProfile!.startDate,
+          currentWeight: _userProfile!.currentWeight,
+          goalType: _userProfile!.goalType,
+          dailyCalorieTarget: _userProfile!.dailyCalorieTarget,
+          dailyCalorieBurned: _userProfile!.dailyCalorieBurned,
+          dailyWaterTarget: _userProfile!.dailyWaterTarget,
+          streakCount: result.engagement!.streakCount,
+          macroTargets: _userProfile!.macroTargets,
+          sleepTargetHours: _userProfile!.sleepTargetHours,
+          sleepBedtimeTarget: _userProfile!.sleepBedtimeTarget,
+          sleepWakeTimeTarget: _userProfile!.sleepWakeTimeTarget,
+        );
+      }
+
       _isLoggingFood = false;
       notifyListeners();
 
@@ -391,7 +443,6 @@ class NutritionProvider extends ChangeNotifier {
   }
 
   /// Change selected date and reload data
-
   Future<void> changeDate(String token, String userId, String newDate) async {
     if (_selectedDate == newDate) return;
 

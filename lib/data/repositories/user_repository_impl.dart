@@ -17,4 +17,12 @@ class UserRepositoryImpl implements UserRepository {
     );
     return response.success;
   }
+
+  @override
+  Future<bool> updateFcmToken(String token, String fcmToken) async {
+    return await userRemoteDataSource.updateFcmToken(
+      token: token,
+      fcmToken: fcmToken,
+    );
+  }
 }

@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/domain/providers/streak_provider.dart';
+import 'package:wello_frontend/domain/providers/profile_provider.dart';
+import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 
 class StreakScreen extends StatefulWidget {
   const StreakScreen({super.key});
@@ -184,10 +186,19 @@ class _StreakScreenState extends State<StreakScreen> {
           ),
         ),
       ),
-      body: Consumer<StreakProvider>(
-        builder: (context, provider, _) {
+      body: Consumer3<StreakProvider, ProfileProvider, NutritionProvider>(
+        builder: (context, provider, profileProvider, nutritionProvider, _) {
           final streaks = provider.streaks;
-          final streakCount = _calculateCurrentStreak(streaks);
+          
+          // Lấy streakCount từ backend thông qua các Provider
+          int? backendStreak;
+          if (profileProvider.profileData != null) {
+            backendStreak = profileProvider.profileData!.streakCount;
+          } else if (nutritionProvider.userProfile != null) {
+            backendStreak = nutritionProvider.userProfile!.streakCount;
+          }
+
+          final streakCount = backendStreak ?? _calculateCurrentStreak(streaks);
 
           final daysInMonth = DateUtils.getDaysInMonth(
             _currentMonth.year,

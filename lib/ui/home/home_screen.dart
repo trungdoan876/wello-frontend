@@ -23,17 +23,22 @@ import 'widgets/edit_sleep_bottom_sheet.dart';
 import 'package:wello_frontend/domain/providers/sleep_provider.dart';
 
 import 'package:wello_frontend/core/services/notification_service.dart';
+import 'package:confetti/confetti.dart';
+import 'package:wello_frontend/data/data_source/engagement_remote_data_source.dart';
+import 'package:wello_frontend/ui/widgets/streak_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final ValueChanged<bool>? onQuickActionsChanged;
+  static final GlobalKey<HomeScreenState> homeKey = GlobalKey<HomeScreenState>();
 
-  const HomeScreen({super.key, this.onQuickActionsChanged});
+  HomeScreen({Key? key, this.onQuickActionsChanged}) 
+    : super(key: key ?? homeKey);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with RouteAware {
+class HomeScreenState extends State<HomeScreen> with RouteAware {
   bool _showQuickActions = false; // trạng thái mở panel
   bool _routeSubscribed = false;
   ProfileProvider? _profileProviderRef;
@@ -41,14 +46,26 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   String? _lastSyncedSleepDate;
   DateTime? _lastProfileReloadAt;
 
+  late ConfettiController _confettiController;
+  final EngagementRemoteDataSource _engagementDataSource =
+      EngagementRemoteDataSource();
+
   @override
   void initState() {
     super.initState();
     _loadNutritionData();
 
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 3),
+    );
+
     // Listen to profile changes and reload data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      
+      _initNotifications();
+      _dailyCheckIn(); // Gọi check-in khi mở app để lấy streakCount hiện tại
+
       final profileProvider = context.read<ProfileProvider>();
       _profileProviderRef = profileProvider;
       profileProvider.addListener(_onProfileChanged);
@@ -61,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   @override
   void dispose() {
     _profileProviderRef?.removeListener(_onProfileChanged);
+    _confettiController.dispose();
     if (_routeSubscribed) {
       final route = ModalRoute.of(context);
       if (route is PageRoute) {
@@ -93,7 +111,56 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   Future<void> _initNotifications() async {
     final credentials = await AuthHelper.getCredentials();
     if (credentials != null) {
-      await NotificationService.initialize(credentials.userId);
+      await NotificationService.initialize(
+        credentials.userId,
+        credentials.token,
+      );
+    }
+  }
+
+  void showStreakCelebration(String message) {
+    if (!mounted) return;
+
+    // Show custom premium dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StreakDialog(
+        message: message,
+        onConfirm: () {
+          Navigator.pop(context);
+          _confettiController.stop();
+        },
+      ),
+    );
+
+    // Delay confetti a bit to sync with dialog animation
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) _confettiController.play();
+    });
+  }
+
+  Future<void> _dailyCheckIn() async {
+    final credentials = await AuthHelper.getCredentials();
+    if (credentials == null) return;
+
+    try {
+      final result = await _engagementDataSource.dailyCheckIn(
+        credentials.token,
+      );
+      
+      if (result['success'] == true) {
+        // Sync streak count even if it's not a new streak increment
+        if (result.containsKey('streakCount') && mounted) {
+           context.read<NutritionProvider>().updateStreakCount(result['streakCount']);
+        }
+
+        if (result['is_streak'] == true) {
+          showStreakCelebration(result['message'] ?? 'Làm tốt lắm! Bạn đã nhận được một huy hiệu Streak mới.');
+        }
+      }
+    } catch (e) {
+      print('[ENGAGEMENT] Error during check-in: $e');
     }
   }
 
@@ -239,31 +306,19 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                           nutritionProvider.selectedDate,
                                       onSaved: (bedtime) async {
                                         // bedtime is now full ISO timestamp: "2026-01-03T22:00:00"
-                                        final success = await sleepProvider
+                                        final engagement = await sleepProvider
                                             .logBedtime(
                                               credentials.userId,
                                               bedtime, // Pass ISO string directly
                                             );
 
-                                        if (!success && context.mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sleepProvider.errorMessage ??
-                                                    'Không thể lưu giờ đi ngủ',
-                                                style: GoogleFonts.baloo2(),
-                                              ),
-                                              backgroundColor:
-                                                  Colors.red.shade600,
-                                              behavior:
-                                                  SnackBarBehavior.floating,
-                                            ),
-                                          );
+                                        // ⭐ HIỂN THỊ CHÚC MỪNG CHUỖI MỚI (STREAK)
+                                        if (engagement != null && engagement.isStreak && context.mounted) {
+                                          showStreakCelebration(engagement.message);
+                                          context.read<NutritionProvider>().updateStreakCount(engagement.streakCount);
                                         }
 
-                                        return success;
+                                        return engagement != null;
                                       },
                                     ),
                                   );
@@ -297,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                       onSaved: (wakeTime, actualHours, quality, notes) async {
                                         try {
                                           // wakeTime is now full ISO timestamp: "2026-01-03T07:00:00"
-                                          final success = await sleepProvider
+                                          final engagement = await sleepProvider
                                               .completeSleep(
                                                 credentials.userId,
                                                 wakeTime, // Pass ISO string directly
@@ -307,23 +362,10 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                                 notes: notes,
                                               );
 
-                                          if (!success && context.mounted) {
-                                            // Hiển thị lỗi nếu API không thành công
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  sleepProvider.errorMessage ??
-                                                      'Không thể lưu giấc ngủ',
-                                                  style: GoogleFonts.baloo2(),
-                                                ),
-                                                backgroundColor:
-                                                    Colors.red.shade600,
-                                                behavior:
-                                                    SnackBarBehavior.floating,
-                                              ),
-                                            );
+                                          // ⭐ HIỂN THỊ CHÚC MỪNG CHUỖI MỚI (STREAK)
+                                          if (engagement != null && engagement.isStreak && context.mounted) {
+                                            showStreakCelebration(engagement.message);
+                                            context.read<NutritionProvider>().updateStreakCount(engagement.streakCount);
                                           }
                                         } catch (e) {
                                           // Hiển thị lỗi exception
@@ -519,6 +561,24 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                     onTap: () => _setQuickActionsVisible(!_showQuickActions),
                     open: _showQuickActions,
                   ),
+                ],
+              ),
+            ),
+
+            // Confetti effect
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
+                colors: const [
+                  Colors.green,
+                  Colors.blue,
+                  Colors.pink,
+                  Colors.orange,
+                  Colors.purple,
+                  Color(0xffEBCF23),
                 ],
               ),
             ),

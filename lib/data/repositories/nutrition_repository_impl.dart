@@ -7,6 +7,8 @@ import '../../domain/entities/food_log_result.dart';
 import '../models/requests/log_food_request.dart';
 import '../../domain/entities/food_history_item.dart';
 import '../../domain/entities/weight_history_item.dart';
+import '../../domain/entities/engagement_result.dart';
+import '../../data/models/responses/water_log_response.dart';
 
 /// Implementation of NutritionRepository
 class NutritionRepositoryImpl implements NutritionRepository {
@@ -51,7 +53,7 @@ class NutritionRepositoryImpl implements NutritionRepository {
     String token,
     String userId,
     String date, {
-    int glassSize = 325,
+    int glassSize = 250,
   }) async {
     return await remoteDataSource.addWaterGlass(
       token,
@@ -62,11 +64,27 @@ class NutritionRepositoryImpl implements NutritionRepository {
   }
 
   @override
+  Future<WaterLogResponse> addWaterGlassWithEngagement(
+    String token,
+    String userId,
+    String date, {
+    int glassSize = 250,
+  }) async {
+    final response = await remoteDataSource.addWaterGlassRaw(
+      token,
+      userId,
+      date,
+      glassSize: glassSize,
+    );
+    return WaterLogResponse.fromJson(response);
+  }
+
+  @override
   Future<WaterIntake> subtractWaterGlass(
     String token,
     String userId,
     String date, {
-    int glassSize = 325,
+    int glassSize = 250,
   }) async {
     return await remoteDataSource.subtractWaterGlass(
       token,
@@ -107,6 +125,9 @@ class NutritionRepositoryImpl implements NutritionRepository {
       carbs: response.carbs,
       fat: response.fat,
       message: response.message,
+      engagement: response.engagement != null
+          ? EngagementResult.fromJson(response.engagement!)
+          : null,
     );
   }
 

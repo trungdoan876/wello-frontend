@@ -10,6 +10,7 @@ class ProfileResponseModel {
   final String activityLevel;
   final String? avatarUrl;
   final String surveyDate;
+  final int streakCount;
   final double? sleepTargetHours;
   final String? sleepBedtimeTarget;
   final String? sleepWakeTimeTarget;
@@ -26,6 +27,7 @@ class ProfileResponseModel {
     required this.activityLevel,
     this.avatarUrl,
     required this.surveyDate,
+    required this.streakCount,
     this.sleepTargetHours,
     this.sleepBedtimeTarget,
     this.sleepWakeTimeTarget,
@@ -44,6 +46,7 @@ class ProfileResponseModel {
       activityLevel: (json['activityLevel'] ?? 'SEDENTARY') as String,
       avatarUrl: json['avatarUrl'] as String?,
       surveyDate: (json['surveyDate'] ?? '') as String,
+      streakCount: (json['streakCount'] ?? 0) as int,
       sleepTargetHours: json['sleepTargetHours'] != null ? (json['sleepTargetHours'] as num).toDouble() : null,
       sleepBedtimeTarget: json['sleepBedtimeTarget'] as String?,
       sleepWakeTimeTarget: json['sleepWakeTimeTarget'] as String?,
@@ -63,6 +66,7 @@ class ProfileResponseModel {
       'activityLevel': activityLevel,
       'avatarUrl': avatarUrl,
       'surveyDate': surveyDate,
+      'streakCount': streakCount,
       'sleepTargetHours': sleepTargetHours,
       'sleepBedtimeTarget': sleepBedtimeTarget,
       'sleepWakeTimeTarget': sleepWakeTimeTarget,

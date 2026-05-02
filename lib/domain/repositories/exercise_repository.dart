@@ -1,5 +1,6 @@
 import '../entities/exercise.dart';
 import '../entities/exercise_request.dart';
+import '../entities/engagement_result.dart';
 
 /// Abstract repository for exercise operations
 abstract class ExerciseRepository {
@@ -21,7 +22,7 @@ abstract class ExerciseRepository {
   /// Log workout session
   /// @param token - Authentication token
   /// @param workoutLog - Workout log data
-  Future<void> logWorkout(String token, WorkoutLog workoutLog);
+  Future<EngagementResult?> logWorkout(String token, WorkoutLog workoutLog);
 
   /// Get daily workout history
   /// @param token - Authentication token
