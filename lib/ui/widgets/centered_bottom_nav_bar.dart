@@ -29,13 +29,13 @@ class CenteredBottomNavBar extends StatelessWidget {
     required this.onTap,
     this.items,
     this.iconSize = 24.0,
-    this.selectedIconSize = 34.0,
+    this.selectedIconSize = 30.0,
     this.iconOffsetY = 2.0,
     this.selectedIconOffsetY = 6.0,
-    this.iconPadding = const EdgeInsets.all(6.0),
+    this.iconPadding = const EdgeInsets.all(4.0),
     this.labelTextStyle,
     this.barHeight,
-    this.itemTopPadding = 12.0,
+    this.itemTopPadding = 4.0,
   });
 
   @override
@@ -82,14 +82,14 @@ class CenteredBottomNavBar extends StatelessWidget {
                       : Icon(data[i].icon, color: Colors.white, size: iconSize),
                 ),
                 if (i != currentIndex) ...[
-                  SizedBox(height: context.h(0.005)),
+                  SizedBox(height: context.h(0.003)),
                   Text(
                     data[i].label,
                     style:
                         (labelTextStyle ??
                         GoogleFonts.baloo2(
                           color: Colors.white,
-                          fontSize: context.sp(3.5),
+                          fontSize: context.sp(3.2),
                           fontWeight: FontWeight.w900,
                         )),
                   ),

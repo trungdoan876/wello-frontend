@@ -14,6 +14,8 @@ import 'package:wello_frontend/data/models/responses/survey_response_model.dart'
 import 'package:wello_frontend/domain/entities/weight_history_item.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/sleep_tracking_card.dart';
+import 'package:wello_frontend/domain/providers/community_provider.dart';
+import 'package:wello_frontend/ui/community/widgets/post_card.dart';
 
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
@@ -44,6 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
   int? _userId;
   bool _nutritionDataLoaded = false;
   bool _routeSubscribed = false;
+  PageRoute? _route;
 
   @override
   void initState() {
@@ -62,6 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
     super.didChangeDependencies();
     final route = ModalRoute.of(context);
     if (!_routeSubscribed && route is PageRoute) {
+      _route = route;
       appRouteObserver.subscribe(this, route);
       _routeSubscribed = true;
     }
@@ -69,11 +73,8 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
 
   @override
   void dispose() {
-    if (_routeSubscribed) {
-      final route = ModalRoute.of(context);
-      if (route is PageRoute) {
-        appRouteObserver.unsubscribe(this);
-      }
+    if (_routeSubscribed && _route != null) {
+      appRouteObserver.unsubscribe(this);
     }
     super.dispose();
   }
@@ -95,6 +96,11 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
         listen: false,
       );
       await profileProvider.loadProfile(_userId!);
+      
+      // Load user posts
+      if (mounted) {
+        context.read<CommunityProvider>().fetchUserPosts(_userId!, refresh: true);
+      }
     } catch (e) {
       print('[ProfileScreen] Loi khi tai ho so: $e');
     }
@@ -875,7 +881,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
 
                         SizedBox(height: context.h(0.01)),
                         // Profile name
-                        if (profileData != null)
+                        if (profileData != null) ...[
                           Text(
                             profileData.fullname,
                             style: GoogleFonts.baloo2(
@@ -886,8 +892,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                           ),
 
                         SizedBox(height: context.h(0.015)),
-                        // Stats row (Age, Height, Weight) in one card with thin dividers
-                        if (profileData != null)
+                        // Stats row (Age, Height, Weight)
                           Container(
                             padding: EdgeInsets.symmetric(
                               horizontal: context.w(0.04),
@@ -932,201 +937,198 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                             ),
                           ),
 
-                        SizedBox(height: context.h(0.025)),
+                          SizedBox(height: context.h(0.025)),
 
-                        // Physical profile button
-                        Container(
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              if (profileData != null) {
-                                final profileProvider =
-                                    Provider.of<ProfileProvider>(
-                                      context,
-                                      listen: false,
-                                    );
-                                Navigator.of(context)
-                                    .push(
-                                      MaterialPageRoute(
-                                        builder: (_) => PhysicalProfilePage(
-                                          profile: profileData,
-                                          onUpdateFullname:
-                                              (userId, fullname) async {
-                                                return await profileProvider
-                                                    .updateFullname(
-                                                      userId: userId,
-                                                      fullname: fullname,
-                                                    );
-                                              },
-                                          onUpdateGender:
-                                              (userId, gender) async {
-                                                return await profileProvider
-                                                    .updateGender(
-                                                      userId: userId,
-                                                      gender: gender,
-                                                    );
-                                              },
-                                          onUpdateAge: (userId, age) async {
-                                            return await profileProvider
-                                                .updateAge(
-                                                  userId: userId,
-                                                  age: age,
-                                                );
-                                          },
-                                          onUpdateHeight:
-                                              (userId, height) async {
-                                                return await profileProvider
-                                                    .updateHeight(
-                                                      userId: userId,
-                                                      height: height,
-                                                    );
-                                              },
-                                          onUpdateWeight:
-                                              (userId, weight) async {
-                                                return await profileProvider
-                                                    .updateWeight(
-                                                      userId: userId,
-                                                      weight: weight,
-                                                    );
-                                              },
-                                          onUpdateGoal: (userId, goal) async {
-                                            return await profileProvider
-                                                .updateGoal(
-                                                  userId: userId,
-                                                  goal: goal,
-                                                );
-                                          },
-                                          onUpdateActivityLevel:
-                                              (userId, activityLevel) async {
-                                                return await profileProvider
-                                                    .updateActivityLevel(
-                                                      userId: userId,
-                                                      activityLevel:
-                                                          activityLevel,
-                                                    );
-                                              },
-                                          onRefreshProfile: () async {
-                                            await profileProvider.loadProfile(
-                                              _userId!,
-                                            );
-                                            return profileProvider.profileData;
-                                          },
-                                        ),
-                                      ),
-                                    )
-                                    .then((_) {
-                                      if (mounted) {
-                                        _reloadOnReturn();
-                                      }
-                                    });
-                              }
-                            },
-                            icon: Icon(
-                              Icons.fitness_center,
-                              size: context.sp(6),
-                              color: Colors.white,
+                          // Physical profile button
+                          Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                              borderRadius: BorderRadius.circular(24),
                             ),
-                            label: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Hồ sơ thể chất',
-                                  style: GoogleFonts.baloo2(
-                                    fontSize: context.sp(6),
-                                    fontWeight: FontWeight.w800,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                if (profileData != null) {
+                                  final profileProvider =
+                                      Provider.of<ProfileProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  Navigator.of(context)
+                                      .push(
+                                        MaterialPageRoute(
+                                          builder: (_) => PhysicalProfilePage(
+                                            profile: profileData,
+                                            onUpdateFullname:
+                                                (userId, fullname) async {
+                                                  return await profileProvider
+                                                      .updateFullname(
+                                                        userId: userId,
+                                                        fullname: fullname,
+                                                      );
+                                                },
+                                            onUpdateGender:
+                                                (userId, gender) async {
+                                                  return await profileProvider
+                                                      .updateGender(
+                                                        userId: userId,
+                                                        gender: gender,
+                                                      );
+                                                },
+                                            onUpdateAge: (userId, age) async {
+                                              return await profileProvider
+                                                  .updateAge(
+                                                    userId: userId,
+                                                    age: age,
+                                                  );
+                                            },
+                                            onUpdateHeight:
+                                                (userId, height) async {
+                                                  return await profileProvider
+                                                      .updateHeight(
+                                                        userId: userId,
+                                                        height: height,
+                                                      );
+                                                },
+                                            onUpdateWeight:
+                                                (userId, weight) async {
+                                                  return await profileProvider
+                                                      .updateWeight(
+                                                        userId: userId,
+                                                        weight: weight,
+                                                      );
+                                                },
+                                            onUpdateGoal: (userId, goal) async {
+                                              return await profileProvider
+                                                  .updateGoal(
+                                                    userId: userId,
+                                                    goal: goal,
+                                                  );
+                                            },
+                                            onUpdateActivityLevel:
+                                                (userId, activityLevel) async {
+                                                  return await profileProvider
+                                                      .updateActivityLevel(
+                                                        userId: userId,
+                                                        activityLevel:
+                                                            activityLevel,
+                                                      );
+                                                },
+                                            onRefreshProfile: () async {
+                                              await profileProvider.loadProfile(
+                                                _userId!,
+                                              );
+                                              return profileProvider.profileData;
+                                            },
+                                          ),
+                                        ),
+                                      )
+                                      .then((_) {
+                                        if (mounted) {
+                                          _reloadOnReturn();
+                                        }
+                                      });
+                                }
+                              },
+                              icon: Icon(
+                                Icons.fitness_center,
+                                size: context.sp(6),
+                                color: Colors.white,
+                              ),
+                              label: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Hồ sơ thể chất',
+                                    style: GoogleFonts.baloo2(
+                                      fontSize: context.sp(6),
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(width: context.w(0.02)),
+                                  Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: context.sp(6),
                                     color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFEBCF23),
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: context.w(0.18),
+                                  vertical: context.h(0.018),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                  side: BorderSide(
+                                    color: const Color(
+                                      0xFFEBCF23,
+                                    ).withOpacity(0.6),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                elevation: 0,
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: context.h(0.03)),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(context.sp(1.6)),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFFFFC107,
+                                    ).withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(
+                                      context.sp(2.5),
+                                    ),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFFFFC107,
+                                      ).withOpacity(0.35),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.monitor_heart_rounded,
+                                    size: context.sp(4.8),
+                                    color: const Color(0xFFE68F00),
                                   ),
                                 ),
                                 SizedBox(width: context.w(0.02)),
-                                Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: context.sp(6),
-                                  color: Colors.white,
+                                Text(
+                                  'Chỉ số cơ thể',
+                                  style: GoogleFonts.baloo2(
+                                    fontSize: context.sp(7),
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF4C494C),
+                                    letterSpacing: 0.2,
+                                  ),
                                 ),
                               ],
                             ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFEBCF23),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: context.w(0.18),
-                                vertical: context.h(0.018),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                                side: BorderSide(
-                                  color: const Color(
-                                    0xFFEBCF23,
-                                  ).withOpacity(0.6),
-                                  width: 1.5,
-                                ),
-                              ),
-                              elevation: 0,
-                            ),
                           ),
-                        ),
 
-                        SizedBox(height: context.h(0.03)),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(context.sp(1.6)),
-                                decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFFFFC107,
-                                  ).withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(
-                                    context.sp(2.5),
-                                  ),
-                                  border: Border.all(
-                                    color: const Color(
-                                      0xFFFFC107,
-                                    ).withOpacity(0.35),
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.monitor_heart_rounded,
-                                  size: context.sp(4.8),
-                                  color: const Color(0xFFE68F00),
-                                ),
-                              ),
-                              SizedBox(width: context.w(0.02)),
-                              Text(
-                                'Chỉ số cơ thể',
-                                style: GoogleFonts.baloo2(
-                                  fontSize: context.sp(7),
-                                  fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF4C494C),
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(height: context.h(0.015)),
-                        // Hiển thị BMI tính toán từ profile data
-                        if (profileData != null)
+                          SizedBox(height: context.h(0.015)),
+                          // BMI Card
                           Builder(
                             builder: (context) {
-                              // Tính BMI từ profile data hiện tại
                               final height = profileData.height.toDouble();
                               final weight = profileData.weight;
                               final bmi =
                                   weight / ((height / 100) * (height / 100));
 
-                              // Xác định trạng thái BMI
                               String bmiStatus;
                               if (bmi < 18.5) {
                                 bmiStatus = 'Thiếu cân';
@@ -1152,14 +1154,12 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                                 weight: weight,
                               );
 
-                              // Lấy thời gian cập nhật từ weight history
                               return FutureBuilder<List<WeightHistoryItem>>(
                                 future: _getWeightHistory(),
                                 builder: (context, snapshot) {
                                   DateTime? recordedAt;
                                   if (snapshot.hasData &&
                                       snapshot.data!.isNotEmpty) {
-                                    // Lấy bản ghi gần nhất
                                     recordedAt = snapshot.data!.last.recordedAt;
                                   }
                                   return BMICard(
@@ -1171,127 +1171,130 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                             },
                           ),
 
-                        //const BMICard(),
-                        SizedBox(height: context.h(0.03)),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(context.sp(1.2)),
-                                decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFFFFC107,
-                                  ).withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(
-                                    context.sp(2.5),
-                                  ),
-                                  border: Border.all(
+                          SizedBox(height: context.h(0.03)),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(context.sp(1.2)),
+                                  decoration: BoxDecoration(
                                     color: const Color(
                                       0xFFFFC107,
-                                    ).withOpacity(0.35),
+                                    ).withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(
+                                      context.sp(2.5),
+                                    ),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFFFFC107,
+                                      ).withOpacity(0.35),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.water_drop_rounded,
+                                    size: context.sp(4.2),
+                                    color: const Color(0xFFE68F00),
                                   ),
                                 ),
-                                child: Icon(
-                                  Icons.water_drop_rounded,
-                                  size: context.sp(4.2),
-                                  color: const Color(0xFFE68F00),
+                                SizedBox(width: context.w(0.015)),
+                                Expanded(
+                                  child: Text(
+                                    'Bạn nên uống bao nhiêu nước',
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.baloo2(
+                                      fontSize: context.sp(5.4),
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFF4C494C),
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: context.w(0.015)),
-                              Expanded(
-                                child: Text(
-                                  'Bạn nên uống bao nhiêu nước',
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                              ],
+                            ),
+                          ),
+
+                          SizedBox(height: context.h(0.015)),
+                          Consumer<NutritionProvider>(
+                            builder: (context, nutritionProvider, _) {
+                              final waterIntake =
+                                  nutritionProvider.dailySummary?.waterIntake;
+                              final consumed = waterIntake?.consumed ?? 0;
+                              final target = waterIntake?.target ?? 2000;
+
+                              return WaterTrackingCard(
+                                amount: consumed,
+                                goal: target,
+                                lastTime: '',
+                                isNotificationOn: false,
+                                onIncrease: _increase,
+                                onDecrease: _decrease,
+                                onToggleNotification: _toggleNotif,
+                              );
+                            },
+                          ),
+                          SizedBox(height: context.h(0.03)),
+
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(context.sp(1.6)),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF6C63FF,
+                                    ).withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(
+                                      context.sp(2.5),
+                                    ),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFF6C63FF,
+                                      ).withOpacity(0.35),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.nights_stay_rounded,
+                                    size: context.sp(4.8),
+                                    color: const Color(0xFF6C63FF),
+                                  ),
+                                ),
+                                SizedBox(width: context.w(0.02)),
+                                Text(
+                                  'Mục tiêu giấc ngủ',
                                   style: GoogleFonts.baloo2(
-                                    fontSize: context.sp(5.4),
+                                    fontSize: context.sp(7),
                                     fontWeight: FontWeight.w800,
                                     color: const Color(0xFF4C494C),
                                     letterSpacing: 0.2,
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-
-                        SizedBox(height: context.h(0.015)),
-
-                        Consumer<NutritionProvider>(
-                          builder: (context, nutritionProvider, _) {
-                            final waterIntake =
-                                nutritionProvider.dailySummary?.waterIntake;
-                            final consumed = waterIntake?.consumed ?? 0;
-                            final target = waterIntake?.target ?? 2000;
-
-                            return WaterTrackingCard(
-                              amount: consumed,
-                              goal: target,
-                              lastTime: '',
-                              isNotificationOn: false,
-                              onIncrease: _increase,
-                              onDecrease: _decrease,
-                              onToggleNotification: _toggleNotif,
-                            );
-                          },
-                        ),
-                        SizedBox(height: context.h(0.03)),
-
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(context.sp(1.6)),
-                                decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF6C63FF,
-                                  ).withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(
-                                    context.sp(2.5),
-                                  ),
-                                  border: Border.all(
-                                    color: const Color(
-                                      0xFF6C63FF,
-                                    ).withOpacity(0.35),
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.nights_stay_rounded,
-                                  size: context.sp(4.8),
-                                  color: const Color(0xFF6C63FF),
-                                ),
-                              ),
-                              SizedBox(width: context.w(0.02)),
-                              Text(
-                                'Mục tiêu giấc ngủ',
-                                style: GoogleFonts.baloo2(
-                                  fontSize: context.sp(7),
-                                  fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF4C494C),
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
+                          SizedBox(height: context.h(0.015)),
+                          Consumer<ProfileProvider>(
+                            builder: (context, profileProvider, _) {
+                              final profile = profileProvider.profileData;
+                              return SleepTrackingCard(
+                                targetHours: profile?.sleepTargetHours,
+                                bedtime: profile?.sleepBedtimeTarget,
+                                wakeTime: profile?.sleepWakeTimeTarget,
+                              );
+                            },
                           ),
-                        ),
-                        SizedBox(height: context.h(0.015)),
-                        Consumer<ProfileProvider>(
-                          builder: (context, profileProvider, _) {
-                            final profile = profileProvider.profileData;
-                            return SleepTrackingCard(
-                              targetHours: profile?.sleepTargetHours,
-                              bedtime: profile?.sleepBedtimeTarget,
-                              wakeTime: profile?.sleepWakeTimeTarget,
-                            );
-                          },
-                        ),
-                        SizedBox(height: context.h(0.03)),
+                          SizedBox(height: context.h(0.03)),
 
-                        // 7-day stats card
-                        _build7DayStatsCard(context),
+                          // 7-day stats card
+                          _build7DayStatsCard(context),
+                          
+                          SizedBox(height: context.h(0.03)),
+
+                        // User's Posts Feed (Visible for everyone)
+                        _buildUserPostsSection(context),
 
                         SizedBox(height: context.h(0.03)),
                         Padding(
@@ -1303,6 +1306,9 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                             onPressed: _logout,
                           ),
                         ),
+                      ] else ...[
+                        const Center(child: CircularProgressIndicator()),
+                      ],
                         SizedBox(height: navHeight + context.h(0.05)),
                       ],
                     ),
@@ -1574,6 +1580,75 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildUserPostsSection(BuildContext context) {
+    return Consumer<CommunityProvider>(
+      builder: (context, communityProvider, _) {
+        final posts = communityProvider.userPosts;
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: context.w(0.02)),
+              child: Row(
+                children: [
+                  Text(
+                    'Bài viết',
+                    style: GoogleFonts.baloo2(
+                      fontSize: context.sp(7),
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF3F3D3F),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (communityProvider.isLoading)
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                ],
+              ),
+            ),
+            SizedBox(height: context.h(0.01)),
+            if (posts.isEmpty && !communityProvider.isLoading)
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(context.w(0.08)),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.post_add, size: 48, color: Colors.grey[300]),
+                    SizedBox(height: 10),
+                    Text(
+                      'Chưa có bài viết nào.',
+                      style: GoogleFonts.baloo2(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: posts.length,
+                itemBuilder: (context, index) {
+                  final post = posts[index];
+                  return PostCard(
+                    post: post,
+                    onReact: (type) => communityProvider.reactPost(post.idPost!, type),
+                  );
+                },
+              ),
+          ],
+        );
+      },
     );
   }
 }
