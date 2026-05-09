@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wello_frontend/ui/favorites/favorites_screen.dart';
 import 'package:wello_frontend/ui/home/home_screen.dart';
 import 'package:wello_frontend/ui/profile/profile_screen.dart';
+import 'package:wello_frontend/ui/running/running_screen.dart';
 import 'package:wello_frontend/ui/widgets/centered_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
@@ -20,6 +21,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _homeReloadId = 0;
   int _favoritesReloadId = 0;
   int _profileReloadId = 0;
+  int _runningReloadId = 0;
 
   void _onTabSelected(int index) {
     setState(() {
@@ -27,6 +29,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       if (index == 0) _homeReloadId++;
       if (index == 1) _favoritesReloadId++;
       if (index == 2) _profileReloadId++;
+      if (index == 3) _runningReloadId++;
     });
   }
 
@@ -62,6 +65,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 });
               },
             ),
+            RunningScreen(
+              key: ValueKey('running_$_runningReloadId'),
+              onQuickActionsChanged: (show) {
+                setState(() {
+                  _hideBottomNav = show;
+                });
+              },
+            ),
           ],
         ),
         bottomNavigationBar: _hideBottomNav
@@ -76,6 +87,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     label: 'Mục yêu thích',
                   ),
                   CenteredBottomNavItem(icon: Icons.person, label: 'Cá nhân'),
+                  CenteredBottomNavItem(
+                    icon: Icons.directions_run,
+                    label: 'Chạy bộ',
+                  ),
                 ],
               ),
       ),

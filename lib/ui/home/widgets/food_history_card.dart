@@ -16,6 +16,29 @@ class FoodHistoryCard extends StatefulWidget {
 class _FoodHistoryCardState extends State<FoodHistoryCard> {
   bool _isExpanded = false;
 
+  /// Normalize meal type to match expected values
+  /// Handles various formats: uppercase, lowercase, Vietnamese, etc.
+  String _normalizeMealType(String rawType) {
+    final normalized = rawType.toUpperCase().trim();
+
+    // Match exact English values
+    if (normalized == 'BREAKFAST' || normalized == 'BUA_SANG') {
+      return 'BREAKFAST';
+    }
+    if (normalized == 'LUNCH' || normalized == 'BUA_TRUA') {
+      return 'LUNCH';
+    }
+    if (normalized == 'DINNER' || normalized == 'BUA_TOI') {
+      return 'DINNER';
+    }
+    if (normalized == 'SNACK' || normalized == 'BUA_PHU') {
+      return 'SNACK';
+    }
+
+    // Default to SNACK for unknown types
+    return 'SNACK';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<NutritionProvider>(
@@ -61,11 +84,9 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
         };
 
         for (var item in provider.foodHistory) {
-          if (groupedItems.containsKey(item.mealType)) {
-            groupedItems[item.mealType]!.add(item);
-          } else {
-            groupedItems['SNACK']!.add(item);
-          }
+          // Normalize meal type to handle various formats (uppercase, lowercase, Vietnamese)
+          final normalizedType = _normalizeMealType(item.mealType);
+          groupedItems[normalizedType]!.add(item);
         }
 
         final sortedMealTypes = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
@@ -79,10 +100,13 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
           if (items.isEmpty) continue;
 
           // Calculate total calories for this specific meal type
-          final mealTotal = items.fold<double>(0, (sum, item) => sum + item.calories);
+          final mealTotal = items.fold<double>(
+            0,
+            (sum, item) => sum + item.calories,
+          );
 
           mealSections.add(_buildMealHeader(type, mealTotal.toInt(), context));
-          
+
           // Group items by favoriteName
           final Map<String, List<FoodHistoryItem>> comboGroups = {};
           final List<FoodHistoryItem> standaloneItems = [];
@@ -103,25 +127,32 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
           // 1. Add Combos first
           comboGroups.forEach((comboName, comboItems) {
             // Calculate totals for combo
-            final comboCalories = comboItems.fold<double>(0, (sum, item) => sum + item.calories);
-            
+            final comboCalories = comboItems.fold<double>(
+              0,
+              (sum, item) => sum + item.calories,
+            );
+
             // Create a description of items in the combo
             final itemNames = comboItems.map((e) => e.foodName).join(', ');
 
             // Use the image of the first item that has one, or null
-            final firstImage = comboItems.firstWhere(
-              (e) => e.imageUrl != null && e.imageUrl!.isNotEmpty, 
-              orElse: () => comboItems.first
-            ).imageUrl;
+            final firstImage = comboItems
+                .firstWhere(
+                  (e) => e.imageUrl != null && e.imageUrl!.isNotEmpty,
+                  orElse: () => comboItems.first,
+                )
+                .imageUrl;
 
-            sectionWidgets.add(_buildComboItem(
-              name: comboName, 
-              calories: comboCalories, 
-              description: itemNames,
-              imageUrl: firstImage,
-              itemCount: comboItems.length,
-              context: context
-            ));
+            sectionWidgets.add(
+              _buildComboItem(
+                name: comboName,
+                calories: comboCalories,
+                description: itemNames,
+                imageUrl: firstImage,
+                itemCount: comboItems.length,
+                context: context,
+              ),
+            );
           });
 
           // 2. Add standalone items
@@ -220,7 +251,9 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            _isExpanded ? 'Thu gọn' : 'Xem thêm ${provider.foodHistory.length - maxItemsCompact} món',
+                            _isExpanded
+                                ? 'Thu gọn'
+                                : 'Xem thêm ${provider.foodHistory.length - maxItemsCompact} món',
                             style: GoogleFonts.baloo2(
                               fontSize: context.sp(4),
                               fontWeight: FontWeight.bold,
@@ -228,7 +261,9 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
                             ),
                           ),
                           Icon(
-                            _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                            _isExpanded
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
                             color: const Color(0xFFEBCF23),
                             size: context.sp(5),
                           ),
@@ -248,7 +283,7 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
     String label = '';
     IconData icon = Icons.restaurant;
     Color color = Colors.grey.shade600;
-    
+
     switch (type) {
       case 'BREAKFAST':
         label = 'Bữa sáng';
@@ -416,7 +451,9 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
       margin: EdgeInsets.only(bottom: context.h(0.01)),
       padding: EdgeInsets.all(context.sp(3)),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF9C4).withOpacity(0.3), // Light yellow background for combos
+        color: const Color(
+          0xFFFFF9C4,
+        ).withOpacity(0.3), // Light yellow background for combos
         borderRadius: BorderRadius.circular(context.sp(2.5)),
         border: Border.all(color: const Color(0xFFEBCF23).withOpacity(0.5)),
       ),
@@ -438,7 +475,11 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
                   : null,
             ),
             child: imageUrl == null || imageUrl.isEmpty
-                ? Icon(Icons.bento, color: const Color(0xFFEBCF23), size: context.sp(6))
+                ? Icon(
+                    Icons.bento,
+                    color: const Color(0xFFEBCF23),
+                    size: context.sp(6),
+                  )
                 : null,
           ),
 
@@ -448,7 +489,11 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.favorite, size: context.sp(3.5), color: const Color(0xFFFF6B6B)),
+                    Icon(
+                      Icons.favorite,
+                      size: context.sp(3.5),
+                      color: const Color(0xFFFF6B6B),
+                    ),
                     SizedBox(width: context.w(0.01)),
                     Expanded(
                       child: Text(
@@ -456,7 +501,9 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
                         style: GoogleFonts.baloo2(
                           fontSize: context.sp(4.8),
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFFE65100), // Slightly darker orange/red
+                          color: const Color(
+                            0xFFE65100,
+                          ), // Slightly darker orange/red
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
