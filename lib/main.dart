@@ -15,6 +15,9 @@ import 'package:wello_frontend/core/navigation/route_observer.dart';
 import 'package:wello_frontend/data/repositories/streak_repository_impl.dart';
 import 'package:wello_frontend/data/data_source/streak_remote_data_source.dart';
 import 'package:wello_frontend/domain/providers/streak_provider.dart';
+import 'package:wello_frontend/domain/providers/community_provider.dart';
+import 'package:wello_frontend/data/repositories/post_repository_impl.dart';
+import 'package:wello_frontend/data/data_source/post_remote_data_source.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -45,6 +48,16 @@ void main() async {
           create: (_) =>
               StreakProvider(StreakRepositoryImpl(StreakRemoteDataSource())),
         ),
+        ChangeNotifierProvider(create: (_) => StreakProvider(
+          StreakRepositoryImpl(
+            StreakRemoteDataSource(),
+          ),
+        )),
+        ChangeNotifierProvider(create: (_) => CommunityProvider(
+          PostRepositoryImpl(
+            PostRemoteDataSource(),
+          ),
+        )),
       ],
       child: MyApp(),
     ),

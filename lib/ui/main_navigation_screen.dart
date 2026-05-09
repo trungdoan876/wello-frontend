@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:wello_frontend/ui/favorites/favorites_screen.dart';
 import 'package:wello_frontend/ui/home/home_screen.dart';
 import 'package:wello_frontend/ui/profile/profile_screen.dart';
+import 'package:wello_frontend/ui/community/community_screen.dart';
 import 'package:wello_frontend/ui/running/running_screen.dart';
 import 'package:wello_frontend/ui/widgets/centered_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
+import 'package:wello_frontend/core/utils/user_session.dart';
 
 //màn hình điều hướng chính với bottom navbar tùy chỉnh
 class MainNavigationScreen extends StatefulWidget {
@@ -20,7 +22,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   bool _hideBottomNav = false;
   int _homeReloadId = 0;
   int _favoritesReloadId = 0;
+  int _communityReloadId = 0;
   int _profileReloadId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    final userId = await UserSession.getUserId();
+    if (userId != null && mounted) {
+      context.read<ProfileProvider>().loadProfile(userId);
+    }
+  }
+
   int _runningReloadId = 0;
 
   void _onTabSelected(int index) {
@@ -28,6 +45,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       _currentIndex = index;
       if (index == 0) _homeReloadId++;
       if (index == 1) _favoritesReloadId++;
+      if (index == 2) _communityReloadId++;
+      if (index == 3) _profileReloadId++;
       if (index == 2) _profileReloadId++;
       if (index == 3) _runningReloadId++;
     });
@@ -51,6 +70,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
             FavoritesScreen(
               key: ValueKey('fav_$_favoritesReloadId'),
+              onQuickActionsChanged: (show) {
+                setState(() {
+                  _hideBottomNav = show;
+                });
+              },
+            ),
+            CommunityScreen(
+              key: ValueKey('community_$_communityReloadId'),
               onQuickActionsChanged: (show) {
                 setState(() {
                   _hideBottomNav = show;
@@ -86,6 +113,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     icon: Icons.favorite,
                     label: 'Mục yêu thích',
                   ),
+                  CenteredBottomNavItem(icon: Icons.people, label: 'Wello'),
                   CenteredBottomNavItem(icon: Icons.person, label: 'Cá nhân'),
                   CenteredBottomNavItem(
                     icon: Icons.directions_run,

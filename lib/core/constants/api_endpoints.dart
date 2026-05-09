@@ -135,6 +135,10 @@ static const String baseUrl = 'http://192.168.100.34:8080/api';
   static String streakMonthly(int userId, int year, int month) =>
       '$baseUrl/streaks/monthly?userId=$userId&year=$year&month=$month';
 
+  // ===================== COMMUNITY =====================
+  static String get posts => '$baseUrl/posts';
+  static String reactPost(int postId, String type) => '$baseUrl/posts/$postId/react?type=$type';
+
   // ============================================
   // RUNNING GPS ENDPOINTS - Chạy bộ GPS
   // ============================================
