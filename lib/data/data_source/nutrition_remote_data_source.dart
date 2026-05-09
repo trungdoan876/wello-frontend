@@ -250,15 +250,8 @@ class NutritionRemoteDataSource {
         // Nếu backend trả về chuỗi thuần túy "Water intake added successfully"
         // Chúng ta tạo một map giả lập để tránh crash ở các lớp trên
         return {
-          'waterIntake': {
-            'consumed': 0, 
-            'target': 2000,
-          },
-          'engagement': {
-            'isStreak': false,
-            'streakCount': 0,
-            'message': body
-          }
+          'waterIntake': {'consumed': 0, 'target': 2000},
+          'engagement': {'isStreak': false, 'streakCount': 0, 'message': body},
         };
       }
     } else {
@@ -405,6 +398,12 @@ class NutritionRemoteDataSource {
       final List<dynamic> bodyJson = jsonDecode(
         utf8.decode(response.bodyBytes),
       );
+      print('🍽️ Food history items (${bodyJson.length} items):');
+      for (var item in bodyJson) {
+        print(
+          '  - ${item['foodName']} (mealType: "${item['mealType']}", calories: ${item['calories']})',
+        );
+      }
       return bodyJson.map((item) => FoodHistoryItem.fromJson(item)).toList();
     } else {
       throw Exception('Failed to load food history: ${response.statusCode}');

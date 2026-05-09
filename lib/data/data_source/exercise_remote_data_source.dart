@@ -40,7 +40,11 @@ class ExerciseRemoteDataSource {
     int durationMinutes,
   ) async {
     final url = Uri.parse(
-      ApiEndpoints.workoutCalculate(int.parse(userId), exerciseId, durationMinutes),
+      ApiEndpoints.workoutCalculate(
+        int.parse(userId),
+        exerciseId,
+        durationMinutes,
+      ),
     );
 
     print('Dang tinh calo - URL: $url');
@@ -65,7 +69,10 @@ class ExerciseRemoteDataSource {
   }
 
   /// Log workout session - Raw version returning full response
-  Future<Map<String, dynamic>> logWorkoutRaw(String token, WorkoutLog workoutLog) async {
+  Future<Map<String, dynamic>> logWorkoutRaw(
+    String token,
+    WorkoutLog workoutLog,
+  ) async {
     final url = Uri.parse('$baseUrl/workout/log');
 
     final response = await http.post(
@@ -78,7 +85,8 @@ class ExerciseRemoteDataSource {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      return jsonDecode(utf8.decode(response.bodyBytes))
+          as Map<String, dynamic>;
     } else {
       throw Exception('Failed to log workout: ${response.statusCode}');
     }
@@ -112,30 +120,66 @@ class ExerciseRemoteDataSource {
   ) async {
     final url = Uri.parse(ApiEndpoints.workoutDaily(int.parse(userId), date));
 
-    print('Dang lay nhat ky bai tap hang ngay - URL: $url');
+    print('💪 [WORKOUT API] Đang lấy lịch sử tập luyện...');
+    print('   URL: $url');
+    print('   Ngày: $date');
 
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
-    print('Trang thai phan hoi bai tap hang ngay: ${response.statusCode}');
-    print('Noi dung phan hoi bai tap hang ngay: ${response.body}');
+      print('💪 [WORKOUT API] Response status: ${response.statusCode}');
 
-    if (response.statusCode == 200) {
-      final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
-      return DailyWorkoutLog.fromJson(bodyJson);
-    } else {
-      throw Exception('Failed to load daily workout log: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final bodyJson = jsonDecode(response.body) as Map<String, dynamic>;
+        final log = DailyWorkoutLog.fromJson(bodyJson);
+
+        print(
+          '✅ [WORKOUT API] Thành công! Tổng calo: ${log.totalCaloriesBurned} | Số bài tập: ${log.workouts.length}',
+        );
+
+        // Log individual workouts
+        for (var workout in log.workouts) {
+          print(
+            '   - ${workout.exerciseName}: ${workout.durationMinutes} phút (${workout.caloriesBurned} calo)',
+          );
+        }
+
+        if (log.workouts.isEmpty) {
+          print('   ℹ️ Chưa có bài tập nào ghi nhận hôm nay');
+        }
+
+        return log;
+      } else if (response.statusCode == 401) {
+        print('❌ [WORKOUT API] Unauthorized - Token không hợp lệ');
+        throw Exception('Unauthorized - Please login again');
+      } else if (response.statusCode == 404) {
+        print('❌ [WORKOUT API] Not Found - Endpoint không tồn tại: $url');
+        throw Exception('Workout API endpoint not found');
+      } else {
+        print('❌ [WORKOUT API] Error: ${response.statusCode}');
+        print('   Response: ${response.body}');
+        throw Exception(
+          'Failed to load daily workout log: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      print('❌ [WORKOUT API] Exception: $e');
+      rethrow;
     }
   }
 
   /// Request new exercise addition
   /// POST /workout/request
-  Future<void> requestExercise(String token, ExerciseRequest exerciseRequest) async {
+  Future<void> requestExercise(
+    String token,
+    ExerciseRequest exerciseRequest,
+  ) async {
     final url = Uri.parse(ApiEndpoints.workoutRequestExercise);
 
     print('Dang gui yeu cau bai tap moi - URL: $url');
