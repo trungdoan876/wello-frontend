@@ -29,9 +29,10 @@ import 'package:wello_frontend/ui/widgets/streak_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final ValueChanged<bool>? onQuickActionsChanged;
-  static final GlobalKey<HomeScreenState> homeKey = GlobalKey<HomeScreenState>();
+  static final GlobalKey<HomeScreenState> homeKey =
+      GlobalKey<HomeScreenState>();
 
-  HomeScreen({Key? key, this.onQuickActionsChanged}) 
+  HomeScreen({Key? key, this.onQuickActionsChanged})
     : super(key: key ?? homeKey);
 
   @override
@@ -62,7 +63,7 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
     // Listen to profile changes and reload data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      
+
       _initNotifications();
       _dailyCheckIn(); // Gọi check-in khi mở app để lấy streakCount hiện tại
 
@@ -148,15 +149,20 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
       final result = await _engagementDataSource.dailyCheckIn(
         credentials.token,
       );
-      
+
       if (result['success'] == true) {
         // Sync streak count even if it's not a new streak increment
         if (result.containsKey('streakCount') && mounted) {
-           context.read<NutritionProvider>().updateStreakCount(result['streakCount']);
+          context.read<NutritionProvider>().updateStreakCount(
+            result['streakCount'],
+          );
         }
 
         if (result['is_streak'] == true) {
-          showStreakCelebration(result['message'] ?? 'Làm tốt lắm! Bạn đã nhận được một huy hiệu Streak mới.');
+          showStreakCelebration(
+            result['message'] ??
+                'Làm tốt lắm! Bạn đã nhận được một huy hiệu Streak mới.',
+          );
         }
       }
     } catch (e) {
@@ -313,9 +319,17 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
                                             );
 
                                         // ⭐ HIỂN THỊ CHÚC MỪNG CHUỖI MỚI (STREAK)
-                                        if (engagement != null && engagement.isStreak && context.mounted) {
-                                          showStreakCelebration(engagement.message);
-                                          context.read<NutritionProvider>().updateStreakCount(engagement.streakCount);
+                                        if (engagement != null &&
+                                            engagement.isStreak &&
+                                            context.mounted) {
+                                          showStreakCelebration(
+                                            engagement.message,
+                                          );
+                                          context
+                                              .read<NutritionProvider>()
+                                              .updateStreakCount(
+                                                engagement.streakCount,
+                                              );
                                         }
 
                                         return engagement != null;
@@ -363,9 +377,17 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
                                               );
 
                                           // ⭐ HIỂN THỊ CHÚC MỪNG CHUỖI MỚI (STREAK)
-                                          if (engagement != null && engagement.isStreak && context.mounted) {
-                                            showStreakCelebration(engagement.message);
-                                            context.read<NutritionProvider>().updateStreakCount(engagement.streakCount);
+                                          if (engagement != null &&
+                                              engagement.isStreak &&
+                                              context.mounted) {
+                                            showStreakCelebration(
+                                              engagement.message,
+                                            );
+                                            context
+                                                .read<NutritionProvider>()
+                                                .updateStreakCount(
+                                                  engagement.streakCount,
+                                                );
                                           }
                                         } catch (e) {
                                           // Hiển thị lỗi exception
@@ -593,6 +615,7 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
 
     return ClipPath(
       clipper: BottomCurveClipper(),
+      clipBehavior: Clip.antiAlias,
       child: Container(
         height: height,
         width: double.infinity,
@@ -601,9 +624,10 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
           top: context.h(0.02),
           left: context.w(0.05),
           right: context.w(0.05),
-          bottom: context.h(0.04),
+          bottom: context.h(0.01),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Header with title and calendar icon
@@ -712,9 +736,11 @@ class BottomCurveClipper extends CustomClipper<Path> {
     final Path path = Path();
     path.lineTo(0, 0);
     path.lineTo(0, size.height - 40);
+    // Quadratic Bézier: keep control point INSIDE bounds
+    // This prevents painting outside the widget even with anti-aliasing
     path.quadraticBezierTo(
       size.width / 2,
-      size.height + 40,
+      size.height - 25, // Control point pulled inside to stay within bounds
       size.width,
       size.height - 40,
     );

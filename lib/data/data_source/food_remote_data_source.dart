@@ -16,24 +16,46 @@ class FoodRemoteDataSource {
   Future<List<Food>> getAllFoods(String token) async {
     final url = Uri.parse(ApiEndpoints.foodAll);
 
-    print('Dang lay tat ca thuc pham - URL: $url');
+    print('🍽️ [FOOD API] Đang lấy tất cả thức ăn...');
+    print('   URL: $url');
+    print('   Token: ${token.substring(0, 20)}...');
 
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
-    print('Trang thai phan hoi: ${response.statusCode}');
-    print('Noi dung phan hoi: ${response.body}');
+      print('🍽️ [FOOD API] Response status: ${response.statusCode}');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonList = jsonDecode(response.body) as List;
-      return jsonList.map((json) => Food.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load foods: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = jsonDecode(response.body) as List;
+        print('✅ [FOOD API] Thành công! Lấy được ${jsonList.length} thức ăn');
+
+        // Log first few items
+        for (var i = 0; i < (jsonList.length < 3 ? jsonList.length : 3); i++) {
+          final item = jsonList[i];
+          print('   - ${item['name']} (${item['calories']} kcal)');
+        }
+
+        return jsonList.map((json) => Food.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        print('❌ [FOOD API] Unauthorized - Token không hợp lệ');
+        throw Exception('Unauthorized - Please login again');
+      } else if (response.statusCode == 404) {
+        print('❌ [FOOD API] Not Found - Endpoint không tồn tại: $url');
+        throw Exception('Food API endpoint not found');
+      } else {
+        print('❌ [FOOD API] Error: ${response.statusCode}');
+        print('   Response body: ${response.body}');
+        throw Exception('Failed to load foods: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ [FOOD API] Exception: $e');
+      rethrow;
     }
   }
 
@@ -58,7 +80,8 @@ class FoodRemoteDataSource {
     print('Noi dung phan hoi xem truoc: ${response.body}');
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> jsonMap = jsonDecode(response.body) as Map<String, dynamic>;
+      final Map<String, dynamic> jsonMap =
+          jsonDecode(response.body) as Map<String, dynamic>;
       return Food.fromJson(jsonMap);
     } else {
       throw Exception('Failed to preview food: ${response.statusCode}');

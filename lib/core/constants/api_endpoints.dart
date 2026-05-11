@@ -9,7 +9,9 @@ class ApiEndpoints {
   //   static const String baseUrl = 'https://wello.memap.id.vn/api';
 
   // Local development (Android Emulator)
-  static const String baseUrl = 'http://10.0.2.2:8080/api';
+//   static const String baseUrl = 'http://10.0.2.2:8080/api';
+  // Local development (REAL DEVICE - điện thoại thật)
+static const String baseUrl = 'http://192.168.100.34:8080/api';
 
   // ============================================
   // AUTH ENDPOINTS - Xác thực, đăng nhập, đăng ký
@@ -136,4 +138,13 @@ class ApiEndpoints {
   // ===================== COMMUNITY =====================
   static String get posts => '$baseUrl/posts';
   static String reactPost(int postId, String type) => '$baseUrl/posts/$postId/react?type=$type';
+
+  // ============================================
+  // RUNNING GPS ENDPOINTS - Chạy bộ GPS
+  // ============================================
+  static String get runningSession => '$baseUrl/running/session';
+  static String runningHistory(int userId, {int limit = 10}) =>
+      '$baseUrl/running/history?userId=$userId&limit=$limit';
+  static String runningWeeklySummary(int userId, String startDate) =>
+      '$baseUrl/running/weekly-summary?userId=$userId&startDate=$startDate';
 }
