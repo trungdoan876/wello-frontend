@@ -49,9 +49,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ProfileProvider(),
-      child: Scaffold(
+    return Scaffold(
         body: IndexedStack(
           index: _currentIndex,
           children: [
@@ -104,7 +102,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   CenteredBottomNavItem(icon: Icons.person, label: 'Cá nhân'),
                 ],
               ),
-      ),
-    );
+      );
   }
 }

@@ -10,6 +10,7 @@ import 'package:wello_frontend/ui/profile/profile_screen.dart';
 import 'package:wello_frontend/ui/community/widgets/other_user_profile_screen.dart';
 import 'package:wello_frontend/ui/community/tagged_posts_screen.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/ui/community/competition/competition_screen.dart';
 
 class CommunityScreen extends StatefulWidget {
   final Function(bool)? onQuickActionsChanged;
@@ -71,6 +72,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events_outlined, color: Color(0xff2D2D2D)),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CompetitionScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Consumer<CommunityProvider>(
         builder: (context, provider, child) {
