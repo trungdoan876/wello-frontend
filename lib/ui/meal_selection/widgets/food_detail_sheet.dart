@@ -11,6 +11,7 @@ import 'package:wello_frontend/data/repositories/food_repository_impl.dart';
 import 'package:wello_frontend/ui/home/home_screen.dart';
 import 'package:wello_frontend/domain/entities/food.dart';
 import 'package:wello_frontend/domain/entities/goal_status.dart';
+import 'package:wello_frontend/ui/widgets/badge_awarded_dialog.dart';
 
 /// Bottom sheet for selecting food amount and logging intake
 class FoodDetailSheet extends StatefulWidget {
@@ -161,9 +162,20 @@ class _FoodDetailSheetState extends State<FoodDetailSheet> {
         mealType: widget.mealType,
       );
 
-      // ⭐ HIỂN THỊ CHÚC MỪNG CHUỖI MỚI (STREAK)
-      if (result.engagement != null && result.engagement!.isStreak) {
-        HomeScreen.homeKey.currentState?.showStreakCelebration(result.engagement!.message);
+      // ⭐ HIỂN THỊ HUY HIỆU MỚI NẾU CÓ
+      if (result.engagement != null && mounted) {
+        if (result.engagement!.newBadges.isNotEmpty) {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => BadgeAwardedDialog(
+              badges: result.engagement!.newBadges,
+              onConfirm: () => Navigator.pop(context),
+            ),
+          );
+        } else if (result.engagement!.isStreak) {
+          HomeScreen.homeKey.currentState?.showStreakCelebration(result.engagement!.message);
+        }
       }
 
       if (!mounted) return;

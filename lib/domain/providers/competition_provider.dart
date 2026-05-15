@@ -1,115 +1,120 @@
 import 'package:flutter/material.dart' hide Badge;
+import 'package:wello_frontend/core/utils/auth_helper.dart';
 import '../entities/challenge.dart';
 import '../entities/badge.dart';
+import '../repositories/competition_repository.dart';
 
 class CompetitionProvider with ChangeNotifier {
+  final CompetitionRepository _repository;
+
   List<Challenge> _challenges = [];
   List<Badge> _badges = [];
+  List<Map<String, dynamic>> _leaderboardEntries = [];
   bool _isLoading = false;
+  String? _errorMessage;
 
   List<Challenge> get challenges => _challenges;
   List<Badge> get badges => _badges;
+  List<Map<String, dynamic>> get leaderboardEntries => _leaderboardEntries;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
-  CompetitionProvider() {
-    _loadMockData();
+  CompetitionProvider(this._repository) {
+    fetchChallenges();
+    fetchBadges();
   }
 
-  void _loadMockData() {
-    _challenges = [
-      Challenge(
-        id: '1',
-        title: '7 Ngày Ăn Rau Xanh',
-        description: 'Thử thách ăn ít nhất 200g rau xanh mỗi ngày để thanh lọc cơ thể.',
-        imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=2070&auto=format&fit=crop',
-        type: ChallengeType.eatingGreens,
-        startDate: DateTime.now().subtract(const Duration(days: 2)),
-        endDate: DateTime.now().add(const Duration(days: 5)),
-        targetValue: 1000,
-        currentProgress: 450,
-        participantCount: 128,
-        isJoined: true,
-      ),
-      Challenge(
-        id: '2',
-        title: 'Chiến Binh 50k Bước',
-        description: 'Hoàn thành 50,000 bước chân trong vòng một tuần.',
-        imageUrl: 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?q=80&w=1974&auto=format&fit=crop',
-        type: ChallengeType.steps,
-        startDate: DateTime.now(),
-        endDate: DateTime.now().add(const Duration(days: 7)),
-        targetValue: 50000,
-        currentProgress: 12500,
-        participantCount: 85,
-        isJoined: false,
-      ),
-    ];
-
-    _badges = [
-      Badge(
-        id: 'b1',
-        name: 'Chiến Binh 5km',
-        description: 'Đã hoàn thành quãng đường chạy 5km đầu tiên.',
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/610/610333.png',
-        isUnlocked: true,
-        unlockedAt: DateTime.now().subtract(const Duration(days: 10)),
-        criteria: 'Chạy bộ 5km',
-      ),
-      Badge(
-        id: 'b2',
-        name: 'Bậc Thầy Hydration',
-        description: 'Duy trì mục tiêu uống nước trong 7 ngày liên tiếp.',
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3105/3105807.png',
-        isUnlocked: true,
-        unlockedAt: DateTime.now().subtract(const Duration(days: 2)),
-        criteria: 'Uống đủ nước 7 ngày',
-      ),
-      Badge(
-        id: 'b3',
-        name: 'Người Ăn Xanh',
-        description: 'Hoàn thành thử thách 7 ngày ăn rau.',
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/2329/2329895.png',
-        isUnlocked: false,
-        criteria: 'Hoàn thành thử thách ăn rau',
-      ),
-      Badge(
-        id: 'b4',
-        name: 'Sớm Tinh Mơ',
-        description: 'Dậy sớm trước 6:00 AM trong 3 ngày liên tiếp.',
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/1163/1163661.png',
-        isUnlocked: false,
-        criteria: 'Dậy sớm 3 ngày',
-      ),
-    ];
+  Future<void> fetchChallenges() async {
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
+
+    try {
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token ?? '';
+      _challenges = await _repository.getChallenges(token: token);
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  Future<void> joinChallenge(String challengeId) async {
+  Future<void> fetchBadges() async {
     _isLoading = true;
     notifyListeners();
 
-    // Giả lập gọi API
-    await Future.delayed(const Duration(seconds: 1));
-    
-    final index = _challenges.indexWhere((c) => c.id == challengeId);
-    if (index != -1) {
-      final challenge = _challenges[index];
-      _challenges[index] = Challenge(
-        id: challenge.id,
-        title: challenge.title,
-        description: challenge.description,
-        imageUrl: challenge.imageUrl,
-        type: challenge.type,
-        startDate: challenge.startDate,
-        endDate: challenge.endDate,
-        targetValue: challenge.targetValue,
-        currentProgress: challenge.currentProgress,
-        participantCount: challenge.participantCount + 1,
-        isJoined: true,
-      );
+    try {
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token ?? '';
+      _badges = await _repository.getBadges(token: token);
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
+  }
 
-    _isLoading = false;
+  Future<void> fetchLeaderboard(String type, String period) async {
+    _isLoading = true;
     notifyListeners();
+
+    try {
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token ?? '';
+      _leaderboardEntries = await _repository.getLeaderboard(
+        token: token,
+        type: type,
+        period: period,
+      );
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> joinChallenge(int challengeId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token ?? '';
+      await _repository.joinChallenge(token: token, challengeId: challengeId);
+      await fetchChallenges(); // Refresh data
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> submitProof(int challengeId, String content, String? imageUrl) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token ?? '';
+      await _repository.submitProof(
+        token: token,
+        challengeId: challengeId,
+        content: content,
+        imageUrl: imageUrl,
+      );
+      await fetchChallenges(); // Refresh to update progress
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

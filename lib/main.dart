@@ -19,6 +19,8 @@ import 'package:wello_frontend/domain/providers/community_provider.dart';
 import 'package:wello_frontend/domain/providers/competition_provider.dart';
 import 'package:wello_frontend/data/repositories/post_repository_impl.dart';
 import 'package:wello_frontend/data/data_source/post_remote_data_source.dart';
+import 'package:wello_frontend/data/repositories/competition_repository_impl.dart';
+import 'package:wello_frontend/data/data_source/competition_remote_data_source.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -59,7 +61,11 @@ void main() async {
             PostRemoteDataSource(),
           ),
         )),
-        ChangeNotifierProvider(create: (_) => CompetitionProvider()),
+        ChangeNotifierProvider(create: (_) => CompetitionProvider(
+          CompetitionRepositoryImpl(
+            remoteDataSource: CompetitionRemoteDataSource(),
+          ),
+        )),
       ],
       child: MyApp(),
     ),

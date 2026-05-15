@@ -36,11 +36,15 @@ class PostCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(context.w(0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: const Color(0xFFEBCF23).withOpacity(0.12),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: const Color(0xFFEBCF23).withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,11 +70,11 @@ class PostCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: context.w(0.06),
-                  backgroundColor: const Color(0xff6C63FF).withOpacity(0.1),
+                  backgroundColor: const Color(0xFFFFF7DA),
                   backgroundImage: AvatarHelper.getImageProvider(post.authorAvatar),
                   child: post.authorAvatar == null
                       ? Icon(Icons.person,
-                          color: const Color(0xff6C63FF), size: context.w(0.06))
+                          color: const Color(0xFFEBCF23), size: context.w(0.06))
                       : null,
                 ),
                 SizedBox(width: context.w(0.03)),
@@ -96,22 +100,22 @@ class PostCard extends StatelessWidget {
                                 vertical: context.h(0.002),
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.orange.withOpacity(0.1),
+                                color: const Color(0xFFEBCF23).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                    color: Colors.orange.withOpacity(0.5)),
+                                    color: const Color(0xFFEBCF23).withOpacity(0.5)),
                               ),
                               child: Row(
                                 children: [
                                   Icon(Icons.stars,
-                                      color: Colors.orange, size: context.sp(3.5)),
-                                  SizedBox(width: 2),
+                                      color: const Color(0xFFE68F00), size: context.sp(3.5)),
+                                  const SizedBox(width: 2),
                                   Text(
                                     "Thành tích",
                                     style: GoogleFonts.baloo2(
                                       fontSize: context.sp(3),
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.orange,
+                                      fontWeight: FontWeight.w900,
+                                      color: const Color(0xFFE68F00),
                                     ),
                                   ),
                                 ],
@@ -176,15 +180,15 @@ class PostCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xff6C63FF).withOpacity(0.1),
+                      color: const Color(0xFFEBCF23).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       '#$tag',
                       style: GoogleFonts.baloo2(
                         fontSize: context.sp(3.5),
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xff6C63FF),
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFE68F00),
                       ),
                     ),
                   ),

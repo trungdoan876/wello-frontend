@@ -6,6 +6,7 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'dart:math' as math;
+import 'package:wello_frontend/ui/widgets/badge_awarded_dialog.dart';
 
 class WaterTracker extends StatefulWidget {
   const WaterTracker({super.key});
@@ -118,8 +119,19 @@ class _WaterTrackerState extends State<WaterTracker> with SingleTickerProviderSt
                           glassSize: glassCapacity,
                         );
 
-                        if (engagement != null && engagement.isStreak) {
-                          HomeScreen.homeKey.currentState?.showStreakCelebration(engagement.message);
+                        if (engagement != null) {
+                          if (engagement.newBadges.isNotEmpty && mounted) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => BadgeAwardedDialog(
+                                badges: engagement.newBadges,
+                                onConfirm: () => Navigator.pop(context),
+                              ),
+                            );
+                          } else if (engagement.isStreak) {
+                            HomeScreen.homeKey.currentState?.showStreakCelebration(engagement.message);
+                          }
                         }
                       }
                     },

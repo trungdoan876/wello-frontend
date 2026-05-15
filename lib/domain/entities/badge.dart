@@ -16,4 +16,18 @@ class Badge {
     this.unlockedAt,
     required this.criteria,
   });
+
+  factory Badge.fromJson(Map<String, dynamic> json) {
+    return Badge(
+      id: (json['idBadge'] ?? json['id'] ?? '').toString(),
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      iconUrl: json['imageUrl'] ?? json['iconUrl'] ?? '',
+      isUnlocked: json['unlocked'] ?? json['isUnlocked'] ?? false,
+      unlockedAt: json['unlockedAt'] != null 
+          ? DateTime.parse(json['unlockedAt']) 
+          : null,
+      criteria: json['criteriaType'] ?? json['criteria'] ?? '',
+    );
+  }
 }

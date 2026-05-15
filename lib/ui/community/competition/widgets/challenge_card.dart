@@ -16,11 +16,15 @@ class ChallengeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: const Color(0xFFEBCF23).withOpacity(0.12),
             blurRadius: 15,
-            offset: const Offset(0, 5),
+            offset: const Offset(0, 8),
           ),
         ],
+        border: Border.all(
+          color: const Color(0xFFEBCF23).withOpacity(0.2),
+          width: 1,
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -98,7 +102,7 @@ class ChallengeCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A1A1A),
+                    color: const Color(0xFF3F3D3F),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -125,8 +129,8 @@ class ChallengeCard extends StatelessWidget {
                     Text(
                       '${(challenge.progressPercentage * 100).toInt()}%',
                       style: const TextStyle(
-                        color: Color(0xFF2575FC),
-                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFE68F00),
+                        fontWeight: FontWeight.w900,
                         fontSize: 14,
                       ),
                     ),
@@ -137,8 +141,8 @@ class ChallengeCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   child: LinearProgressIndicator(
                     value: challenge.progressPercentage,
-                    backgroundColor: const Color(0xFFE0E0E0),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2575FC)),
+                    backgroundColor: const Color(0xFFF5F5F5),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFEBCF23)),
                     minHeight: 10,
                   ),
                 ),
@@ -166,10 +170,10 @@ class ChallengeCard extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6A11CB),
-                        foregroundColor: Colors.white,
+                        backgroundColor: const Color(0xFFEBCF23),
+                        foregroundColor: const Color(0xFF3F3D3F),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

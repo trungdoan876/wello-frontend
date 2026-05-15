@@ -60,7 +60,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   Widget _buildFeed(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF8F8F8),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           'Wello',
@@ -198,11 +198,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
         borderRadius: BorderRadius.circular(context.w(0.04)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: const Color(0xFFEBCF23).withOpacity(0.12),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: const Color(0xFFEBCF23).withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [

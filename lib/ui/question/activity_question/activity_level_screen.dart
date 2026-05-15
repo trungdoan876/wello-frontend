@@ -11,6 +11,7 @@ import 'package:wello_frontend/ui/question/activity_question/widgets/activity_op
 import 'package:wello_frontend/ui/widgets/animated_start_button.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/data/data_source/user_preferences.dart';
+import 'package:wello_frontend/ui/widgets/badge_awarded_dialog.dart';
 
 class ActivityLevelScreen extends StatefulWidget {
   final Question question;
@@ -206,6 +207,18 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                                       Provider.of<NutritionProvider>(context, listen: false).updateStreakCount(result!.engagement!.streakCount);
                                     }
                                     if (result != null) {
+                                      // ⭐ HIỂN THỊ HUY HIỆU MỚI NẾU CÓ
+                                      if (result.engagement != null && result.engagement!.newBadges.isNotEmpty && mounted) {
+                                        await showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (context) => BadgeAwardedDialog(
+                                            badges: result.engagement!.newBadges,
+                                            onConfirm: () => Navigator.pop(context),
+                                          ),
+                                        );
+                                      }
+
                                       final updatedResult = SurveyResponseModel(
                                         bmi: result.bmi,
                                         bmiStatus: result.bmiStatus,
@@ -221,7 +234,10 @@ class _ActivityLevelScreenState extends State<ActivityLevelScreen> {
                                         sleepTargetHours: result.sleepTargetHours,
                                         sleepBedtimeTarget: result.sleepBedtimeTarget,
                                         sleepWakeTimeTarget: result.sleepWakeTimeTarget,
+                                        engagement: result.engagement,
                                       );
+                                      
+                                      if (!mounted) return;
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(

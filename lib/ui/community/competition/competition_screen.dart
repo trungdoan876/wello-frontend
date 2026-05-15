@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../domain/providers/competition_provider.dart';
 import 'widgets/challenge_card.dart';
 import 'widgets/badge_grid_widget.dart';
+import 'widgets/leaderboard_widget.dart';
 
 class CompetitionScreen extends StatefulWidget {
   const CompetitionScreen({super.key});
@@ -17,7 +18,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -29,33 +30,40 @@ class _CompetitionScreenState extends State<CompetitionScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+              colors: [Color(0xFFEBCF23), Color(0xFFFFB300)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
-        title: const Text(
+        title: Text(
           'Thi Đua & Thành Tích',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF3F3D3F),
+            fontSize: 22,
+          ),
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.white,
-          indicatorWeight: 3,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
+          indicatorColor: const Color(0xFF3F3D3F),
+          indicatorWeight: 4,
+          indicatorSize: TabBarIndicatorSize.label,
+          labelColor: const Color(0xFF3F3D3F),
+          unselectedLabelColor: const Color(0xFF7D7A7D),
+          labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+          isScrollable: false,
           tabs: const [
             Tab(text: 'Thử Thách'),
+            Tab(text: 'Xếp Hạng'),
             Tab(text: 'Huy Hiệu'),
           ],
         ),
@@ -64,6 +72,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> with SingleTicker
         controller: _tabController,
         children: [
           _buildChallengesTab(),
+          const LeaderboardWidget(),
           _buildBadgesTab(),
         ],
       ),

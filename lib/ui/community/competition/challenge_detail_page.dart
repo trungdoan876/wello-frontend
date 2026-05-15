@@ -1,14 +1,53 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../../../../domain/entities/challenge.dart';
+import '../../../../domain/providers/competition_provider.dart';
 
-class ChallengeDetailPage extends StatelessWidget {
+class ChallengeDetailPage extends StatefulWidget {
   final Challenge challenge;
 
   const ChallengeDetailPage({super.key, required this.challenge});
 
   @override
+  State<ChallengeDetailPage> createState() => _ChallengeDetailPageState();
+}
+
+class _ChallengeDetailPageState extends State<ChallengeDetailPage> {
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _handleAction(BuildContext context) async {
+    final provider = context.read<CompetitionProvider>();
+    
+    if (!widget.challenge.isJoined) {
+      await provider.joinChallenge(int.parse(widget.challenge.id));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã tham gia thử thách thành công!')),
+      );
+    } else {
+      // Pick image
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        final success = await provider.submitProof(
+          int.parse(widget.challenge.id),
+          'Hoàn thành mục tiêu hôm nay!',
+          base64Encode(await image.readAsBytes()),
+        );
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đã gửi minh chứng thành công!')),
+          );
+        }
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -16,7 +55,7 @@ class ChallengeDetailPage extends StatelessWidget {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
-                challenge.title,
+                widget.challenge.title,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -26,7 +65,7 @@ class ChallengeDetailPage extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(challenge.imageUrl, fit: BoxFit.cover),
+                  Image.network(widget.challenge.imageUrl, fit: BoxFit.cover),
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -57,7 +96,7 @@ class ChallengeDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    challenge.description,
+                    widget.challenge.description,
                     style: TextStyle(color: Colors.grey[700], fontSize: 16, height: 1.5),
                   ),
                   const SizedBox(height: 32),
@@ -77,8 +116,19 @@ class ChallengeDetailPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F2F5),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFEBCF23).withOpacity(0.12),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(
+          color: const Color(0xFFEBCF23).withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
@@ -90,8 +140,8 @@ class ChallengeDetailPage extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               Text(
-                '${challenge.currentProgress.toInt()} / ${challenge.targetValue.toInt()}',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2575FC)),
+                '${widget.challenge.currentProgress.toInt()} / ${widget.challenge.targetValue.toInt()}',
+                style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFE68F00)),
               ),
             ],
           ),
@@ -99,10 +149,10 @@ class ChallengeDetailPage extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
-              value: challenge.progressPercentage,
+              value: widget.challenge.progressPercentage,
               minHeight: 12,
-              backgroundColor: Colors.white,
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2575FC)),
+              backgroundColor: const Color(0xFFF5F5F5),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFEBCF23)),
             ),
           ),
           const SizedBox(height: 8),
@@ -155,31 +205,39 @@ class ChallengeDetailPage extends StatelessWidget {
   }
 
   Widget _buildBottomAction(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5)),
-        ],
-      ),
-      child: SafeArea(
-        child: ElevatedButton(
-          onPressed: () {
-            // Logic for joining or posting
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF6A11CB),
-            foregroundColor: Colors.white,
-            minimumSize: const Size(double.infinity, 56),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Consumer<CompetitionProvider>(
+      builder: (context, provider, child) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(color: const Color(0xFFEBCF23).withOpacity(0.1), blurRadius: 10, offset: const Offset(0, -5)),
+            ],
           ),
-          child: Text(
-            challenge.isJoined ? 'Đăng Ảnh Minh Chứng' : 'Tham Gia Thử Thách',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          child: SafeArea(
+            child: ElevatedButton(
+              onPressed: provider.isLoading ? null : () => _handleAction(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEBCF23),
+                foregroundColor: const Color(0xFF3F3D3F),
+                minimumSize: const Size(double.infinity, 56),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: provider.isLoading
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : Text(
+                      widget.challenge.isJoined ? 'Đăng Ảnh Minh Chứng' : 'Tham Gia Thử Thách',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

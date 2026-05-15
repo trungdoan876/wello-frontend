@@ -126,8 +126,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               'Đăng',
               style: GoogleFonts.baloo2(
                 fontSize: context.sp(5),
-                fontWeight: FontWeight.bold,
-                color: const Color(0xff6C63FF),
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF3F3D3F),
               ),
             ),
           ),
@@ -217,7 +217,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       context,
                       Icons.stars_rounded,
                       'Thành tích',
-                      const Color(0xffFF9800),
+                      const Color(0xFFEBCF23),
                       () {
                         setState(() {
                           _selectedType = _selectedType == PostType.MANUAL 

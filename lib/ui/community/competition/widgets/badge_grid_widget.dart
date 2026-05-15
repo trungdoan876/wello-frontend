@@ -39,20 +39,20 @@ class BadgeItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: badge.isUnlocked ? Colors.white : Colors.grey[100],
+              color: badge.isUnlocked ? Colors.white : Colors.grey[50],
               shape: BoxShape.circle,
               boxShadow: badge.isUnlocked
                   ? [
                       BoxShadow(
-                        color: Colors.amber.withOpacity(0.2),
-                        blurRadius: 8,
-                        spreadRadius: 1,
+                        color: const Color(0xFFEBCF23).withOpacity(0.3),
+                        blurRadius: 12,
+                        spreadRadius: 2,
                       )
                     ]
                   : [],
               border: badge.isUnlocked 
-                  ? Border.all(color: Colors.amber.withOpacity(0.5), width: 2)
-                  : Border.all(color: Colors.grey[300]!, width: 1),
+                  ? Border.all(color: const Color(0xFFEBCF23), width: 2.5)
+                  : Border.all(color: Colors.grey[300]!, width: 1.5),
             ),
             child: Opacity(
               opacity: badge.isUnlocked ? 1.0 : 0.4,
@@ -63,7 +63,7 @@ class BadgeItem extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) => Icon(
                   Icons.emoji_events, 
                   size: 50, 
-                  color: badge.isUnlocked ? Colors.amber : Colors.grey[400],
+                  color: badge.isUnlocked ? const Color(0xFFEBCF23) : Colors.grey[400],
                 ),
               ),
             ),
@@ -76,8 +76,8 @@ class BadgeItem extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 12,
-              fontWeight: badge.isUnlocked ? FontWeight.bold : FontWeight.normal,
-              color: badge.isUnlocked ? Colors.black : Colors.grey[600],
+              fontWeight: badge.isUnlocked ? FontWeight.w900 : FontWeight.bold,
+              color: badge.isUnlocked ? const Color(0xFF3F3D3F) : const Color(0xFF7D7A7D),
             ),
           ),
         ],
@@ -113,7 +113,7 @@ class BadgeItem extends StatelessWidget {
                   errorBuilder: (context, error, stackTrace) => Icon(
                     Icons.emoji_events, 
                     size: 100, 
-                    color: badge.isUnlocked ? Colors.amber : Colors.grey[400]
+                    color: badge.isUnlocked ? const Color(0xFFEBCF23) : Colors.grey[400]
                   ),
                 ),
               ),
@@ -127,7 +127,7 @@ class BadgeItem extends StatelessWidget {
             Text(
               badge.description,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              style: const TextStyle(color: Color(0xFF7D7A7D), fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
             Container(
@@ -152,7 +152,7 @@ class BadgeItem extends StatelessWidget {
             if (badge.isUnlocked)
               Text(
                 'Đã đạt được vào: ${badge.unlockedAt?.day}/${badge.unlockedAt?.month}/${badge.unlockedAt?.year}',
-                style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.w900, fontSize: 16),
               )
             else
               const Text(

@@ -17,6 +17,8 @@ class UserRemoteDataSource {
     required RegisterRequestModel request,
   }) async {
     final url = Uri.parse('$baseUrl/register');
+    print('Calling POST: $url');
+    print('Request body: ${jsonEncode(request.toJson())}');
 
     final response = await http.post(
       url,
