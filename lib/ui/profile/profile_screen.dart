@@ -91,6 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
     if (_userId == null || !mounted) return;
 
     try {
+      if (!mounted) return;
       final profileProvider = Provider.of<ProfileProvider>(
         context,
         listen: false,
@@ -102,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
         context.read<CommunityProvider>().fetchUserPosts(_userId!, refresh: true);
       }
     } catch (e) {
-      print('[ProfileScreen] Loi khi tai ho so: $e');
+      debugPrint('[ProfileScreen] Loi khi tai ho so: $e');
     }
   }
 
@@ -133,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
       //   await surveyProvider.submitSurvey(req);
       // }
 
-      // Reload today's water summary
+      if (!mounted) return;
       final credentials = await AuthHelper.getCredentials();
       if (credentials != null && mounted) {
         final nutritionProvider = context.read<NutritionProvider>();
@@ -221,7 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Lỗi: Không thể thêm nước'),
               backgroundColor: Colors.red,
             ),
@@ -366,6 +367,8 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
       await AuthHelper.logout();
       await UserSession.clearSession();
       if (!mounted) return;
+      
+      // Clear current navigation stack and go to initial page
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const InitialPage()),
         (route) => false,
@@ -585,7 +588,7 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
     final double navHeight = _showQuickActions ? 0 : context.h(0.05);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF7DA),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Consumer<ProfileProvider>(
           builder: (context, profileProvider, _) {

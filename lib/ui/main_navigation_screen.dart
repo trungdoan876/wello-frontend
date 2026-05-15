@@ -47,16 +47,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       if (index == 1) _favoritesReloadId++;
       if (index == 2) _communityReloadId++;
       if (index == 3) _profileReloadId++;
-      if (index == 2) _profileReloadId++;
-      if (index == 3) _runningReloadId++;
+      if (index == 4) _runningReloadId++;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ProfileProvider(),
-      child: Scaffold(
+    return Scaffold(
         body: IndexedStack(
           index: _currentIndex,
           children: [
@@ -121,7 +118,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   ),
                 ],
               ),
-      ),
-    );
+      );
   }
 }

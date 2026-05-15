@@ -9,9 +9,9 @@ class ApiEndpoints {
   //   static const String baseUrl = 'https://wello.memap.id.vn/api';
 
   // Local development (Android Emulator)
-//   static const String baseUrl = 'http://10.0.2.2:8080/api';
+  static const String baseUrl = 'http://10.0.2.2:8080/api';
   // Local development (REAL DEVICE - điện thoại thật)
-static const String baseUrl = 'http://192.168.100.34:8080/api';
+// static const String baseUrl = 'http://192.168.100.34:8080/api';
 
   // ============================================
   // AUTH ENDPOINTS - Xác thực, đăng nhập, đăng ký
@@ -147,4 +147,19 @@ static const String baseUrl = 'http://192.168.100.34:8080/api';
       '$baseUrl/running/history?userId=$userId&limit=$limit';
   static String runningWeeklySummary(int userId, String startDate) =>
       '$baseUrl/running/weekly-summary?userId=$userId&startDate=$startDate';
+
+  // ============================================
+  // COMPETITION & LEADERBOARD ENDPOINTS
+  // ============================================
+  static String leaderboard(String type, String period) =>
+      '$baseUrl/leaderboard?type=$type&period=$period';
+
+  static String get challenges => '$baseUrl/challenges';
+  static String challengeDetail(int id) => '$baseUrl/challenges/$id';
+  static String joinChallenge(int id) => '$baseUrl/challenges/$id/join';
+  static String submitChallengeProof(int id) =>
+      '$baseUrl/challenges/$id/submit-proof';
+
+  static String get badges => '$baseUrl/badges';
+  static String userBadges(int userId) => '$baseUrl/badges/user/$userId';
 }

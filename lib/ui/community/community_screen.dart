@@ -10,6 +10,7 @@ import 'package:wello_frontend/ui/profile/profile_screen.dart';
 import 'package:wello_frontend/ui/community/widgets/other_user_profile_screen.dart';
 import 'package:wello_frontend/ui/community/tagged_posts_screen.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/ui/community/competition/competition_screen.dart';
 
 class CommunityScreen extends StatefulWidget {
   final Function(bool)? onQuickActionsChanged;
@@ -59,7 +60,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   Widget _buildFeed(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF8F8F8),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           'Wello',
@@ -71,6 +72,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events_outlined, color: Color(0xff2D2D2D)),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CompetitionScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Consumer<CommunityProvider>(
         builder: (context, provider, child) {
@@ -185,11 +198,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
         borderRadius: BorderRadius.circular(context.w(0.04)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: const Color(0xFFEBCF23).withOpacity(0.12),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: const Color(0xFFEBCF23).withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [

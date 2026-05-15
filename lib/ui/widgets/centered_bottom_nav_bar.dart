@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wello_frontend/ui/widgets/responsive.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'dart:ui';
 
 class CenteredBottomNavItem {
   final IconData icon;
@@ -12,97 +11,178 @@ class CenteredBottomNavItem {
 class CenteredBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
-  final List<CenteredBottomNavItem>? items;
-  // Customization
-  final double iconSize;
-  final double selectedIconSize;
-  final double iconOffsetY; // positive pushes icon down (for non-selected)
-  final double selectedIconOffsetY; // extra downward offset for selected icon
-  final EdgeInsets iconPadding; // padding around icon (both states)
-  final TextStyle? labelTextStyle;
-  final double? barHeight; // CurvedNavigationBar height
-  final double itemTopPadding; // add extra top space inside each item
+  final List<CenteredBottomNavItem> items;
 
   const CenteredBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
-    this.items,
-    this.iconSize = 24.0,
-    this.selectedIconSize = 30.0,
-    this.iconOffsetY = 2.0,
-    this.selectedIconOffsetY = 6.0,
-    this.iconPadding = const EdgeInsets.all(4.0),
-    this.labelTextStyle,
-    this.barHeight,
-    this.itemTopPadding = 4.0,
+    required this.items,
   });
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFFEBCF23);
-    final data =
-        items ??
-        const [
-          CenteredBottomNavItem(icon: Icons.home, label: 'Nhật ký'),
-          CenteredBottomNavItem(icon: Icons.favorite, label: 'Mục yêu thích'),
-          CenteredBottomNavItem(icon: Icons.person, label: 'Cá nhân'),
-        ];
-
-    return CurvedNavigationBar(
-      index: currentIndex,
-      onTap: onTap,
-      backgroundColor: Colors.transparent,
-      color: bgColor,
-      height: barHeight ?? 75.0, // Max allowed by curved_navigation_bar
-      animationDuration: const Duration(milliseconds: 300),
-      items: [
-        for (int i = 0; i < data.length; i++)
-          Padding(
-            padding: EdgeInsets.only(top: itemTopPadding),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Transform.translate(
-                  // push selected icon further down so it appears closer to bottom
-                  offset: Offset(
-                    0,
-                    i == currentIndex ? selectedIconOffsetY : iconOffsetY,
-                  ),
-                  child: i == currentIndex
-                      ? Padding(
-                          padding: iconPadding,
-                          child: Icon(
-                            data[i].icon,
-                            color: Colors.white,
-                            size: selectedIconSize,
-                          ),
-                        )
-                      : Icon(data[i].icon, color: Colors.white, size: iconSize),
+    final double width = MediaQuery.of(context).size.width;
+    final double itemWidth = width / items.length;
+    
+    return Container(
+      height: 110,
+      color: Colors.transparent,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          // Nền thanh điều hướng với vết lõm (Notch) cao cấp
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: currentIndex.toDouble()),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.elasticOut,
+            builder: (context, value, child) {
+              return CustomPaint(
+                size: Size(width, 80),
+                painter: _NavPainter(
+                  animatedIndex: value,
+                  itemWidth: itemWidth,
                 ),
-                if (i != currentIndex) ...[
-                  SizedBox(height: context.h(0.003)),
-                  Text(
-                    data[i].label,
-                    style:
-                        (labelTextStyle ??
-                        GoogleFonts.baloo2(
-                          color: Colors.white,
-                          fontSize: context.sp(3.2),
-                          fontWeight: FontWeight.w900,
-                        )),
-                  ),
-                ] else ...[
-                  // Reserve the same vertical space as label to keep alignment
-                  SizedBox(height: context.h(0.003)),
-                  SizedBox(height: context.sp(3.4)),
-                ],
-              ],
+              );
+            },
+          ),
+          // Các nút chức năng
+          Positioned(
+            bottom: 15,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 80,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(items.length, (index) {
+                  final isSelected = currentIndex == index;
+                  return _buildNavItem(index, isSelected);
+                }),
+              ),
             ),
           ),
-      ],
+        ],
+      ),
     );
+  }
+
+  Widget _buildNavItem(int index, bool isSelected) {
+    return GestureDetector(
+      onTap: () => onTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 60,
+        height: 80,
+        alignment: Alignment.center,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutBack,
+          transform: Matrix4.translationValues(0, isSelected ? -35 : 0, 0),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 1, end: isSelected ? 1.3 : 1),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.elasticOut,
+            builder: (context, scale, child) {
+              return Transform.scale(
+                scale: scale,
+                child: Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    gradient: isSelected
+                        ? const LinearGradient(
+                            colors: [Color(0xFFFFE043), Color(0xFFFFA500)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
+                    color: isSelected ? null : Colors.transparent,
+                    shape: BoxShape.circle,
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFFFFA500).withOpacity(0.4),
+                              blurRadius: 20,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 8),
+                            ),
+                            // Lớp hào quang (Glow)
+                            BoxShadow(
+                              color: const Color(0xFFFFE043).withOpacity(0.3),
+                              blurRadius: 35,
+                              spreadRadius: 5,
+                            ),
+                          ]
+                        : [],
+                    border: isSelected ? Border.all(color: Colors.white, width: 4) : null,
+                  ),
+                  child: Icon(
+                    items[index].icon,
+                    color: isSelected ? Colors.white : Colors.grey.shade400,
+                    size: 28,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavPainter extends CustomPainter {
+  final double animatedIndex;
+  final double itemWidth;
+
+  _NavPainter({
+    required this.animatedIndex,
+    required this.itemWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final Path path = Path();
+    final double notchWidth = 100;
+    final double notchHeight = 38;
+    final double centerX = (itemWidth * animatedIndex) + (itemWidth / 2);
+
+    path.moveTo(0, 30);
+    path.quadraticBezierTo(0, 0, 30, 0);
+    
+    path.lineTo(centerX - notchWidth / 2 - 25, 0);
+    
+    // Notch mượt mà hơn với đường cong sâu hơn
+    path.cubicTo(
+      centerX - notchWidth / 2, 0,
+      centerX - notchWidth / 3, notchHeight,
+      centerX, notchHeight,
+    );
+    path.cubicTo(
+      centerX + notchWidth / 3, notchHeight,
+      centerX + notchWidth / 2, 0,
+      centerX + notchWidth / 2 + 25, 0,
+    );
+    
+    path.lineTo(size.width - 30, 0);
+    path.quadraticBezierTo(size.width, 0, size.width, 30);
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+
+    // Shadow cho thanh menu
+    canvas.drawShadow(path, Colors.black.withOpacity(0.2), 15, true);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _NavPainter oldDelegate) {
+    return oldDelegate.animatedIndex != animatedIndex;
   }
 }
 
