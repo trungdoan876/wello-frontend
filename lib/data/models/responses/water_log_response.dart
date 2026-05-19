@@ -20,6 +20,14 @@ class WaterLogResponse {
             : null,
       );
     }
+    // If the API directly returns an EngagementResult (flat JSON with isStreak or newBadges)
+    if (json.containsKey('isStreak') || json.containsKey('newBadges')) {
+      return WaterLogResponse(
+        waterIntake: WaterIntake(consumed: 0, target: 0, unit: "ml", glasses: 0),
+        engagement: EngagementResult.fromJson(json),
+      );
+    }
+
     // Fallback for old format or simple WaterIntake response
     return WaterLogResponse(
       waterIntake: WaterIntake.fromJson(json),

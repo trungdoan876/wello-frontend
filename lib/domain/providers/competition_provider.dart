@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide Badge;
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import '../entities/challenge.dart';
 import '../entities/badge.dart';
+import '../entities/post.dart';
 import '../repositories/competition_repository.dart';
 
 class CompetitionProvider with ChangeNotifier {
@@ -94,24 +95,24 @@ class CompetitionProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> submitProof(int challengeId, String content, String? imageUrl) async {
+  Future<Post?> submitProof(int challengeId, String content, String? imageUrl) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       final credentials = await AuthHelper.getCredentials();
       final token = credentials?.token ?? '';
-      await _repository.submitProof(
+      final post = await _repository.submitProof(
         token: token,
         challengeId: challengeId,
         content: content,
         imageUrl: imageUrl,
       );
       await fetchChallenges(); // Refresh to update progress
-      return true;
+      return post;
     } catch (e) {
       _errorMessage = e.toString();
-      return false;
+      return null;
     } finally {
       _isLoading = false;
       notifyListeners();

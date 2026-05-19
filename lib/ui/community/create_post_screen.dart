@@ -7,6 +7,7 @@ import 'package:quickalert/quickalert.dart';
 import 'package:wello_frontend/domain/entities/post.dart';
 import 'package:wello_frontend/domain/providers/community_provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/ui/widgets/badge_awarded_dialog.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -81,22 +82,43 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       return;
     }
 
-    final success = await context.read<CommunityProvider>().createPost(
+    final post = await context.read<CommunityProvider>().createPost(
           content: _contentController.text.trim(),
           imageFile: _imageFile,
         );
 
-    if (success) {
+    if (post != null) {
       if (mounted) {
         QuickAlert.show(
           context: context,
           type: QuickAlertType.success,
           text: 'Đăng bài thành công!',
-          onConfirmBtnTap: () {
+          onConfirmBtnTap: () async {
             Navigator.pop(context); // Close alert
             Navigator.pop(context); // Back to feed
+            
+            // Hiện popup huy hiệu nếu có
+            if (post.engagement != null && post.engagement!.newBadges.isNotEmpty) {
+              // Note: Navigator.pop(context) was just called, so the context might be pointing to the previous screen.
+              // To be safe, we could show it on the root navigator or rely on the previous screen's context.
+            }
           },
         );
+        
+        // Show badge popup immediately after success alert is closed
+        if (post.engagement != null && post.engagement!.newBadges.isNotEmpty) {
+           await Future.delayed(const Duration(milliseconds: 500));
+           if (mounted) {
+             showDialog(
+               context: context,
+               barrierDismissible: false,
+               builder: (context) => BadgeAwardedDialog(
+                 badges: post.engagement!.newBadges,
+                 onConfirm: () => Navigator.pop(context),
+               ),
+             );
+           }
+        }
       }
     } else {
       if (mounted) {

@@ -121,7 +121,7 @@ class CommunityProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> createPost({
+  Future<Post?> createPost({
     required String? content,
     File? imageFile,
   }) async {
@@ -147,10 +147,10 @@ class CommunityProvider extends ChangeNotifier {
       );
 
       _posts.insert(0, newPost);
-      return true;
+      return newPost;
     } catch (e) {
       _errorMessage = e.toString();
-      return false;
+      return null;
     } finally {
       _isUploading = false;
       notifyListeners();

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:wello_frontend/core/constants/api_endpoints.dart';
 import 'package:wello_frontend/domain/entities/challenge.dart';
 import 'package:wello_frontend/domain/entities/badge.dart';
+import 'package:wello_frontend/data/models/responses/post_model.dart';
 
 class CompetitionRemoteDataSource {
   final http.Client client = http.Client();
@@ -66,7 +67,7 @@ class CompetitionRemoteDataSource {
     }
   }
 
-  Future<void> submitProof({
+  Future<PostModel> submitProof({
     required String token,
     required int challengeId,
     required String content,
@@ -85,7 +86,9 @@ class CompetitionRemoteDataSource {
       }),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) {
+      return PostModel.fromJson(jsonDecode(response.body));
+    } else {
       throw Exception('Failed to submit proof');
     }
   }
