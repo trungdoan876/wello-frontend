@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../../domain/entities/challenge.dart';
 import '../../../../domain/providers/competition_provider.dart';
+import '../../widgets/badge_awarded_dialog.dart';
 
 class ChallengeDetailPage extends StatefulWidget {
   final Challenge challenge;
@@ -27,18 +28,29 @@ class _ChallengeDetailPageState extends State<ChallengeDetailPage> {
         const SnackBar(content: Text('Đã tham gia thử thách thành công!')),
       );
     } else {
-      // Pick image
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
-        final success = await provider.submitProof(
+        final post = await provider.submitProof(
           int.parse(widget.challenge.id),
           'Hoàn thành mục tiêu hôm nay!',
           base64Encode(await image.readAsBytes()),
         );
-        if (success) {
+        if (post != null) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Đã gửi minh chứng thành công!')),
           );
+          
+          if (post.engagement != null && post.engagement!.newBadges.isNotEmpty) {
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => BadgeAwardedDialog(
+                badges: post.engagement!.newBadges,
+                onConfirm: () => Navigator.pop(context),
+              ),
+            );
+          }
         }
       }
     }

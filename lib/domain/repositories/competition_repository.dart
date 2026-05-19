@@ -1,5 +1,6 @@
 import '../../domain/entities/challenge.dart';
 import '../../domain/entities/badge.dart';
+import '../../domain/entities/post.dart';
 
 abstract class CompetitionRepository {
   Future<List<Map<String, dynamic>>> getLeaderboard({
@@ -15,7 +16,7 @@ abstract class CompetitionRepository {
     required int challengeId,
   });
 
-  Future<void> submitProof({
+  Future<Post> submitProof({
     required String token,
     required int challengeId,
     required String content,

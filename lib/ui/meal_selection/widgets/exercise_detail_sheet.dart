@@ -10,6 +10,7 @@ import 'package:wello_frontend/data/repositories/exercise_repository_impl.dart';
 import 'package:wello_frontend/domain/entities/exercise.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:wello_frontend/ui/widgets/badge_awarded_dialog.dart';
 
 /// Bottom sheet for selecting exercise duration and logging workout
 class ExerciseDetailSheet extends StatefulWidget {
@@ -103,9 +104,22 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
 
       final result = await repository.logWorkout(credentials.token, workoutLog);
 
-      // ⭐ HIỂN THỊ CHÚC MỪNG CHUỖI MỚI (STREAK)
-      if (result != null && result.isStreak) {
-        HomeScreen.homeKey.currentState?.showStreakCelebration(result.message);
+      // ⭐ HIỂN THỊ CHÚC MỪNG HUY HIỆU HOẶC CHUỖI MỚI (STREAK)
+      if (result != null) {
+        if (result.newBadges.isNotEmpty) {
+          if (context.mounted) {
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => BadgeAwardedDialog(
+                badges: result.newBadges,
+                onConfirm: () => Navigator.pop(context),
+              ),
+            );
+          }
+        } else if (result.isStreak) {
+          HomeScreen.homeKey.currentState?.showStreakCelebration(result.message);
+        }
         
         // Cập nhật số ngày streak trên UI toàn ứng dụng
         if (context.mounted) {

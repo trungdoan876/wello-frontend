@@ -19,6 +19,16 @@ class _CompetitionScreenState extends State<CompetitionScreen> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_handleTabSelection);
+  }
+
+  void _handleTabSelection() {
+    if (_tabController.indexIsChanging || _tabController.index == 2) {
+      if (_tabController.index == 2) {
+        // Refresh badges when navigating to Badges tab
+        context.read<CompetitionProvider>().fetchBadges();
+      }
+    }
   }
 
   @override
