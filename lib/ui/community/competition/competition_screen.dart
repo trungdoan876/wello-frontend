@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:provider/provider.dart';
 import '../../../domain/providers/competition_provider.dart';
-import 'widgets/challenge_card.dart';
 import 'widgets/badge_grid_widget.dart';
 import 'widgets/leaderboard_widget.dart';
 
@@ -18,13 +17,13 @@ class _CompetitionScreenState extends State<CompetitionScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabSelection);
   }
 
   void _handleTabSelection() {
-    if (_tabController.indexIsChanging || _tabController.index == 2) {
-      if (_tabController.index == 2) {
+    if (_tabController.indexIsChanging || _tabController.index == 1) {
+      if (_tabController.index == 1) {
         // Refresh badges when navigating to Badges tab
         context.read<CompetitionProvider>().fetchBadges();
       }
@@ -72,7 +71,6 @@ class _CompetitionScreenState extends State<CompetitionScreen> with SingleTicker
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
           isScrollable: false,
           tabs: const [
-            Tab(text: 'Thử Thách'),
             Tab(text: 'Xếp Hạng'),
             Tab(text: 'Huy Hiệu'),
           ],
@@ -81,49 +79,10 @@ class _CompetitionScreenState extends State<CompetitionScreen> with SingleTicker
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildChallengesTab(),
           const LeaderboardWidget(),
           _buildBadgesTab(),
         ],
       ),
-    );
-  }
-
-  Widget _buildChallengesTab() {
-    return Consumer<CompetitionProvider>(
-      builder: (context, provider, child) {
-        try {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          if (provider.challenges.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.flag_outlined, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Chưa có thử thách nào',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                  ),
-                ],
-              ),
-            );
-          }
-          
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: provider.challenges.length,
-            itemBuilder: (context, index) {
-              return ChallengeCard(challenge: provider.challenges[index]);
-            },
-          );
-        } catch (e) {
-          return Center(child: Text('Lỗi tải thử thách: $e'));
-        }
-      },
     );
   }
 
