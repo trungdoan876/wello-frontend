@@ -44,7 +44,7 @@ class NotificationService {
       print('Dang hien thi thong bao noi bo: $title - $body');
 
       // Show local notification
-      _showLocalNotification(title, body);
+      showLocalNotification(title, body);
     });
 
     // Handle notification tap when app is in background
@@ -133,7 +133,7 @@ class NotificationService {
         print('Dang hien thi thong bao noi bo: $title - $body');
 
         // Show local notification
-        _showLocalNotification(title, body);
+        showLocalNotification(title, body);
       });
 
       // Handle notification tap when app is in background
@@ -150,31 +150,34 @@ class NotificationService {
   }
 
   /// Show local notification in system tray
-  static Future<void> _showLocalNotification(String title, String body) async {
-    print('_showLocalNotification duoc goi voi: $title - $body');
+  static Future<void> showLocalNotification(String title, String body) async {
+    print('showLocalNotification duoc goi voi: $title - $body');
+    try {
+      const androidDetails = AndroidNotificationDetails(
+        'water_reminder_channel',
+        'Nhắc nhở uống nước',
+        channelDescription: 'Thông báo nhắc nhở uống nước',
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
+        largeIcon: DrawableResourceAndroidBitmap('@drawable/notification_icon'),
+        color: Color(0xFF61C8F5), // Water blue color
+        colorized: true,
+        playSound: true,
+        enableVibration: true,
+      );
 
-    const androidDetails = AndroidNotificationDetails(
-      'water_reminder_channel',
-      'Nhắc nhở uống nước',
-      channelDescription: 'Thông báo nhắc nhở uống nước',
-      importance: Importance.high,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
-      largeIcon: DrawableResourceAndroidBitmap('@drawable/notification_icon'),
-      color: Color(0xFF61C8F5), // Water blue color
-      colorized: true,
-      playSound: true,
-      enableVibration: true,
-    );
+      const notificationDetails = NotificationDetails(android: androidDetails);
 
-    const notificationDetails = NotificationDetails(android: androidDetails);
-
-    await _localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title,
-      body,
-      notificationDetails,
-    );
+      await _localNotifications.show(
+        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title,
+        body,
+        notificationDetails,
+      );
+    } catch (e) {
+      print('Loi khi hien thi thong bao noi bo: $e');
+    }
   }
 
   /// Background message handler (must be top-level function)

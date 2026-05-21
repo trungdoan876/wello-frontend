@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:wello_frontend/core/utils/auth_helper.dart';
+import 'package:wello_frontend/data/repositories/chat_repository.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/domain/providers/community_provider.dart';
 import 'package:wello_frontend/core/utils/avatar_helper.dart';
@@ -11,6 +13,7 @@ import 'package:wello_frontend/ui/community/widgets/other_user_profile_screen.da
 import 'package:wello_frontend/ui/community/tagged_posts_screen.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/community/competition/competition_screen.dart';
+import 'package:wello_frontend/ui/community/chat/inbox_screen.dart';
 
 class CommunityScreen extends StatefulWidget {
   final Function(bool)? onQuickActionsChanged;
@@ -23,6 +26,35 @@ class CommunityScreen extends StatefulWidget {
 
 class _CommunityScreenState extends State<CommunityScreen> {
   int? _selectedUserId;
+  int _totalUnread = 0;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CommunityProvider>().fetchPosts(refresh: true);
+    });
+    _scrollController.addListener(_onScroll);
+  }
+
+  Future<void> _loadUnreadCount() async {
+    try {
+      final creds = await AuthHelper.getCredentials();
+      if (creds == null) return;
+      final ChatRepository chatRepo = ChatRepository();
+      final list = await chatRepo.getConversations(token: creds.token);
+      final total = list.fold<int>(
+        0,
+        (sum, c) =>
+            sum +
+            (((c as Map<String, dynamic>)['unreadCount'] as num?)?.toInt() ??
+                0),
+      );
+      if (mounted) setState(() => _totalUnread = total);
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +80,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
             backgroundColor: Colors.white,
             elevation: 0,
           ),
-          body: OtherUserProfileScreen(
-            userId: _selectedUserId!,
-          ),
+          body: OtherUserProfileScreen(userId: _selectedUserId!),
         ),
       );
     }
@@ -74,11 +104,43 @@ class _CommunityScreenState extends State<CommunityScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.emoji_events_outlined, color: Color(0xff2D2D2D)),
+            icon: Badge(
+              isLabelVisible: _totalUnread > 0,
+              label: Text(
+                _totalUnread > 99 ? '99+' : '$_totalUnread',
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+              backgroundColor: const Color(0xFFFF3B30),
+              child: const Icon(
+                Icons.chat_bubble_outline_rounded,
+                color: Color(0xff2D2D2D),
+              ),
+            ),
+            tooltip: 'Tin nhắn',
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const InboxScreen()),
+              );
+              // Reload unread count sau khi quay lại từ inbox
+              _loadUnreadCount();
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.emoji_events_outlined,
+              color: Color(0xff2D2D2D),
+            ),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CompetitionScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const CompetitionScreen(),
+                ),
               );
             },
           ),
@@ -115,7 +177,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
             child: ListView.builder(
               controller: _scrollController,
               padding: EdgeInsets.only(bottom: context.h(0.1)),
-              itemCount: provider.posts.length + (provider.hasMore ? 1 : 1), // Always 1 more for the header
+              itemCount:
+                  provider.posts.length +
+                  (provider.hasMore ? 1 : 1), // Always 1 more for the header
               itemBuilder: (context, index) {
                 // Header: Create Post Bar
                 if (index == 0) {
@@ -161,18 +225,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CommunityProvider>().fetchPosts(refresh: true);
-    });
-
-    _scrollController.addListener(_onScroll);
-  }
-
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
@@ -181,7 +233,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 50) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 50) {
       context.read<CommunityProvider>().fetchPosts();
     }
   }
@@ -213,8 +266,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
           CircleAvatar(
             backgroundColor: const Color(0xffF0F2F5),
             backgroundImage: AvatarHelper.getImageProvider(avatarUrl),
-            child: avatarUrl == null 
-                ? const Icon(Icons.person, color: Colors.grey) 
+            child: avatarUrl == null
+                ? const Icon(Icons.person, color: Colors.grey)
                 : null,
           ),
           SizedBox(width: context.w(0.03)),
@@ -223,7 +276,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const CreatePostScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const CreatePostScreen(),
+                  ),
                 );
               },
               child: Container(
@@ -251,7 +306,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CreatePostScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const CreatePostScreen(),
+                ),
               );
             },
           ),
