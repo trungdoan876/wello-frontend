@@ -1,5 +1,6 @@
 import '../../domain/entities/challenge.dart';
 import '../../domain/entities/badge.dart';
+import '../../domain/entities/post.dart';
 import '../../domain/repositories/competition_repository.dart';
 import '../data_source/competition_remote_data_source.dart';
 
@@ -38,7 +39,7 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
   }
 
   @override
-  Future<void> submitProof({
+  Future<Post> submitProof({
     required String token,
     required int challengeId,
     required String content,

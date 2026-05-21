@@ -1,4 +1,6 @@
-enum PostType { MANUAL, ACHIEVEMENT }
+import 'engagement_result.dart';
+
+enum PostType { MANUAL, ACHIEVEMENT, CHALLENGE_PROOF }
 enum ReactionType { LIKE, FIRE, STRENGTH, NONE }
 
 class Post {
@@ -15,6 +17,7 @@ class Post {
   final bool isLiked;
   final List<String> tags;
   final ReactionType currentUserReaction;
+  final EngagementResult? engagement;
 
   Post({
     this.idPost,
@@ -30,6 +33,7 @@ class Post {
     this.isLiked = false,
     this.tags = const [],
     this.currentUserReaction = ReactionType.NONE,
+    this.engagement,
   });
 
   Post copyWith({
@@ -38,6 +42,7 @@ class Post {
     int? commentsCount,
     List<String>? tags,
     ReactionType? currentUserReaction,
+    EngagementResult? engagement,
   }) {
     return Post(
       idPost: idPost,
@@ -53,6 +58,7 @@ class Post {
       isLiked: isLiked ?? this.isLiked,
       tags: tags ?? this.tags,
       currentUserReaction: currentUserReaction ?? this.currentUserReaction,
+      engagement: engagement ?? this.engagement,
     );
   }
 }

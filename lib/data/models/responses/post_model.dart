@@ -1,4 +1,5 @@
 import 'package:wello_frontend/domain/entities/post.dart';
+import 'package:wello_frontend/domain/entities/engagement_result.dart';
 
 class PostModel extends Post {
   PostModel({
@@ -15,6 +16,7 @@ class PostModel extends Post {
     super.isLiked = false,
     super.tags = const [],
     super.currentUserReaction = ReactionType.NONE,
+    super.engagement,
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
@@ -34,11 +36,14 @@ class PostModel extends Post {
       isLiked: json['liked'] ?? false,
       tags: json['tags'] != null ? List<String>.from(json['tags']) : const [],
       currentUserReaction: _parseReactionType(json['currentUserReaction']),
+      engagement: json['engagement'] != null ? EngagementResult.fromJson(json['engagement']) : null,
     );
   }
 
   static PostType _parsePostType(String? type) {
     switch (type) {
+      case 'CHALLENGE_PROOF':
+        return PostType.CHALLENGE_PROOF;
       case 'ACHIEVEMENT':
         return PostType.ACHIEVEMENT;
       case 'MANUAL':
