@@ -21,6 +21,11 @@ import 'package:wello_frontend/data/repositories/post_repository_impl.dart';
 import 'package:wello_frontend/data/data_source/post_remote_data_source.dart';
 import 'package:wello_frontend/data/repositories/competition_repository_impl.dart';
 import 'package:wello_frontend/data/data_source/competition_remote_data_source.dart';
+import 'package:wello_frontend/domain/providers/contribution_provider.dart';
+import 'package:wello_frontend/data/repositories/food_repository_impl.dart';
+import 'package:wello_frontend/data/data_source/food_remote_data_source.dart';
+import 'package:wello_frontend/data/repositories/exercise_repository_impl.dart';
+import 'package:wello_frontend/data/data_source/exercise_remote_data_source.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -48,24 +53,32 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SleepProvider()),
         ChangeNotifierProvider(create: (_) => RunningProvider()),
         ChangeNotifierProvider(
-          create: (_) =>
-              StreakProvider(StreakRepositoryImpl(StreakRemoteDataSource())),
-        ),
-        ChangeNotifierProvider(
-          create: (_) =>
-              StreakProvider(StreakRepositoryImpl(StreakRemoteDataSource())),
-        ),
-        ChangeNotifierProvider(
-          create: (_) =>
-              CommunityProvider(PostRepositoryImpl(PostRemoteDataSource())),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CompetitionProvider(
-            CompetitionRepositoryImpl(
-              remoteDataSource: CompetitionRemoteDataSource(),
+          create: (_) => ContributionProvider(
+            foodRepository: FoodRepositoryImpl(
+              remoteDataSource: FoodRemoteDataSource(),
+            ),
+            exerciseRepository: ExerciseRepositoryImpl(
+              remoteDataSource: ExerciseRemoteDataSource(),
             ),
           ),
         ),
+        ChangeNotifierProvider(
+          create: (_) => StreakProvider(
+            StreakRepositoryImpl(
+              StreakRemoteDataSource(),
+            ),
+          ),
+        ),
+        ChangeNotifierProvider(create: (_) => CommunityProvider(
+          PostRepositoryImpl(
+            PostRemoteDataSource(),
+          ),
+        )),
+        ChangeNotifierProvider(create: (_) => CompetitionProvider(
+          CompetitionRepositoryImpl(
+            remoteDataSource: CompetitionRemoteDataSource(),
+          ),
+        )),
       ],
       child: const MyApp(),
     ),

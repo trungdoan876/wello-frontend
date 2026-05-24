@@ -12,7 +12,7 @@ class LeaderboardWidget extends StatefulWidget {
 }
 
 class _LeaderboardWidgetState extends State<LeaderboardWidget> {
-  String _selectedType = 'STEPS'; // STEPS, CALORIES, STREAK
+  String _selectedType = 'STEPS'; // STEPS, CALORIES, STREAKS
   String _selectedPeriod = 'WEEKLY'; // DAILY, WEEKLY, MONTHLY
 
   @override
@@ -101,7 +101,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
                     padding: const EdgeInsets.all(16),
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
-                      if (provider.leaderboardEntries.length >= 3)
+                      if (provider.leaderboardEntries.isNotEmpty)
                         _buildPodium(provider.leaderboardEntries.take(3).toList()),
                       const SizedBox(height: 16),
                       // List title
@@ -120,7 +120,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      ...provider.leaderboardEntries.skip(3).map((entry) => _buildRankItem(entry, currentUserId)),
+                      ...provider.leaderboardEntries.skip(provider.leaderboardEntries.length < 3 ? provider.leaderboardEntries.length : 3).map((entry) => _buildRankItem(entry, currentUserId)),
                     ],
                   ),
                 );
@@ -163,26 +163,14 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
                     },
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _FilterChip(
-                    label: 'Calo',
-                    icon: Icons.local_fire_department_rounded,
-                    isSelected: _selectedType == 'CALORIES',
-                    onTap: () {
-                      setState(() => _selectedType = 'CALORIES');
-                      _onFilterChanged();
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
                   child: _FilterChip(
                     label: 'Chuỗi',
                     icon: Icons.bolt_rounded,
-                    isSelected: _selectedType == 'STREAK',
+                    isSelected: _selectedType == 'STREAKS',
                     onTap: () {
-                      setState(() => _selectedType = 'STREAK');
+                      setState(() => _selectedType = 'STREAKS');
                       _onFilterChanged();
                     },
                   ),
@@ -190,11 +178,13 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _buildPeriodSelector(),
-          ),
+          if (_selectedType != 'STREAKS') ...[
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildPeriodSelector(),
+            ),
+          ],
         ],
       ),
     );
@@ -311,7 +301,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
     if (score == null) return '0';
     if (_selectedType == 'STEPS') return '${score.toInt()}';
     if (_selectedType == 'CALORIES') return '${score.toInt()} kcal';
-    if (_selectedType == 'STREAK') return '${score.toInt()} ngày';
+    if (_selectedType == 'STREAKS') return '${score.toInt()} ngày';
     return score.toString();
   }
 
