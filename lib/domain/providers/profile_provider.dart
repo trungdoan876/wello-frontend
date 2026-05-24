@@ -25,13 +25,15 @@ class ProfileProvider extends ChangeNotifier {
   Future<void> loadProfile(int userId) async {
     _isLoading = true;
     _errorMessage = null;
+    // Clear previous profile so UI doesn't show stale data while loading
+    _profileData = null;
     notifyListeners();
 
     try {
       print('Dang tai ho so cho userId: $userId');
       final credentials = await AuthHelper.getCredentials();
       final token = credentials?.token;
-      
+
       _profileData = await _repository.getProfileById(token ?? '', userId);
       print('Tai ho so thanh cong: ${_profileData?.fullname}');
       _isLoading = false;

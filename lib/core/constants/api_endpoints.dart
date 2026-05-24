@@ -11,7 +11,7 @@ class ApiEndpoints {
   // Local development (Android Emulator)
   static const String baseUrl = 'http://10.0.2.2:8080/api';
   // Local development (REAL DEVICE - điện thoại thật)
-// static const String baseUrl = 'http://192.168.100.34:8080/api';
+  // static const String baseUrl = 'http://192.168.11.211:8080/api';
 
   // ============================================
   // AUTH ENDPOINTS - Xác thực, đăng nhập, đăng ký
@@ -137,7 +137,14 @@ class ApiEndpoints {
 
   // ===================== COMMUNITY =====================
   static String get posts => '$baseUrl/posts';
-  static String reactPost(int postId, String type) => '$baseUrl/posts/$postId/react?type=$type';
+  static String reactPost(int postId, String type) =>
+      '$baseUrl/posts/$postId/react?type=$type';
+
+  // ===================== CHAT =====================
+  static String get chatConversations => '$baseUrl/chat/conversations';
+  static String chatConversationMessages(int conversationId) =>
+      '$baseUrl/chat/conversations/$conversationId/messages';
+  static String get chatMessages => '$baseUrl/chat/messages';
 
   // ============================================
   // RUNNING GPS ENDPOINTS - Chạy bộ GPS

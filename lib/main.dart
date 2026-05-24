@@ -80,12 +80,14 @@ void main() async {
           ),
         )),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -103,7 +105,8 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       navigatorObservers: [appRouteObserver],
-      home: const InitialPage(), // Wrapper that uses LoadingPage
+      // Restore the normal app entry flow
+      home: const InitialPage(),
     );
   }
 }
