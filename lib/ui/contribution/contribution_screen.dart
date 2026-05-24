@@ -139,47 +139,54 @@ class _ContributionScreenState extends State<ContributionScreen> {
   @override
   Widget build(BuildContext context) {
     bool isExercise = widget.initialType == 'exercise';
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: context.h(isExercise ? 0.5 : 0.75),
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(context.sp(5))),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Drag handle
-          Container(
-            margin: EdgeInsets.symmetric(vertical: context.h(0.015)),
-            width: context.w(0.15),
-            height: 5,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          // Title
-          Text(
-            isExercise ? 'Yêu cầu Bài tập mới' : 'Yêu cầu Thực phẩm mới',
-            style: GoogleFonts.baloo2(
-              color: const Color(0xffEBCF23),
-              fontWeight: FontWeight.bold,
-              fontSize: context.sp(7),
-            ),
-          ),
-          SizedBox(height: context.h(0.02)),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + context.h(0.02),
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(context.sp(5))),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                margin: EdgeInsets.symmetric(vertical: context.h(0.015)),
+                width: context.w(0.15),
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              child: isExercise ? _buildExerciseForm() : _buildFoodForm(),
-            ),
+              // Title
+              Text(
+                isExercise ? 'Yêu cầu Bài tập mới' : 'Yêu cầu Thực phẩm mới',
+                style: GoogleFonts.baloo2(
+                  color: const Color(0xffEBCF23),
+                  fontWeight: FontWeight.bold,
+                  fontSize: context.sp(7),
+                ),
+              ),
+              SizedBox(height: context.h(0.02)),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    0,
+                    0,
+                    0,
+                    context.h(0.02),
+                  ),
+                  child: isExercise ? _buildExerciseForm() : _buildFoodForm(),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
