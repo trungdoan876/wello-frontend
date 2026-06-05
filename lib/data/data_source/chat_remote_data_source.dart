@@ -36,7 +36,7 @@ class ChatRemoteDataSource {
     final baseUrl = _defaultBaseUrl;
     final candidates = <String>[baseUrl];
 
-    if (baseUrl.contains(':8080')) {
+    if (baseUrl.contains(':8080') || baseUrl.contains(':8086')) {
       final uri = Uri.tryParse(baseUrl);
       if (uri != null) {
         final currentHost = uri.host;

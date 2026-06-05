@@ -11,6 +11,7 @@ import 'package:wello_frontend/ui/home/widgets/activity_summary_card.dart';
 import 'package:wello_frontend/ui/home/widgets/workout_history_card.dart';
 import 'package:wello_frontend/ui/home/widgets/food_history_card.dart';
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
+import 'package:wello_frontend/ui/widgets/voice_log_bottom_sheet.dart';
 import 'package:wello_frontend/ui/streak/streak_screen.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
@@ -657,50 +658,72 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
                     color: Color(0xffEBCF23),
                   ),
                 ),
-                // Calendar icon on the far right
-                GestureDetector(
-                  onTap: () async {
-                    final selectedDate = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now(),
-                      builder: (context, child) {
-                        return Theme(
-                          data: Theme.of(context).copyWith(
-                            colorScheme: ColorScheme.light(
-                              primary: Color(0xffEBCF23),
-                              onPrimary: Colors.white,
-                              surface: Colors.white,
-                              onSurface: Colors.black,
-                            ),
-                          ),
-                          child: child!,
+
+                // Mic and Calendar icons on the far right
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => const VoiceLogBottomSheet(),
                         );
                       },
-                    );
-
-                    if (selectedDate != null) {
-                      final dateStr = DateFormat(
-                        'yyyy-MM-dd',
-                      ).format(selectedDate);
-                      final credentials = await AuthHelper.getCredentials();
-                      if (credentials != null && mounted) {
-                        final provider = context.read<NutritionProvider>();
-                        await provider.changeDate(
-                          credentials.token,
-                          credentials.userIdString,
-                          dateStr,
+                      child: Icon(
+                        Icons.mic_none_rounded,
+                        color: const Color(0xffEBCF23),
+                        size: context.sp(7),
+                      ),
+                    ),
+                    SizedBox(width: context.w(0.04)),
+                    GestureDetector(
+                      onTap: () async {
+                        final selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now(),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: Color(0xffEBCF23),
+                                  onPrimary: Colors.white,
+                                  surface: Colors.white,
+                                  onSurface: Colors.black,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
                         );
-                        // Sleep data sẽ tự reload nhờ listener _onNutritionChanged
-                      }
-                    }
-                  },
-                  child: Icon(
-                    Icons.calendar_today,
-                    color: Color(0xffEBCF23),
-                    size: context.sp(6),
-                  ),
+
+                        if (selectedDate != null) {
+                          final dateStr = DateFormat(
+                            'yyyy-MM-dd',
+                          ).format(selectedDate);
+                          final credentials = await AuthHelper.getCredentials();
+                          if (credentials != null && mounted) {
+                            final provider = context.read<NutritionProvider>();
+                            await provider.changeDate(
+                              credentials.token,
+                              credentials.userIdString,
+                              dateStr,
+                            );
+                            // Sleep data sẽ tự reload nhờ listener _onNutritionChanged
+                          }
+                        }
+                      },
+                      child: Icon(
+                        Icons.calendar_today,
+                        color: const Color(0xffEBCF23),
+                        size: context.sp(6),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

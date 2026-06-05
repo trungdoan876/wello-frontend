@@ -8,10 +8,12 @@ class ApiEndpoints {
   // Server production (memap.id.vn)
   //   static const String baseUrl = 'https://wello.memap.id.vn/api';
 
+  // Local development (REAL DEVICE - dùng adb reverse)
+  static const String baseUrl = 'http://127.0.0.1:8086/api';
   // Local development (Android Emulator)
-  static const String baseUrl = 'http://10.0.2.2:8080/api';
-  // Local development (REAL DEVICE - điện thoại thật)
-  // static const String baseUrl = 'http://192.168.11.211:8080/api';
+  // static const String baseUrl = 'http://10.0.2.2:8086/api';
+  // Local development (REAL DEVICE - dùng IP Wi-Fi)
+  // static const String baseUrl = 'http://192.168.11.211:8086/api';
 
   // ============================================
   // AUTH ENDPOINTS - Xác thực, đăng nhập, đăng ký
@@ -169,4 +171,8 @@ class ApiEndpoints {
 
   static String get badges => '$baseUrl/badges';
   static String userBadges(int userId) => '$baseUrl/badges/user/$userId';
+
+  // ===================== AI ASSISTANT =====================
+  static String get aiParseMeal => '$baseUrl/ai/parse-meal';
 }
+
