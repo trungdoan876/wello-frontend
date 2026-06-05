@@ -354,6 +354,9 @@ class NutritionProvider extends ChangeNotifier {
     required String mealType,
     int? caloriesOverride,
     String? foodNameOverride,
+    double? proteinOverride,
+    double? carbsOverride,
+    double? fatOverride,
   }) async {
     _isLoggingFood = true;
     _errorMessage = null;
@@ -372,6 +375,9 @@ class NutritionProvider extends ChangeNotifier {
         mealType: mealType,
         caloriesOverride: caloriesOverride,
         foodNameOverride: foodNameOverride,
+        proteinOverride: proteinOverride,
+        carbsOverride: carbsOverride,
+        fatOverride: fatOverride,
       );
 
       // Cập nhật streakCount trong UserProfile nếu có

@@ -60,6 +60,7 @@ dependencies:
   blur: ^3.0.0
   glassmorphism: ^2.0.0
   animations: ^2.0.6
+  speech_to_text: ^7.3.0
 
 dev_dependencies:
   flutter_test:
