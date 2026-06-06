@@ -950,11 +950,13 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
                   children: [
                     // Card Header
                     InkWell(
-                      onTap: () {
-                        setState(() {
-                          _expandedFoods[idx] = !isExpanded;
-                        });
-                      },
+                      onTap: food.ingredients.isEmpty
+                          ? null
+                          : () {
+                              setState(() {
+                                _expandedFoods[idx] = !isExpanded;
+                              });
+                            },
                       borderRadius: BorderRadius.circular(16),
                       child: Padding(
                         padding: const EdgeInsets.all(14.0),
@@ -1120,11 +1122,13 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
                                 ),
                               ],
                             ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                              color: Colors.grey,
-                            ),
+                            if (food.ingredients.isNotEmpty) ...[
+                              const SizedBox(width: 8),
+                              Icon(
+                                isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                                color: Colors.grey,
+                              ),
+                            ],
                           ],
                         ),
                       ),
