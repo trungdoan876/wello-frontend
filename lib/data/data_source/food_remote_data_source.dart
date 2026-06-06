@@ -108,4 +108,32 @@ class FoodRemoteDataSource {
       throw Exception('Failed to request food: ${response.statusCode}');
     }
   }
+
+  /// Tìm kiếm thực phẩm
+  /// GET /food/search
+  Future<List<Food>> searchFoods(String token, String query) async {
+    final url = Uri.parse(ApiEndpoints.foodSearch(query));
+
+    print('🍽️ [FOOD API] Đang tìm kiếm thức ăn: $query - URL: $url');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = jsonDecode(response.body) as List;
+        return jsonList.map((json) => Food.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to search foods: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ [FOOD API] Search Exception: $e');
+      rethrow;
+    }
+  }
 }

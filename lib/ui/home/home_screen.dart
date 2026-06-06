@@ -355,7 +355,8 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
                                               ?.sleepBedtimeTarget ??
                                           "21:00",
                                       bedtimeDateTimeIso:
-                                          sleepProvider.activeSleep?.sleepTime,
+                                          sleepProvider.activeSleep?.sleepTime ??
+                                          sleepProvider.completedSleep?.sleepTime,
                                       initialWakeTime: _parseTime(
                                         nutritionProvider
                                             .userProfile
@@ -372,7 +373,7 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
                                                 credentials.userId,
                                                 wakeTime, // Pass ISO string directly
                                                 sleepId:
-                                                    sleepProvider.activeSleepId,
+                                                    sleepProvider.sleepId,
                                                 quality: quality,
                                                 notes: notes,
                                               );

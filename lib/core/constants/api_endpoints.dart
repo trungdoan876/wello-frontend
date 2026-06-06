@@ -66,6 +66,7 @@ class ApiEndpoints {
   static String get foodAll => '$baseUrl/food/all';
   static String get foodPreview => '$baseUrl/food/preview';
   static String get foodRequest => '$baseUrl/food/request';
+  static String foodSearch(String query) => '$baseUrl/food/search?query=${Uri.encodeComponent(query)}';
 
   // ============================================
   // FAVORITES ENDPOINTS - Yêu thích
