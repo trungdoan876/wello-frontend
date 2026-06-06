@@ -11,4 +11,7 @@ abstract class FoodRepository {
 
   /// Request new food addition
   Future<void> requestFood(String token, FoodRequest request);
+
+  /// Search foods by query
+  Future<List<Food>> searchFoods(String token, String query);
 }

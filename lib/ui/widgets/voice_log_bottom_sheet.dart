@@ -6,6 +6,10 @@ import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/data/models/responses/ai_parse_meal_response.dart';
 import 'package:wello_frontend/data/repositories/ai_repository.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
+import 'package:wello_frontend/domain/repositories/food_repository.dart';
+import 'package:wello_frontend/data/repositories/food_repository_impl.dart';
+import 'package:wello_frontend/data/data_source/food_remote_data_source.dart';
+import 'package:wello_frontend/domain/entities/food.dart';
 
 class VoiceLogBottomSheet extends StatefulWidget {
   const VoiceLogBottomSheet({super.key});
@@ -27,6 +31,7 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
     with SingleTickerProviderStateMixin {
   final SpeechToText _speechToText = SpeechToText();
   final AiRepository _aiRepository = AiRepository();
+  final FoodRepository _foodRepository = FoodRepositoryImpl(remoteDataSource: FoodRemoteDataSource());
   
   VoiceLogState _currentState = VoiceLogState.initializing;
   bool _speechEnabled = false;
@@ -244,6 +249,322 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
         });
       }
     }
+  }
+
+  void _showMealTypeSelector(int index, ParsedFood food) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Chọn loại bữa ăn',
+                  style: GoogleFonts.baloo2(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF2D2D2D),
+                  ),
+                ),
+              ),
+              const Divider(height: 1),
+              _buildMealTypeOption(index, food, 'BREAKFAST', 'Bữa sáng'),
+              _buildMealTypeOption(index, food, 'LUNCH', 'Bữa trưa'),
+              _buildMealTypeOption(index, food, 'DINNER', 'Bữa tối'),
+              _buildMealTypeOption(index, food, 'SNACK', 'Bữa phụ'),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMealTypeOption(int index, ParsedFood food, String type, String label) {
+    final isSelected = food.mealType == type;
+    return ListTile(
+      leading: Icon(
+        _getMealIcon(type),
+        color: _getMealColor(type),
+      ),
+      title: Text(
+        label,
+        style: GoogleFonts.baloo2(
+          fontSize: 16,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? _getMealColor(type) : const Color(0xFF2D2D2D),
+        ),
+      ),
+      trailing: isSelected ? Icon(Icons.check_circle, color: _getMealColor(type)) : null,
+      onTap: () {
+        setState(() {
+          food.mealType = type;
+        });
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  void _showWeightInputDialog(int index, ParsedFood food) {
+    final controller = TextEditingController(text: food.amountGrams.toString());
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Nhập khối lượng (g)',
+            style: GoogleFonts.baloo2(fontWeight: FontWeight.bold),
+          ),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            decoration: InputDecoration(
+              suffixText: 'g',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Hủy', style: GoogleFonts.baloo2(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEBCF23),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () async {
+                final input = controller.text.trim();
+                final newWeight = int.tryParse(input);
+                if (newWeight == null || newWeight <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Vui lòng nhập khối lượng hợp lệ!')),
+                  );
+                  return;
+                }
+                Navigator.pop(context);
+                
+                setState(() {
+                  _currentState = VoiceLogState.analyzing;
+                });
+                
+                try {
+                  final credentials = await AuthHelper.getCredentials();
+                  if (credentials == null) throw Exception('Chưa đăng nhập');
+                  
+                  if (food.matchedFromDb) {
+                    final previewed = await _foodRepository.previewFood(
+                      credentials.token,
+                      food.foodId,
+                      newWeight,
+                    );
+                    
+                    setState(() {
+                      food.amountGrams = newWeight;
+                      food.calories = previewed.calories;
+                      food.protein = previewed.protein;
+                      food.carbs = previewed.carbs;
+                      food.fat = previewed.fat;
+                      _currentState = VoiceLogState.confirming;
+                    });
+                  } else {
+                    final double ratio = newWeight / food.amountGrams;
+                    setState(() {
+                      food.amountGrams = newWeight;
+                      food.calories = (food.calories * ratio).round();
+                      food.protein = food.protein * ratio;
+                      food.carbs = food.carbs * ratio;
+                      food.fat = food.fat * ratio;
+                      _currentState = VoiceLogState.confirming;
+                    });
+                  }
+                } catch (e) {
+                  setState(() {
+                    _errorMessage = 'Lỗi cập nhật khối lượng: $e';
+                    _currentState = VoiceLogState.error;
+                  });
+                }
+              },
+              child: Text(
+                'Cập nhật',
+                style: GoogleFonts.baloo2(fontWeight: FontWeight.bold, color: Colors.black),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showFoodSearchDialog(int index, ParsedFood food) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return _FoodSearchDialog(
+          foodRepository: _foodRepository,
+          currentAmountGrams: food.amountGrams,
+          onFoodSelected: (selectedFood, previewedFood) {
+            setState(() {
+              food.foodName = selectedFood.name;
+              food.foodId = selectedFood.id;
+              food.matchedFromDb = true;
+              food.calories = previewedFood.calories;
+              food.protein = previewedFood.protein;
+              food.carbs = previewedFood.carbs;
+              food.fat = previewedFood.fat;
+            });
+          },
+        );
+      },
+    );
+  }
+
+  void _recalculateParentFromIngredients(ParsedFood parent, double originalTotalWeight) {
+    if (parent.ingredients.isEmpty) return;
+
+    int newTotalWeight = parent.ingredients.fold(0, (sum, ing) => sum + ing.weightGrams);
+    int newTotalCalories = parent.ingredients.fold(0, (sum, ing) => sum + ing.calories);
+
+    if (originalTotalWeight > 0) {
+      double ratio = newTotalWeight / originalTotalWeight;
+      parent.protein = parent.protein * ratio;
+      parent.carbs = parent.carbs * ratio;
+      parent.fat = parent.fat * ratio;
+    }
+
+    parent.amountGrams = newTotalWeight;
+    parent.calories = newTotalCalories;
+    parent.foodId = 0;
+    parent.matchedFromDb = false;
+  }
+
+  void _showIngredientWeightDialog(ParsedFood parent, IngredientInfo ingredient) {
+    final controller = TextEditingController(text: ingredient.weightGrams.toString());
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Sửa khối lượng nguyên liệu',
+            style: GoogleFonts.baloo2(fontWeight: FontWeight.bold, color: const Color(0xFF2D2D2D)),
+          ),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            style: GoogleFonts.baloo2(fontSize: 15),
+            decoration: InputDecoration(
+              labelText: ingredient.name,
+              labelStyle: GoogleFonts.baloo2(color: Colors.grey[600]),
+              suffixText: 'g',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Hủy', style: GoogleFonts.baloo2(color: Colors.grey, fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEBCF23),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () async {
+                final input = controller.text.trim();
+                final newWeight = int.tryParse(input);
+                if (newWeight == null || newWeight <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Vui lòng nhập khối lượng hợp lệ!')),
+                  );
+                  return;
+                }
+                Navigator.pop(context);
+
+                setState(() {
+                  _currentState = VoiceLogState.analyzing;
+                });
+
+                try {
+                  final credentials = await AuthHelper.getCredentials();
+                  if (credentials == null) throw Exception('Chưa đăng nhập');
+
+                  int oldWeight = ingredient.weightGrams;
+                  double originalTotalWeight = parent.amountGrams.toDouble();
+
+                  if (ingredient.matchedFromDb) {
+                    final previewed = await _foodRepository.previewFood(
+                      credentials.token,
+                      ingredient.foodId,
+                      newWeight,
+                    );
+                    setState(() {
+                      ingredient.weightGrams = newWeight;
+                      ingredient.calories = previewed.calories;
+                      _recalculateParentFromIngredients(parent, originalTotalWeight);
+                      _currentState = VoiceLogState.confirming;
+                    });
+                  } else {
+                    double ratio = newWeight / oldWeight;
+                    setState(() {
+                      ingredient.weightGrams = newWeight;
+                      ingredient.calories = (ingredient.calories * ratio).round();
+                      _recalculateParentFromIngredients(parent, originalTotalWeight);
+                      _currentState = VoiceLogState.confirming;
+                    });
+                  }
+                } catch (e) {
+                  setState(() {
+                    _errorMessage = 'Lỗi cập nhật nguyên liệu: $e';
+                    _currentState = VoiceLogState.error;
+                  });
+                }
+              },
+              child: Text(
+                'Cập nhật',
+                style: GoogleFonts.baloo2(fontWeight: FontWeight.bold, color: Colors.black),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showIngredientSearchDialog(ParsedFood parent, IngredientInfo ingredient) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return _FoodSearchDialog(
+          foodRepository: _foodRepository,
+          currentAmountGrams: ingredient.weightGrams,
+          onFoodSelected: (selectedFood, previewedFood) {
+            double originalTotalWeight = parent.amountGrams.toDouble();
+            setState(() {
+              ingredient.name = selectedFood.name;
+              ingredient.foodId = selectedFood.id;
+              ingredient.matchedFromDb = true;
+              ingredient.calories = previewedFood.calories;
+              _recalculateParentFromIngredients(parent, originalTotalWeight);
+            });
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -557,6 +878,15 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
       );
     }
 
+    String cleanedMessage = _aiResult!.aiMessage.trim();
+    final regex = RegExp(r'^(dạ,\s*|dạ\s+)', caseSensitive: false);
+    if (regex.hasMatch(cleanedMessage)) {
+      cleanedMessage = cleanedMessage.replaceFirst(regex, '');
+      if (cleanedMessage.isNotEmpty) {
+        cleanedMessage = cleanedMessage[0].toUpperCase() + cleanedMessage.substring(1);
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -592,7 +922,7 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
         ),
         const SizedBox(height: 4),
         Text(
-          _aiResult!.aiMessage,
+          cleanedMessage,
           style: GoogleFonts.baloo2(fontSize: 13, color: Colors.grey[600]),
         ),
         const SizedBox(height: 16),
@@ -660,37 +990,108 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
                                   const SizedBox(height: 2),
                                   Row(
                                     children: [
-                                      Text(
-                                        '$mealNameVi • ${food.amountGrams}g',
-                                        style: GoogleFonts.baloo2(
-                                          fontSize: 12,
-                                          color: Colors.grey[500],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      // Matched vs AI estimated badge
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                        decoration: BoxDecoration(
-                                          color: food.matchedFromDb 
-                                              ? Colors.green[50] 
-                                              : Colors.orange[50],
-                                          borderRadius: BorderRadius.circular(4),
-                                          border: Border.all(
-                                            color: food.matchedFromDb 
-                                                ? Colors.green[200]! 
-                                                : Colors.orange[200]!,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          food.matchedFromDb ? 'Hệ thống' : 'AI ước đề xuất',
-                                          style: GoogleFonts.baloo2(
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
-                                            color: food.matchedFromDb 
-                                                ? Colors.green[700] 
-                                                : Colors.orange[700],
-                                          ),
+                                      Expanded(
+                                        child: Wrap(
+                                          spacing: 6,
+                                          runSpacing: 4,
+                                          crossAxisAlignment: WrapCrossAlignment.center,
+                                          children: [
+                                            // Meal type selector chip
+                                            GestureDetector(
+                                              onTap: () => _showMealTypeSelector(idx, food),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: _getMealColor(food.mealType).withOpacity(0.1),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(_getMealIcon(food.mealType), size: 10, color: _getMealColor(food.mealType)),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      mealNameVi,
+                                                      style: GoogleFonts.baloo2(
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: _getMealColor(food.mealType),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 2),
+                                                    Icon(Icons.arrow_drop_down, size: 12, color: _getMealColor(food.mealType)),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            
+                                            // Weight editor chip
+                                            GestureDetector(
+                                              onTap: () => _showWeightInputDialog(idx, food),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey[200],
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      '${food.amountGrams}g',
+                                                      style: GoogleFonts.baloo2(
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.grey[700],
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 2),
+                                                    const Icon(Icons.edit, size: 8, color: Colors.grey),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            
+                                            // Matched vs AI estimated badge
+                                            GestureDetector(
+                                              onTap: () => _showFoodSearchDialog(idx, food),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: food.matchedFromDb 
+                                                      ? Colors.green[50] 
+                                                      : Colors.orange[50],
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: food.matchedFromDb 
+                                                        ? Colors.green[200]! 
+                                                        : Colors.orange[200]!,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      food.matchedFromDb ? Icons.link_off_rounded : Icons.link_rounded,
+                                                      size: 10,
+                                                      color: food.matchedFromDb ? Colors.green[700] : Colors.orange[700],
+                                                    ),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      food.matchedFromDb ? 'Hệ thống' : 'AI đề xuất',
+                                                      style: GoogleFonts.baloo2(
+                                                        fontSize: 9,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: food.matchedFromDb 
+                                                            ? Colors.green[700] 
+                                                            : Colors.orange[700],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -747,24 +1148,85 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
                             ),
                             const SizedBox(height: 8),
                             ...food.ingredients.map((ing) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                              padding: const EdgeInsets.symmetric(vertical: 6.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    '• ${ing.name} (${ing.weightGrams}g)',
-                                    style: GoogleFonts.baloo2(
-                                      fontSize: 13,
-                                      color: Colors.grey[700],
+                                  // Bullet & Name
+                                  Expanded(
+                                    child: Text(
+                                      '• ${ing.name}',
+                                      style: GoogleFonts.baloo2(
+                                        fontSize: 13,
+                                        color: const Color(0xFF2D2D2D),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  Text(
-                                    '${ing.calories} kcal',
-                                    style: GoogleFonts.baloo2(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey[700],
-                                    ),
+                                  const SizedBox(width: 8),
+                                  // Interactive Chips & Calories
+                                  Wrap(
+                                    spacing: 6,
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    children: [
+                                      // Label (AI vs DB)
+                                      GestureDetector(
+                                        onTap: () => _showIngredientSearchDialog(food, ing),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: ing.matchedFromDb ? Colors.green[50] : Colors.orange[50],
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(
+                                              color: ing.matchedFromDb ? Colors.green[200]! : Colors.orange[200]!,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            ing.matchedFromDb ? 'Hệ thống' : 'AI',
+                                            style: GoogleFonts.baloo2(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: ing.matchedFromDb ? Colors.green[700] : Colors.orange[700],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      // Weight Editor
+                                      GestureDetector(
+                                        onTap: () => _showIngredientWeightDialog(food, ing),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[200],
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                '${ing.weightGrams}g',
+                                                style: GoogleFonts.baloo2(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                              const SizedBox(width: 2),
+                                              const Icon(Icons.edit, size: 8, color: Colors.grey),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      // Calories
+                                      Text(
+                                        '${ing.calories} kcal',
+                                        style: GoogleFonts.baloo2(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -836,7 +1298,7 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
                         ),
                       )
                     : Text(
-                        'Xác nhận thêm',
+                        'Thêm vào nhật kí',
                         style: GoogleFonts.baloo2(
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
@@ -996,5 +1458,170 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
       default:
         return const Color(0xFF5CA7FF);
     }
+  }
+}
+
+class _FoodSearchDialog extends StatefulWidget {
+  final FoodRepository foodRepository;
+  final int currentAmountGrams;
+  final Function(Food selectedFood, Food previewedFood) onFoodSelected;
+
+  const _FoodSearchDialog({
+    required this.foodRepository,
+    required this.currentAmountGrams,
+    required this.onFoodSelected,
+  });
+
+  @override
+  State<_FoodSearchDialog> createState() => _FoodSearchDialogState();
+}
+
+class _FoodSearchDialogState extends State<_FoodSearchDialog> {
+  final TextEditingController _searchController = TextEditingController();
+  List<Food> _searchResults = [];
+  bool _isSearching = false;
+  String _searchError = "";
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _performSearch() async {
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
+
+    setState(() {
+      _isSearching = true;
+      _searchError = "";
+    });
+
+    try {
+      final credentials = await AuthHelper.getCredentials();
+      if (credentials == null) throw Exception('Chưa đăng nhập');
+
+      final results = await widget.foodRepository.searchFoods(
+        credentials.token,
+        query,
+      );
+
+      setState(() {
+        _searchResults = results;
+        _isSearching = false;
+      });
+    } catch (e) {
+      setState(() {
+        _searchError = e.toString().replaceFirst('Exception: ', '');
+        _isSearching = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(
+        'Khớp món hệ thống',
+        style: GoogleFonts.baloo2(fontWeight: FontWeight.bold, color: const Color(0xFF2D2D2D)),
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 350,
+        child: Column(
+          children: [
+            TextField(
+              controller: _searchController,
+              style: GoogleFonts.baloo2(fontSize: 15),
+              decoration: InputDecoration(
+                hintText: 'Nhập tên món ăn cần tìm...',
+                hintStyle: GoogleFonts.baloo2(color: Colors.grey[400]),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search, color: Color(0xFFEBCF23)),
+                  onPressed: _performSearch,
+                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onSubmitted: (_) => _performSearch(),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: _isSearching
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFFEBCF23)))
+                  : _searchError.isNotEmpty
+                      ? Center(child: Text(_searchError, style: GoogleFonts.baloo2(color: Colors.red)))
+                      : _searchResults.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Nhập từ khóa và bấm tìm kiếm',
+                                style: GoogleFonts.baloo2(color: Colors.grey),
+                              ),
+                            )
+                          : ListView.separated(
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: _searchResults.length,
+                              separatorBuilder: (_, __) => const Divider(height: 1),
+                              itemBuilder: (context, index) {
+                                final dbFood = _searchResults[index];
+                                return ListTile(
+                                  title: Text(
+                                    dbFood.name,
+                                    style: GoogleFonts.baloo2(
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF2D2D2D),
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    '${dbFood.calories} kcal/100g',
+                                    style: GoogleFonts.baloo2(fontSize: 12, color: Colors.grey[500]),
+                                  ),
+                                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                                  onTap: () async {
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) => const Center(
+                                        child: CircularProgressIndicator(color: Color(0xFFEBCF23)),
+                                      ),
+                                    );
+
+                                    try {
+                                      final credentials = await AuthHelper.getCredentials();
+                                      if (credentials == null) throw Exception('Chưa đăng nhập');
+
+                                      final previewed = await widget.foodRepository.previewFood(
+                                        credentials.token,
+                                        dbFood.id,
+                                        widget.currentAmountGrams,
+                                      );
+
+                                      if (!mounted) return;
+                                      Navigator.pop(context); // Pop loading spinner
+                                      widget.onFoodSelected(dbFood, previewed);
+                                      Navigator.pop(context); // Close search dialog
+                                    } catch (e) {
+                                      if (!mounted) return;
+                                      Navigator.pop(context); // Pop loading spinner
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Lỗi khi lấy thông tin món ăn: $e')),
+                                      );
+                                    }
+                                  },
+                                );
+                              },
+                            ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Đóng', style: GoogleFonts.baloo2(color: Colors.grey, fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
   }
 }
