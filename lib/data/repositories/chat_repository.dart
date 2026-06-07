@@ -66,4 +66,14 @@ class ChatRepository {
       token: token,
     );
   }
+
+  Future<Map<String, dynamic>> sendMessageToChatbot({
+    required String message,
+    required String token,
+  }) async {
+    return _remote.sendMessageToChatbot(
+      message: message,
+      token: token,
+    );
+  }
 }

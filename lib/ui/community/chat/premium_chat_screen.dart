@@ -77,7 +77,8 @@ class _PremiumChatScreenState extends State<PremiumChatScreen>
               child: Image.asset(
                 'assets/images/bg_chat.jpg',
                 fit: BoxFit.cover,
-                color: Colors.black.withOpacity(0.1),
+                // slightly darker so messages stand out better (increased from 0.18 to 0.3)
+                color: Colors.black.withOpacity(0.3),
                 colorBlendMode: BlendMode.darken,
               ),
             ),
@@ -85,8 +86,10 @@ class _PremiumChatScreenState extends State<PremiumChatScreen>
             // gradient dim + blur overlay for premium feel
             Positioned.fill(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                child: Container(color: Colors.white.withOpacity(0.1)),
+                // increase blur to soften the wallpaper more (increased from 8 to 18)
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                // use a subtle dark overlay so chat bubbles contrast better (increased from 0.36 to 0.45)
+                child: Container(color: Colors.black.withOpacity(0.45)),
               ),
             ),
 
