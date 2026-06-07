@@ -401,11 +401,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Opacity(
-                opacity: 0.9,
-                child: Image.asset(
-                  'assets/images/bg_chat.jpg',
-                  fit: BoxFit.cover,
+              child: Image.asset(
+                'assets/images/bg_chat.jpg',
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  color: Colors.white.withOpacity(0.65),
                 ),
               ),
             ),

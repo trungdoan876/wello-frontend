@@ -9,6 +9,8 @@ import 'package:provider/provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/core/utils/user_session.dart';
 
+import 'package:wello_frontend/ui/widgets/floating_chatbot.dart';
+
 //màn hình điều hướng chính với bottom navbar tùy chỉnh
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -54,49 +56,61 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: IndexedStack(
-          index: _currentIndex,
+        body: Stack(
           children: [
-            HomeScreen(
-              key: ValueKey('home_$_homeReloadId'),
-              onQuickActionsChanged: (show) {
-                setState(() {
-                  _hideBottomNav = show;
-                });
-              },
+            IndexedStack(
+              index: _currentIndex,
+              children: [
+                HomeScreen(
+                  key: ValueKey('home_$_homeReloadId'),
+                  onQuickActionsChanged: (show) {
+                    setState(() {
+                      _hideBottomNav = show;
+                    });
+                  },
+                ),
+                FavoritesScreen(
+                  key: ValueKey('fav_$_favoritesReloadId'),
+                  onQuickActionsChanged: (show) {
+                    setState(() {
+                      _hideBottomNav = show;
+                    });
+                  },
+                ),
+                CommunityScreen(
+                  key: ValueKey('community_$_communityReloadId'),
+                  onQuickActionsChanged: (show) {
+                    setState(() {
+                      _hideBottomNav = show;
+                    });
+                  },
+                ),
+                ProfileScreen(
+                  key: ValueKey('profile_$_profileReloadId'),
+                  onQuickActionsChanged: (show) {
+                    setState(() {
+                      _hideBottomNav = show;
+                    });
+                  },
+                ),
+                RunningScreen(
+                  key: ValueKey('running_$_runningReloadId'),
+                  onQuickActionsChanged: (show) {
+                    setState(() {
+                      _hideBottomNav = show;
+                    });
+                  },
+                ),
+              ],
             ),
-            FavoritesScreen(
-              key: ValueKey('fav_$_favoritesReloadId'),
-              onQuickActionsChanged: (show) {
-                setState(() {
-                  _hideBottomNav = show;
-                });
-              },
-            ),
-            CommunityScreen(
-              key: ValueKey('community_$_communityReloadId'),
-              onQuickActionsChanged: (show) {
-                setState(() {
-                  _hideBottomNav = show;
-                });
-              },
-            ),
-            ProfileScreen(
-              key: ValueKey('profile_$_profileReloadId'),
-              onQuickActionsChanged: (show) {
-                setState(() {
-                  _hideBottomNav = show;
-                });
-              },
-            ),
-            RunningScreen(
-              key: ValueKey('running_$_runningReloadId'),
-              onQuickActionsChanged: (show) {
-                setState(() {
-                  _hideBottomNav = show;
-                });
-              },
-            ),
+            // Floating chatbot bubble (Positioned.fill allows it to drag anywhere on screen)
+            if (!_hideBottomNav)
+              const Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: false,
+                  child: FloatingChatbot(),
+                ),
+              ),
           ],
         ),
         bottomNavigationBar: _hideBottomNav

@@ -264,4 +264,22 @@ class ChatRemoteDataSource {
       rethrow;
     }
   }
+
+  Future<Map<String, dynamic>> sendMessageToChatbot({
+    required String message,
+    required String token,
+  }) async {
+    try {
+      final resp = await _postWithFallback(
+        path: '/chat/chatbox',
+        token: token,
+        data: {'message': message},
+      );
+      _logResponse('sendMessageToChatbot', resp);
+      return {'statusCode': resp.statusCode, 'data': resp.data};
+    } catch (e) {
+      print('[ChatRemote] sendMessageToChatbot error: $e');
+      rethrow;
+    }
+  }
 }
