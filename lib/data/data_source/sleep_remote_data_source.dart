@@ -109,7 +109,7 @@ class SleepRemoteDataSource {
       headers: _headers(token: token),
       body: jsonEncode({
         'userId': userId,
-        'sleepTime': bedtime,
+        'bedtime': bedtime,
       }),
     );
 
@@ -129,7 +129,7 @@ class SleepRemoteDataSource {
     String? notes,
     String? token,
   }) async {
-    final response = await http.post(
+    final response = await http.put(
       Uri.parse(ApiEndpoints.sleepComplete),
       headers: _headers(token: token),
       body: jsonEncode({

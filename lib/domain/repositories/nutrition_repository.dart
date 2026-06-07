@@ -63,7 +63,6 @@ abstract class NutritionRepository {
     int glassSize,
   });
 
-  /// Log food intake
   Future<FoodLogResult> logFood({
     required String token,
     required int userId,
@@ -73,6 +72,9 @@ abstract class NutritionRepository {
     required String mealType,
     int? caloriesOverride,
     String? foodNameOverride,
+    double? proteinOverride,
+    double? carbsOverride,
+    double? fatOverride,
   });
 
   /// Get food intake history

@@ -28,4 +28,9 @@ class FoodRepositoryImpl implements FoodRepository {
   Future<void> requestFood(String token, FoodRequest request) async {
     return await remoteDataSource.requestFood(token, request);
   }
+
+  @override
+  Future<List<Food>> searchFoods(String token, String query) async {
+    return await remoteDataSource.searchFoods(token, query);
+  }
 }

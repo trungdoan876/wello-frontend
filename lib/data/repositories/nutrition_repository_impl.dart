@@ -104,6 +104,9 @@ class NutritionRepositoryImpl implements NutritionRepository {
     required String mealType,
     int? caloriesOverride,
     String? foodNameOverride,
+    double? proteinOverride,
+    double? carbsOverride,
+    double? fatOverride,
   }) async {
     final response = await remoteDataSource.logFood(
       token,
@@ -115,6 +118,9 @@ class NutritionRepositoryImpl implements NutritionRepository {
         mealType: mealType,
         caloriesOverride: caloriesOverride,
         foodNameOverride: foodNameOverride,
+        proteinOverride: proteinOverride,
+        carbsOverride: carbsOverride,
+        fatOverride: fatOverride,
       ),
     );
 
