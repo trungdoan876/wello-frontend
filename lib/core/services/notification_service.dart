@@ -1,6 +1,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:provider/provider.dart';
+import '../../domain/providers/notification_provider.dart';
 import '../../data/repositories/user_repository_impl.dart';
 import '../../data/data_source/user_remote_data_source.dart';
 import '../../domain/repositories/user_repository.dart';
@@ -14,6 +16,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class NotificationService {
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static final UserRepository _userRepository =
       UserRepositoryImpl(userRemoteDataSource: UserRemoteDataSource());
@@ -45,6 +48,16 @@ class NotificationService {
 
       // Show local notification
       showLocalNotification(title, body);
+
+      // Load/Update notifications in provider in real-time
+      final context = navigatorKey.currentContext;
+      if (context != null) {
+        try {
+          context.read<NotificationProvider>().loadNotifications();
+        } catch (e) {
+          print('Loi khi cap nhat notification provider: $e');
+        }
+      }
     });
 
     // Handle notification tap when app is in background
@@ -134,6 +147,16 @@ class NotificationService {
 
         // Show local notification
         showLocalNotification(title, body);
+
+        // Load/Update notifications in provider in real-time
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          try {
+            context.read<NotificationProvider>().loadNotifications();
+          } catch (e) {
+            print('Loi khi cap nhat notification provider: $e');
+          }
+        }
       });
 
       // Handle notification tap when app is in background
