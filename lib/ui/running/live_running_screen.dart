@@ -5,10 +5,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/data/data_source/running_remote_data_source.dart';
 import 'package:wello_frontend/data/repositories/running_repository_impl.dart';
 import 'package:wello_frontend/domain/entities/running_session.dart';
+import 'package:wello_frontend/domain/providers/running_provider.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 
 class LiveRunningScreen extends StatefulWidget {
@@ -44,27 +46,6 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
   static const Color _accent = Color(0xFF4D7CFE);
   static const Color _pageBg = Color(0xFFF4F7FF);
   static const Color _cardBorder = Color(0xFFE2EAFB);
-  static const double _minAcceptedMovementMeters = 10.0;
-  static const double _minAcceptedSpeedMs = 0.8;
-
-  // Timer
-  int _secondsElapsed = 0;
-  Timer? _timer;
-  bool _isPaused = false;
-
-  // GPS
-  StreamSubscription<Position>? _positionSubscription;
-  LatLng? _currentPosition;
-  final List<LatLng> _routePoints = [];
-  bool _gpsReady = false;
-
-  // Stats (GPS-based)
-  double _km = 0;
-  int _steps = 0;
-  int _calories = 0;
-  double _paceMinPerKm = 0;
-  double _progress = 0;
-  bool _isSaving = false;
 
   // Page dots
   final PageController _pageController = PageController();
@@ -72,252 +53,116 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
 
   // Map
   final MapController _mapController = MapController();
-
-  // Calories per km by activity
-  double get _caloriesPerKm {
-    switch (widget.activityLabel.toLowerCase()) {
-      case 'đi bộ':
-        return 60.0;
-      case 'đạp xe':
-        return 40.0;
-      default:
-        return 80.0; // Chạy bộ
-    }
-  }
-
-  // Steps per km by activity
-  double get _stepsPerKm {
-    switch (widget.activityLabel.toLowerCase()) {
-      case 'đi bộ':
-        return 1350.0;
-      case 'đạp xe':
-        return 0.0;
-      default:
-        return 1250.0; // Chạy bộ
-    }
-  }
+  LatLng? _lastPosition;
+  late RunningProvider _runningProvider;
 
   @override
   void initState() {
     super.initState();
-    _currentPosition = widget.center;
-    if (widget.center != null) _routePoints.add(widget.center!);
-    _startTimer();
-    _startGPS();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (_isPaused) return;
-      setState(() {
-        _secondsElapsed++;
-        _updateProgress();
-      });
-    });
-  }
-
-  Future<void> _startGPS() async {
-    // Kiểm tra và xin quyền
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
+    _runningProvider = context.read<RunningProvider>();
+    if (!_runningProvider.isTracking) {
+      _runningProvider.startTracking(
+        activityLabel: widget.activityLabel,
+        activityType: widget.activityType,
+        goalValueText: widget.goalValueText,
+        selectedGoal: widget.selectedGoal,
+        targetKm: widget.targetKm,
+        targetMinutes: widget.targetMinutes,
+        targetCalories: widget.targetCalories,
+        targetSteps: widget.targetSteps,
+        center: widget.center,
+      );
     }
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không có quyền truy cập GPS')),
-        );
-      }
-      return;
-    }
-
-    setState(() => _gpsReady = true);
-
-    // Lắng nghe stream GPS
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 5, // Cập nhật mỗi khi di chuyển >= 5 mét
-      ),
-    ).listen(_onPositionUpdate);
+    _lastPosition = _runningProvider.currentPosition;
+    _runningProvider.addListener(_onProviderUpdate);
   }
 
-  void _onPositionUpdate(Position position) {
-    if (_isPaused || !mounted) return;
-
-    final newPoint = LatLng(position.latitude, position.longitude);
-    final speedMs = position.speed >= 0 ? position.speed : 0.0;
-
-    setState(() {
-      final distanceMeters = _currentPosition == null
-          ? 0.0
-          : Geolocator.distanceBetween(
-              _currentPosition!.latitude,
-              _currentPosition!.longitude,
-              newPoint.latitude,
-              newPoint.longitude,
+  void _onProviderUpdate() {
+    if (!mounted) return;
+    if (_runningProvider.currentPosition != _lastPosition) {
+      _lastPosition = _runningProvider.currentPosition;
+      if (_lastPosition != null) {
+        try {
+          if (_runningProvider.routePoints.length >= 2) {
+            final bounds = LatLngBounds.fromPoints(_runningProvider.routePoints);
+            _mapController.fitCamera(
+              CameraFit.bounds(
+                bounds: bounds,
+                padding: const EdgeInsets.all(32.0),
+              ),
             );
-
-      final hasRealMovement =
-          distanceMeters >= _minAcceptedMovementMeters &&
-          speedMs >= _minAcceptedSpeedMs;
-
-      if (hasRealMovement) {
-        final addedKm = distanceMeters / 1000.0;
-        _km += addedKm;
-        _steps += (addedKm * _stepsPerKm).round();
-        _calories = (_km * _caloriesPerKm).round();
-
-        // Tính pace (phút/km)
-        if (_km > 0 && _secondsElapsed > 0) {
-          _paceMinPerKm = (_secondsElapsed / 60.0) / _km;
-        }
-
-        _routePoints.add(newPoint);
-        _currentPosition = newPoint;
-        _updateProgress();
+          } else {
+            _mapController.move(_lastPosition!, 17);
+          }
+        } catch (_) {}
       }
-
-      // Di chuyển camera map theo người dùng
-      try {
-        _mapController.move(newPoint, 17);
-      } catch (_) {}
-    });
-  }
-
-  void _updateProgress() {
-    switch (widget.selectedGoal) {
-      case 'distance':
-        _progress = (_km / widget.targetKm).clamp(0.0, 1.0);
-        break;
-      case 'time':
-        _progress = (_secondsElapsed / 60.0 / widget.targetMinutes).clamp(
-          0.0,
-          1.0,
-        );
-        break;
-      case 'calories':
-        _progress = (_calories / widget.targetCalories).clamp(0.0, 1.0);
-        break;
-      case 'steps':
-        _progress = (_steps / widget.targetSteps).clamp(0.0, 1.0);
-        break;
-      default:
-        _progress = (_km / widget.targetKm).clamp(0.0, 1.0);
     }
-  }
-
-  String get _formattedTime {
-    final h = _secondsElapsed ~/ 3600;
-    final m = (_secondsElapsed % 3600) ~/ 60;
-    final s = _secondsElapsed % 60;
-    return '${h > 0 ? '${h.toString().padLeft(2, '0')}:' : ''}${m.toString().padLeft(1, '0')}:${s.toString().padLeft(2, '0')}';
-  }
-
-  String get _formattedPace {
-    if (_paceMinPerKm <= 0) return '--:--';
-    final m = _paceMinPerKm.floor();
-    final s = ((_paceMinPerKm - m) * 60).round();
-    return '$m:${s.toString().padLeft(2, '0')}';
-  }
-
-  void _togglePause() {
-    setState(() => _isPaused = !_isPaused);
   }
 
   Future<void> _stopRunning() async {
-    if (_isSaving) return;
+    if (_runningProvider.isSaving) {
+      print('🏃 [LiveRunningScreen] _stopRunning: already saving, ignoring.');
+      return;
+    }
 
-    setState(() => _isSaving = true);
-
+    print('🏃 [LiveRunningScreen] _stopRunning: starting save via provider...');
     try {
       final credentials = await AuthHelper.getCredentials();
       if (credentials != null) {
         final userId = int.tryParse(credentials.userIdString) ?? 0;
         if (userId > 0) {
-          final session = RunningSession(
-            userId: userId,
-            date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
-            activityType: widget.activityType,
-            durationSeconds: _secondsElapsed,
-            distanceKm: _km,
-            caloriesBurned: _calories,
-            steps: _steps,
-            avgPaceSecPerKm: _km > 0 ? (_secondsElapsed / _km).round() : 0,
-            goalType: widget.selectedGoal,
-            goalValue: switch (widget.selectedGoal) {
-              'distance' => widget.targetKm.toDouble(),
-              'time' => widget.targetMinutes.toDouble(),
-              'calories' => widget.targetCalories.toDouble(),
-              'steps' => widget.targetSteps.toDouble(),
-              _ => widget.targetKm.toDouble(),
-            },
-            completionPercent: (_progress * 100).clamp(0, 100).round(),
-          );
-
-          final repository = RunningRepositoryImpl(
-            remoteDataSource: RunningRemoteDataSource(),
-          );
-          await repository.saveSession(credentials.token, session);
+          final success = await _runningProvider.stopAndSaveTracking(credentials.token, userId);
+          if (success && mounted) {
+            print('🏃 [LiveRunningScreen] _stopRunning: save success! popping with true.');
+            Navigator.of(context).pop(true);
+          }
+        } else {
+          print('🏃 [LiveRunningScreen] _stopRunning: invalid userId: $userId');
         }
+      } else {
+        print('🏃 [LiveRunningScreen] _stopRunning: credentials are null!');
       }
     } catch (e) {
+      print('🏃 [LiveRunningScreen] _stopRunning: error saving session: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Không thể lưu buổi chạy: $e')));
       }
-    } finally {
-      _timer?.cancel();
-      _positionSubscription?.cancel();
-      if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(true);
-      }
     }
-  }
-
-  Future<bool> _onWillPop() async {
-    await _stopRunning();
-    return false;
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _positionSubscription?.cancel();
+    _runningProvider.removeListener(_onProviderUpdate);
     _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<RunningProvider>();
+
     return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          _onWillPop();
-        }
-      },
+      canPop: true,
       child: Scaffold(
         backgroundColor: _pageBg,
         body: SafeArea(
           child: Column(
             children: [
-              _buildMapSection(context),
+              _buildMapSection(context, provider),
               Expanded(
                 child: PageView(
                   controller: _pageController,
                   onPageChanged: (i) => setState(() => _currentPage = i),
                   children: [
-                    _buildStatsPage(context),
-                    _buildDetailPage(context),
+                    _buildStatsPage(context, provider),
+                    _buildDetailPage(context, provider),
                   ],
                 ),
               ),
               _buildDots(context),
-              _buildBottomButton(context),
+              _buildBottomButton(context, provider),
             ],
           ),
         ),
@@ -327,87 +172,130 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
 
   // ─── Map ────────────────────────────────────────────────────────────────────
 
-  Widget _buildMapSection(BuildContext context) {
-    final center = _currentPosition ?? widget.center;
+  Widget _buildMapSection(BuildContext context, RunningProvider provider) {
+    final center = provider.currentPosition ?? widget.center;
     return SizedBox(
       height: context.h(0.28),
-      child: center != null
-          ? ClipRect(
-              child: FlutterMap(
-                mapController: _mapController,
-                options: MapOptions(initialCenter: center, initialZoom: 17),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.wello.frontend',
-                  ),
-                  // Đường đi thực tế
-                  if (_routePoints.length > 1)
-                    PolylineLayer(
-                      polylines: [
-                        Polyline(
-                          points: _routePoints,
-                          color: _accent,
-                          strokeWidth: 4,
+      child: Stack(
+        children: [
+          center != null
+              ? ClipRect(
+                  child: FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(initialCenter: center, initialZoom: 17),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.wello.frontend',
+                      ),
+                      // Đường đi thực tế (Thiết kế hiệu ứng phát sáng cao cấp)
+                      if (provider.routePoints.length > 1)
+                        PolylineLayer(
+                          polylines: [
+                            // Lớp phát sáng mờ bên dưới
+                            Polyline(
+                              points: provider.routePoints,
+                              color: _accent.withValues(alpha: 0.25),
+                              strokeWidth: 10,
+                              strokeCap: StrokeCap.round,
+                              strokeJoin: StrokeJoin.round,
+                            ),
+                            // Đường vẽ chính sắc nét bên trên
+                            Polyline(
+                              points: provider.routePoints,
+                              color: _accent,
+                              strokeWidth: 5,
+                              strokeCap: StrokeCap.round,
+                              strokeJoin: StrokeJoin.round,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  // Vị trí hiện tại
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        width: 44,
-                        height: 44,
-                        point: center,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: _accent,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 3),
-                            boxShadow: [
-                              BoxShadow(
-                                color: _accent.withValues(alpha: 0.4),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
+                      // Vị trí hiện tại
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            width: 44,
+                            height: 44,
+                            point: center,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: _accent,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 3),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: _accent.withValues(alpha: 0.4),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
                               ),
-                            ],
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                )
+              : Container(
+                  color: Colors.grey[200],
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+          // Nút back nổi lên trên bản đồ
+          Positioned(
+            left: context.w(0.04),
+            top: context.h(0.02),
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                width: context.w(0.1),
+                height: context.w(0.1),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.black87,
+                  size: context.sp(4.2),
+                ),
               ),
-            )
-          : Container(
-              color: Colors.grey[200],
-              child: const Center(child: CircularProgressIndicator()),
             ),
+          ),
+        ],
+      ),
     );
   }
 
   // ─── Trang 1: Stats chính ───────────────────────────────────────────────────
 
-  Widget _buildStatsPage(BuildContext context) {
+  Widget _buildStatsPage(BuildContext context, RunningProvider provider) {
     return Column(
       children: [
         SizedBox(height: context.h(0.02)),
-        _buildCircularProgress(context),
+        _buildCircularProgress(context, provider),
         SizedBox(height: context.h(0.015)),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: context.w(0.06)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _statItem(context, _steps > 0 ? '$_steps' : '-', 'Bước', '🦶'),
-              _statItem(context, _formattedTime, 'Thời gian', '⏱'),
-              _statItem(context, _gpsReady ? '♥' : '--', 'bpm', '❤️'),
+              _statItem(context, provider.steps > 0 ? '${provider.steps}' : '-', 'Bước', '🦶'),
+              _statItem(context, provider.formattedTime, 'Thời gian', '⏱'),
+              _statItem(context, provider.gpsReady ? '♥' : '--', 'bpm', '❤️'),
             ],
           ),
         ),
@@ -417,9 +305,9 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _statItem(context, _km.toStringAsFixed(2), 'km', '📍'),
-              _statItem(context, '$_calories', 'calo', '🔥'),
-              _statItem(context, _formattedPace, 'phút/km', '🏃'),
+              _statItem(context, provider.km.toStringAsFixed(2), 'km', '📍'),
+              _statItem(context, '${provider.calories}', 'calo', '🔥'),
+              _statItem(context, provider.formattedPace, 'phút/km', '🏃'),
             ],
           ),
         ),
@@ -429,7 +317,7 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
 
   // ─── Trang 2: Chi tiết ─────────────────────────────────────────────────────
 
-  Widget _buildDetailPage(BuildContext context) {
+  Widget _buildDetailPage(BuildContext context, RunningProvider provider) {
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: context.w(0.05),
@@ -450,34 +338,34 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
           Row(
             children: [
               Expanded(
-                child: _detailCard(context, '📍', _km.toStringAsFixed(2), 'km'),
+                child: _detailCard(context, '📍', provider.km.toStringAsFixed(2), 'km'),
               ),
               SizedBox(width: context.w(0.03)),
               Expanded(
-                child: _detailCard(context, '⏱', _formattedTime, 'Thời gian'),
+                child: _detailCard(context, '⏱', provider.formattedTime, 'Thời gian'),
               ),
             ],
           ),
           SizedBox(height: context.h(0.012)),
           Row(
             children: [
-              Expanded(child: _detailCard(context, '🔥', '$_calories', 'Calo')),
+              Expanded(child: _detailCard(context, '🔥', '${provider.calories}', 'Calo')),
               SizedBox(width: context.w(0.03)),
               Expanded(
-                child: _detailCard(context, '🏃', _formattedPace, 'phút/km'),
+                child: _detailCard(context, '🏃', provider.formattedPace, 'phút/km'),
               ),
             ],
           ),
           SizedBox(height: context.h(0.012)),
           Row(
             children: [
-              Expanded(child: _detailCard(context, '🦶', '$_steps', 'Bước')),
+              Expanded(child: _detailCard(context, '🦶', '${provider.steps}', 'Bước')),
               SizedBox(width: context.w(0.03)),
               Expanded(
                 child: _detailCard(
                   context,
                   '🗺️',
-                  '${(_progress * 100).round()}%',
+                  '${(provider.progress * 100).round()}%',
                   'Hoàn thành',
                 ),
               ),
@@ -490,8 +378,8 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
 
   // ─── Circular progress ─────────────────────────────────────────────────────
 
-  Widget _buildCircularProgress(BuildContext context) {
-    final pct = (_progress * 100).round();
+  Widget _buildCircularProgress(BuildContext context, RunningProvider provider) {
+    final pct = (provider.progress * 100).round();
     return SizedBox(
       width: context.w(0.52),
       height: context.w(0.52),
@@ -502,7 +390,7 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
             width: context.w(0.52),
             height: context.w(0.52),
             child: CircularProgressIndicator(
-              value: _progress,
+              value: provider.progress,
               strokeWidth: 7,
               backgroundColor: Colors.grey[200],
               valueColor: AlwaysStoppedAnimation<Color>(_accent),
@@ -647,11 +535,11 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
     );
   }
 
-  Widget _buildBottomButton(BuildContext context) {
+  Widget _buildBottomButton(BuildContext context, RunningProvider provider) {
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if ((details.primaryVelocity ?? 0) > 300) {
-          _showStopConfirm(context);
+          _showStopConfirm(context, provider);
         }
       },
       child: Container(
@@ -663,11 +551,11 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
         ),
         height: context.h(0.075),
         decoration: BoxDecoration(
-          color: _isPaused ? Colors.orange : _accent,
+          color: provider.isPaused ? Colors.orange : _accent,
           borderRadius: BorderRadius.circular(context.w(0.05)),
           boxShadow: [
             BoxShadow(
-              color: (_isPaused ? Colors.orange : _accent).withValues(
+              color: (provider.isPaused ? Colors.orange : _accent).withValues(
                 alpha: 0.35,
               ),
               blurRadius: 16,
@@ -681,12 +569,12 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
             Icon(Icons.double_arrow, color: Colors.white, size: context.sp(6)),
             const Spacer(),
             GestureDetector(
-              onTap: _togglePause,
+              onTap: provider.togglePause,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _isPaused ? 'Tiếp tục | Dừng lại' : 'Tạm dừng | Dừng lại',
+                    provider.isPaused ? 'Tiếp tục | Dừng lại' : 'Tạm dừng | Dừng lại',
                     style: GoogleFonts.baloo2(
                       fontSize: context.sp(4.5),
                       fontWeight: FontWeight.w900,
@@ -712,7 +600,7 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
     );
   }
 
-  void _showStopConfirm(BuildContext context) {
+  void _showStopConfirm(BuildContext context, RunningProvider provider) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -791,13 +679,13 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _summaryItem(context, '⏱', _formattedTime, 'Thời gian'),
+                  _summaryItem(context, '⏱', provider.formattedTime, 'Thời gian'),
                   _vDivider(),
-                  _summaryItem(context, '📍', _km.toStringAsFixed(2), 'km'),
+                  _summaryItem(context, '📍', provider.km.toStringAsFixed(2), 'km'),
                   _vDivider(),
-                  _summaryItem(context, '🔥', '$_calories', 'Calo'),
+                  _summaryItem(context, '🔥', '${provider.calories}', 'Calo'),
                   _vDivider(),
-                  _summaryItem(context, '🦶', '$_steps', 'Bước'),
+                  _summaryItem(context, '🦶', '${provider.steps}', 'Bước'),
                 ],
               ),
             ),
@@ -842,7 +730,7 @@ class _LiveRunningScreenState extends State<LiveRunningScreen>
                       ),
                     ),
                     child: Text(
-                      _isSaving ? 'Đang lưu...' : 'Dừng lại',
+                      provider.isSaving ? 'Đang lưu...' : 'Dừng lại',
                       style: GoogleFonts.baloo2(
                         fontSize: context.sp(4.5),
                         fontWeight: FontWeight.w800,

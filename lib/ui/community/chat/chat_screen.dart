@@ -408,9 +408,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
             Positioned.fill(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                 child: Container(
-                  color: Colors.white.withOpacity(0.65),
+                  color: Colors.white.withOpacity(0.2),
                 ),
               ),
             ),

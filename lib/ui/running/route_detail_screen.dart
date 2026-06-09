@@ -211,7 +211,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate: 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.wello.frontend',
                 ),
                 MarkerLayer(
@@ -373,11 +373,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
                   ? null
                   : () async {
                       if (!mounted) return;
-                      setState(() {
-                        _isRunning = true;
-                      });
-
-                      final result = await Navigator.of(context).push(
+                      Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
                           builder: (_) => LiveRunningScreen(
                             activityLabel: _activityLabel(_selectedActivity),
@@ -392,15 +388,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen> {
                           ),
                         ),
                       );
-                      if (result == true && mounted) {
-                        await _loadWorkoutData();
-                      }
-
-                      if (mounted) {
-                        setState(() {
-                          _isRunning = false;
-                        });
-                      }
                     },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isRunning ? Colors.grey : _accent,

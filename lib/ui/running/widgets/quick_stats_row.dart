@@ -12,6 +12,17 @@ class QuickStatsRow extends StatelessWidget {
     required this.distance,
   }) : super(key: key);
 
+  String _formatDistance(double val) {
+    if (val <= 0) return '0.0';
+    if (val < 10.0) {
+      return val.toStringAsFixed(2); // e.g., 9.87
+    } else if (val < 100.0) {
+      return val.toStringAsFixed(1); // e.g., 98.8
+    } else {
+      return val.round().toString(); // e.g., 988
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -111,7 +122,7 @@ class QuickStatsRow extends StatelessWidget {
                 ),
                 SizedBox(height: context.h(0.008)),
                 Text(
-                  '$distance km',
+                  '${_formatDistance(distance)} km',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.baloo2(
                     fontSize: context.sp(6.5),
