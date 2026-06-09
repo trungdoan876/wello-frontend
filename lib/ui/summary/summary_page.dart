@@ -70,10 +70,11 @@ class SummaryPage extends StatelessWidget {
                 child: AnimatedStartButton(
                   text: "Tiếp tục",
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(
+                    Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
                         builder: (context) => MainNavigationScreen(),
                       ),
+                      (route) => false,
                     );
                   },
                 ),

@@ -27,6 +27,8 @@ import 'package:wello_frontend/core/services/notification_service.dart';
 import 'package:confetti/confetti.dart';
 import 'package:wello_frontend/data/data_source/engagement_remote_data_source.dart';
 import 'package:wello_frontend/ui/widgets/streak_dialog.dart';
+import 'package:wello_frontend/domain/providers/notification_provider.dart';
+import 'package:wello_frontend/ui/widgets/notification_list_bottom_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   final ValueChanged<bool>? onQuickActionsChanged;
@@ -117,6 +119,9 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
         credentials.userId,
         credentials.token,
       );
+      if (mounted) {
+        context.read<NotificationProvider>().loadNotifications();
+      }
     }
   }
 
@@ -660,10 +665,58 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
                   ),
                 ),
 
-                // Mic and Calendar icons on the far right
+                // Mic, Bell, and Calendar icons on the far right
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Consumer<NotificationProvider>(
+                      builder: (context, notiProvider, _) {
+                        final unread = notiProvider.unreadCount;
+                        return GestureDetector(
+                          onTap: () {
+                            NotificationListBottomSheet.show(context);
+                          },
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Icon(
+                                Icons.notifications_none_rounded,
+                                color: const Color(0xffEBCF23),
+                                size: context.sp(7),
+                              ),
+                              if (unread > 0)
+                                Positioned(
+                                  right: -2,
+                                  top: -2,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        unread > 99 ? '99+' : '$unread',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    SizedBox(width: context.w(0.04)),
                     GestureDetector(
                       onTap: () {
                         showModalBottomSheet(

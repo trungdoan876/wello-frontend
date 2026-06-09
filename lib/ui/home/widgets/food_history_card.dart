@@ -326,14 +326,15 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
               ),
             ],
           ),
-          Text(
-            '$total kcal',
-            style: GoogleFonts.baloo2(
-              fontSize: context.sp(3.8),
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade500,
+          if (total > 0)
+            Text(
+              '$total kcal',
+              style: GoogleFonts.baloo2(
+                fontSize: context.sp(3.8),
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade500,
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -414,26 +415,27 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${item.calories.toInt()}',
-                style: GoogleFonts.baloo2(
-                  fontSize: context.sp(5.5),
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFFEBCF23),
+          if (item.calories > 0)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${item.calories.toInt()}',
+                  style: GoogleFonts.baloo2(
+                    fontSize: context.sp(5.5),
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFEBCF23),
+                  ),
                 ),
-              ),
-              Text(
-                'calo',
-                style: GoogleFonts.baloo2(
-                  fontSize: context.sp(3.2),
-                  color: Colors.grey.shade500,
+                Text(
+                  'calo',
+                  style: GoogleFonts.baloo2(
+                    fontSize: context.sp(3.2),
+                    color: Colors.grey.shade500,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );
@@ -524,26 +526,27 @@ class _FoodHistoryCardState extends State<FoodHistoryCard> {
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${calories.toInt()}',
-                style: GoogleFonts.baloo2(
-                  fontSize: context.sp(5.5),
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFFEBCF23),
+          if (calories > 0)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${calories.toInt()}',
+                  style: GoogleFonts.baloo2(
+                    fontSize: context.sp(5.5),
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFEBCF23),
+                  ),
                 ),
-              ),
-              Text(
-                'calo',
-                style: GoogleFonts.baloo2(
-                  fontSize: context.sp(3.2),
-                  color: Colors.grey.shade500,
+                Text(
+                  'calo',
+                  style: GoogleFonts.baloo2(
+                    fontSize: context.sp(3.2),
+                    color: Colors.grey.shade500,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );

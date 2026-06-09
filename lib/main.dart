@@ -17,6 +17,7 @@ import 'package:wello_frontend/data/data_source/streak_remote_data_source.dart';
 import 'package:wello_frontend/domain/providers/streak_provider.dart';
 import 'package:wello_frontend/domain/providers/community_provider.dart';
 import 'package:wello_frontend/domain/providers/competition_provider.dart';
+import 'package:wello_frontend/domain/providers/notification_provider.dart';
 import 'package:wello_frontend/data/repositories/post_repository_impl.dart';
 import 'package:wello_frontend/data/data_source/post_remote_data_source.dart';
 import 'package:wello_frontend/data/repositories/competition_repository_impl.dart';
@@ -79,6 +80,7 @@ void main() async {
             remoteDataSource: CompetitionRemoteDataSource(),
           ),
         )),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const MyApp(),
     ),
@@ -92,6 +94,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: NotificationService.navigatorKey,
       title: 'My Wello',
       theme: ThemeData(
         primarySwatch: Colors.blue,

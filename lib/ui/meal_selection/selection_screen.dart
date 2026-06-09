@@ -139,16 +139,27 @@ class _SelectionScreenState extends State<SelectionScreen> {
     }).toList();
   }
 
+  String _removeDiacritics(String str) {
+    const withDia = 'àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ';
+    const sansDia = 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyydD';
+    String result = str;
+    for (int i = 0; i < withDia.length; i++) {
+      result = result.replaceAll(withDia[i], sansDia[i]);
+    }
+    return result;
+  }
+
   void _filterItems(String query) {
-    final base = query.isEmpty
+    final cleanQuery = _removeDiacritics(query.toLowerCase().trim());
+    final base = cleanQuery.isEmpty
         ? _allItems
         : _allItems
               .where(
-                (item) =>
-                    item.name.toLowerCase().contains(query.toLowerCase()) ||
-                    item.description.toLowerCase().contains(
-                      query.toLowerCase(),
-                    ),
+                (item) {
+                  final cleanName = _removeDiacritics(item.name.toLowerCase());
+                  final cleanDesc = _removeDiacritics(item.description.toLowerCase());
+                  return cleanName.contains(cleanQuery) || cleanDesc.contains(cleanQuery);
+                }
               )
               .toList();
 
