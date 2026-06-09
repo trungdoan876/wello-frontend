@@ -7,6 +7,7 @@ import 'package:wello_frontend/domain/providers/running_provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
 import 'package:wello_frontend/domain/entities/running_session.dart';
 import 'route_detail_screen.dart';
+import 'live_running_screen.dart';
 import 'services/location_service.dart';
 import 'widgets/running_history_card.dart';
 import 'widgets/running_stats_card.dart';
@@ -127,6 +128,8 @@ class _RunningScreenState extends State<RunningScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final runningProvider = context.watch<RunningProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       body: SafeArea(
@@ -144,6 +147,7 @@ class _RunningScreenState extends State<RunningScreen> {
                     children: [
                       _buildGreetingHeader(context),
                       SizedBox(height: context.h(0.025)),
+                      _buildActiveRunBanner(context, runningProvider),
                       QuickStatsRow(
                         calories: _totalCalories,
                         distance: _totalDistance,
@@ -166,7 +170,7 @@ class _RunningScreenState extends State<RunningScreen> {
                         RunningScheduleCard(record: _latestRecord!),
                         SizedBox(height: context.h(0.025)),
                       ],
-                      if (!_isRunning)
+                      if (!runningProvider.isTracking && !_isRunning)
                         StartRunningCard(
                           isRunning: _isRunning,
                           onStartPressed: _startRunning,
@@ -244,6 +248,106 @@ class _RunningScreenState extends State<RunningScreen> {
           fontSize: context.sp(6),
           fontWeight: FontWeight.w900,
           color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveRunBanner(BuildContext context, RunningProvider provider) {
+    if (!provider.isTracking) return const SizedBox.shrink();
+
+    return Container(
+      margin: EdgeInsets.only(bottom: context.h(0.025)),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () async {
+            final result = await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => LiveRunningScreen(
+                  activityLabel: provider.activityLabel,
+                  activityType: provider.activityType,
+                  goalValueText: provider.goalValueText,
+                  selectedGoal: provider.selectedGoal,
+                  targetKm: provider.targetKm,
+                  targetMinutes: provider.targetMinutes,
+                  targetCalories: provider.targetCalories,
+                  targetSteps: provider.targetSteps,
+                  center: provider.currentPosition,
+                ),
+              ),
+            );
+            if (result == true && mounted) {
+              await _loadRunningStats();
+            }
+          },
+          borderRadius: BorderRadius.circular(context.w(0.04)),
+          child: Ink(
+            padding: EdgeInsets.symmetric(
+              horizontal: context.w(0.04),
+              vertical: context.h(0.015),
+            ),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4D7CFE), Color(0xFF6B92FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(context.w(0.04)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4D7CFE).withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(context.w(0.025)),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.directions_run,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                SizedBox(width: context.w(0.04)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Buổi tập đang diễn ra...',
+                        style: GoogleFonts.baloo2(
+                          color: Colors.white,
+                          fontSize: context.sp(4.2),
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Text(
+                        '${provider.activityLabel}: ${provider.km.toStringAsFixed(2)} km - ${provider.formattedTime}',
+                        style: GoogleFonts.baloo2(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: context.sp(3.5),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

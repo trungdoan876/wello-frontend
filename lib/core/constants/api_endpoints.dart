@@ -9,17 +9,13 @@ class ApiEndpoints {
   //   static const String baseUrl = 'https://wello.memap.id.vn/api';
 
   // Local development (REAL DEVICE - dùng adb reverse)
-  static const String baseUrl = 'http://127.0.0.1:8086/api';
+  // static const String baseUrl = 'http://127.0.0.1:8086/api';
   // Local development (Android Emulator)
-<<<<<<< HEAD
-  //static const String baseUrl = 'http://10.0.2.2:8080/api';
-  // Local development (REAL DEVICE - điện thoại thật)
-   static const String baseUrl = 'http://192.168.88.246:8080/api';
-=======
   // static const String baseUrl = 'http://10.0.2.2:8086/api';
-  // Local development (REAL DEVICE - dùng IP Wi-Fi)
-  // static const String baseUrl = 'http://192.168.11.211:8086/api';
->>>>>>> ec3db14c69c06193e37691a7a190f133e23e14d5
+  // Local development (REAL DEVICE - điện thoại thật)
+  static const String baseUrl = 'http://192.168.88.246:8086/api';
+
+
 
   // ============================================
   // AUTH ENDPOINTS - Xác thực, đăng nhập, đăng ký
