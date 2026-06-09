@@ -14,8 +14,6 @@ import 'package:wello_frontend/data/models/responses/survey_response_model.dart'
 import 'package:wello_frontend/domain/entities/weight_history_item.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/sleep_tracking_card.dart';
-import 'package:wello_frontend/domain/providers/community_provider.dart';
-import 'package:wello_frontend/ui/community/widgets/post_card.dart';
 
 import 'package:wello_frontend/ui/widgets/quick_actions_overlay.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
@@ -97,11 +95,6 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
         listen: false,
       );
       await profileProvider.loadProfile(_userId!);
-      
-      // Load user posts
-      if (mounted) {
-        context.read<CommunityProvider>().fetchUserPosts(_userId!, refresh: true);
-      }
     } catch (e) {
       debugPrint('[ProfileScreen] Loi khi tai ho so: $e');
     }
@@ -1295,11 +1288,6 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                           _build7DayStatsCard(context),
                           
                           SizedBox(height: context.h(0.03)),
-
-                        // User's Posts Feed (Visible for everyone)
-                        _buildUserPostsSection(context),
-
-                        SizedBox(height: context.h(0.03)),
                         Padding(
                           padding: EdgeInsets.symmetric(
                             horizontal: context.w(0.08),
@@ -1583,75 +1571,6 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildUserPostsSection(BuildContext context) {
-    return Consumer<CommunityProvider>(
-      builder: (context, communityProvider, _) {
-        final posts = communityProvider.userPosts;
-        
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: context.w(0.02)),
-              child: Row(
-                children: [
-                  Text(
-                    'Bài viết',
-                    style: GoogleFonts.baloo2(
-                      fontSize: context.sp(7),
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF3F3D3F),
-                    ),
-                  ),
-                  const Spacer(),
-                  if (communityProvider.isLoading)
-                    const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                ],
-              ),
-            ),
-            SizedBox(height: context.h(0.01)),
-            if (posts.isEmpty && !communityProvider.isLoading)
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(context.w(0.08)),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.post_add, size: 48, color: Colors.grey[300]),
-                    SizedBox(height: 10),
-                    Text(
-                      'Chưa có bài viết nào.',
-                      style: GoogleFonts.baloo2(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: posts.length,
-                itemBuilder: (context, index) {
-                  final post = posts[index];
-                  return PostCard(
-                    post: post,
-                    onReact: (type) => communityProvider.reactPost(post.idPost!, type),
-                  );
-                },
-              ),
-          ],
-        );
-      },
     );
   }
 }

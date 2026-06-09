@@ -92,7 +92,7 @@ class _WorkoutHistoryWidgetState extends State<WorkoutHistoryWidget> {
         ),
 
         // Total calories summary
-        if (_workoutLog != null &&!_isLoading)
+        if (_workoutLog != null && !_isLoading && _workoutLog!.totalCaloriesBurned > 0)
           Container(
             padding: EdgeInsets.all(context.sp(5)),
             margin: EdgeInsets.symmetric(horizontal: context.w(0.04)),
@@ -282,27 +282,27 @@ class _WorkoutHistoryWidgetState extends State<WorkoutHistoryWidget> {
                   ],
                 ),
               ),
-              // Calories
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${workout.caloriesBurned}',
-                    style: GoogleFonts.baloo2(
-                      fontSize: context.sp(7),
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFFF6B6B),
+              if (workout.caloriesBurned > 0)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${workout.caloriesBurned}',
+                      style: GoogleFonts.baloo2(
+                        fontSize: context.sp(7),
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFFF6B6B),
+                      ),
                     ),
-                  ),
-                  Text(
-                    'calo',
-                    style: GoogleFonts.baloo2(
-                      fontSize: context.sp(4),
-                      color: Colors.grey.shade600,
+                    Text(
+                      'calo',
+                      style: GoogleFonts.baloo2(
+                        fontSize: context.sp(4),
+                        color: Colors.grey.shade600,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         );

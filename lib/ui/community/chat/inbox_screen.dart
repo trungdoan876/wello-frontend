@@ -200,7 +200,14 @@ class _ConversationTile extends StatelessWidget {
     String timeLabel = '';
     if (rawTime != null) {
       try {
-        final dt = DateTime.parse(rawTime);
+        String tsStr = rawTime;
+        if (!tsStr.contains('Z') && !tsStr.contains('+') && !RegExp(r'-\d{2}:\d{2}$').hasMatch(tsStr)) {
+          if (tsStr.contains(' ') && !tsStr.contains('T')) {
+            tsStr = tsStr.replaceFirst(' ', 'T');
+          }
+          tsStr += 'Z';
+        }
+        final dt = DateTime.parse(tsStr).toLocal();
         final now = DateTime.now();
         final diff = now.difference(dt);
         if (diff.inDays >= 1) {

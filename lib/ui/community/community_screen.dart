@@ -8,7 +8,6 @@ import 'package:wello_frontend/domain/providers/community_provider.dart';
 import 'package:wello_frontend/core/utils/avatar_helper.dart';
 import 'package:wello_frontend/ui/community/widgets/post_card.dart';
 import 'package:wello_frontend/ui/community/create_post_screen.dart';
-import 'package:wello_frontend/ui/profile/profile_screen.dart';
 import 'package:wello_frontend/ui/community/widgets/other_user_profile_screen.dart';
 import 'package:wello_frontend/ui/community/tagged_posts_screen.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
@@ -92,6 +91,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(
           'Wello',
           style: GoogleFonts.baloo2(
