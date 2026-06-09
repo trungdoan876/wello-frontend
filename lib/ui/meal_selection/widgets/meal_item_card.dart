@@ -83,38 +83,39 @@ class MealItemCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    SizedBox(height: context.h(0.01)),
-                    // Calories
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: context.w(0.03),
-                        vertical: context.h(0.005),
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF6B6B).withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.local_fire_department_rounded,
-                            size: context.sp(4.2),
-                            color: const Color(0xFFFF6B6B),
-                          ),
-                          SizedBox(width: context.w(0.015)),
-                          Text(
-                            '${item.calories} kcal',
-                            style: GoogleFonts.baloo2(
-                              fontSize: context.sp(4),
-                              fontWeight: FontWeight.w800,
+                    if (item.calories > 0) ...[
+                      SizedBox(height: context.h(0.01)),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: context.w(0.03),
+                          vertical: context.h(0.005),
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF6B6B).withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.local_fire_department_rounded,
+                              size: context.sp(4.2),
                               color: const Color(0xFFFF6B6B),
-                              letterSpacing: 0.2,
                             ),
-                          ),
-                        ],
+                            SizedBox(width: context.w(0.015)),
+                            Text(
+                              '${item.calories} kcal',
+                              style: GoogleFonts.baloo2(
+                                fontSize: context.sp(4),
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFFFF6B6B),
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),

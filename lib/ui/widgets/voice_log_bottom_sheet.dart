@@ -1102,26 +1102,27 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
                               ),
                             ),
                             // Calories
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '${food.calories}',
-                                  style: GoogleFonts.baloo2(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                    color: const Color(0xffEBCF23),
+                            if (food.calories > 0)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '${food.calories}',
+                                    style: GoogleFonts.baloo2(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: const Color(0xffEBCF23),
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  'kcal',
-                                  style: GoogleFonts.baloo2(
-                                    fontSize: 11,
-                                    color: Colors.grey[400],
+                                  Text(
+                                    'kcal',
+                                    style: GoogleFonts.baloo2(
+                                      fontSize: 11,
+                                      color: Colors.grey[400],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
                             if (food.ingredients.isNotEmpty) ...[
                               const SizedBox(width: 8),
                               Icon(
@@ -1222,14 +1223,15 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
                                         ),
                                       ),
                                       // Calories
-                                      Text(
-                                        '${ing.calories} kcal',
-                                        style: GoogleFonts.baloo2(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey[700],
+                                      if (ing.calories > 0)
+                                        Text(
+                                          '${ing.calories} kcal',
+                                          style: GoogleFonts.baloo2(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey[700],
+                                          ),
                                         ),
-                                      ),
                                     ],
                                   ),
                                 ],

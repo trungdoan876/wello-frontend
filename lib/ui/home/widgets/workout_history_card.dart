@@ -106,8 +106,14 @@ class _WorkoutHistoryCardState extends State<WorkoutHistoryCard> with WidgetsBin
       );
     }
 
-    if (_workoutLog == null || _workoutLog!.workouts.isEmpty) {
-      return SizedBox.shrink(); // Hide if no workouts
+    if (_workoutLog == null) {
+      return SizedBox.shrink();
+    }
+
+    final activeWorkouts = _workoutLog!.workouts.where((w) => w.caloriesBurned > 0).toList();
+
+    if (activeWorkouts.isEmpty) {
+      return SizedBox.shrink(); // Hide if no workouts have calories > 0
     }
 
     return Container(
@@ -148,37 +154,38 @@ class _WorkoutHistoryCardState extends State<WorkoutHistoryCard> with WidgetsBin
                   ),
                 ],
               ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: context.w(0.03),
-                  vertical: context.h(0.005),
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFFF6B6B), Color(0xFFFF8E8E)],
+              if (_workoutLog!.totalCaloriesBurned > 0)
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.w(0.03),
+                    vertical: context.h(0.005),
                   ),
-                  borderRadius: BorderRadius.circular(context.sp(2)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.local_fire_department,
-                      color: Colors.white,
-                      size: context.sp(4),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFFF6B6B), Color(0xFFFF8E8E)],
                     ),
-                    SizedBox(width: context.w(0.01)),
-                    Text(
-                      '${_workoutLog!.totalCaloriesBurned}',
-                      style: GoogleFonts.baloo2(
-                        fontSize: context.sp(5),
-                        fontWeight: FontWeight.bold,
+                    borderRadius: BorderRadius.circular(context.sp(2)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.local_fire_department,
                         color: Colors.white,
+                        size: context.sp(4),
                       ),
-                    ),
-                  ],
+                      SizedBox(width: context.w(0.01)),
+                      Text(
+                        '${_workoutLog!.totalCaloriesBurned}',
+                        style: GoogleFonts.baloo2(
+                          fontSize: context.sp(5),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
           SizedBox(height: context.h(0.02)),
@@ -189,7 +196,7 @@ class _WorkoutHistoryCardState extends State<WorkoutHistoryCard> with WidgetsBin
             // Group workouts by exerciseName
             final Map<String, WorkoutHistoryItem> groupedWorkouts = {};
             
-            for (var workout in _workoutLog!.workouts) {
+            for (var workout in activeWorkouts) {
               if (groupedWorkouts.containsKey(workout.exerciseName)) {
                 // Sum calories and duration
                 final existing = groupedWorkouts[workout.exerciseName]!;
@@ -247,22 +254,24 @@ class _WorkoutHistoryCardState extends State<WorkoutHistoryCard> with WidgetsBin
                       ],
                     ),
                   ),
-                  Text(
-                    '${workout.caloriesBurned}',
-                    style: GoogleFonts.baloo2(
-                      fontSize: context.sp(5.5),
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFFF6B6B),
+                  if (workout.caloriesBurned > 0) ...[
+                    Text(
+                      '${workout.caloriesBurned}',
+                      style: GoogleFonts.baloo2(
+                        fontSize: context.sp(5.5),
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFFF6B6B),
+                      ),
                     ),
-                  ),
-                  SizedBox(width: context.w(0.01)),
-                  Text(
-                    'calo',
-                    style: GoogleFonts.baloo2(
-                      fontSize: context.sp(3.5),
-                      color: Colors.grey.shade600,
+                    SizedBox(width: context.w(0.01)),
+                    Text(
+                      'calo',
+                      style: GoogleFonts.baloo2(
+                        fontSize: context.sp(3.5),
+                        color: Colors.grey.shade600,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             );
@@ -272,7 +281,7 @@ class _WorkoutHistoryCardState extends State<WorkoutHistoryCard> with WidgetsBin
           // Show more/less button
           if (() {
             final Map<String, WorkoutHistoryItem> groupedWorkouts = {};
-            for (var workout in _workoutLog!.workouts) {
+            for (var workout in activeWorkouts) {
               if (!groupedWorkouts.containsKey(workout.exerciseName)) {
                 groupedWorkouts[workout.exerciseName] = workout;
               }
@@ -309,7 +318,7 @@ class _WorkoutHistoryCardState extends State<WorkoutHistoryCard> with WidgetsBin
                             ? 'Thu gọn' 
                             : () {
                                 final Map<String, WorkoutHistoryItem> groupedWorkouts = {};
-                                for (var workout in _workoutLog!.workouts) {
+                                for (var workout in activeWorkouts) {
                                   if (!groupedWorkouts.containsKey(workout.exerciseName)) {
                                     groupedWorkouts[workout.exerciseName] = workout;
                                   }

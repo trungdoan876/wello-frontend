@@ -244,7 +244,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           DateTime? dt;
           if (raw['createdAt'] != null) {
             try {
-              dt = DateTime.parse(raw['createdAt'].toString()).toLocal();
+              String tsStr = raw['createdAt'].toString();
+              if (!tsStr.contains('Z') && !tsStr.contains('+') && !RegExp(r'-\d{2}:\d{2}$').hasMatch(tsStr)) {
+                if (tsStr.contains(' ') && !tsStr.contains('T')) {
+                  tsStr = tsStr.replaceFirst(' ', 'T');
+                }
+                tsStr += 'Z';
+              }
+              dt = DateTime.parse(tsStr).toLocal();
             } catch (_) {}
           }
 
@@ -366,7 +373,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   String _formatTimestamp(String? ts) {
     if (ts == null) return '';
     try {
-      final date = DateTime.parse(ts).toLocal();
+      String tsStr = ts;
+      if (!tsStr.contains('Z') && !tsStr.contains('+') && !RegExp(r'-\d{2}:\d{2}$').hasMatch(tsStr)) {
+        if (tsStr.contains(' ') && !tsStr.contains('T')) {
+          tsStr = tsStr.replaceFirst(' ', 'T');
+        }
+        tsStr += 'Z';
+      }
+      final date = DateTime.parse(tsStr).toLocal();
       return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return '';

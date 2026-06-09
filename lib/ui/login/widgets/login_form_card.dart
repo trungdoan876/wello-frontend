@@ -154,11 +154,12 @@ class LoginFormContent extends StatelessWidget {
                       );
                     } else {
                       // Navigate to Home page
-                      Navigator.pushReplacement(
+                      Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
                           builder: (_) => MainNavigationScreen(),
                         ),
+                        (route) => false,
                       );
                     }
                   } else {
@@ -239,9 +240,10 @@ class LoginFormContent extends StatelessWidget {
                       ),
                     );
                   } else {
-                    Navigator.pushReplacement(
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (_) => MainNavigationScreen()),
+                      (route) => false,
                     );
                   }
                 } else {
