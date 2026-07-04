@@ -190,8 +190,8 @@ class SleepProvider extends ChangeNotifier {
 
       final resultData = SleepLogData.fromJson(response);
       EngagementResult? engagement;
-      if (response.containsKey('engagement')) {
-        engagement = EngagementResult.fromJson(response['engagement']);
+      if (response.containsKey('engagement') && response['engagement'] != null) {
+        engagement = EngagementResult.fromJson(response['engagement'] as Map<String, dynamic>);
       }
 
       // Cập nhật state cục bộ ngay lập tức để UI mượt mà
@@ -241,8 +241,8 @@ class SleepProvider extends ChangeNotifier {
 
       final resultData = SleepLogData.fromJson(response);
       EngagementResult? engagement;
-      if (response.containsKey('engagement')) {
-        engagement = EngagementResult.fromJson(response['engagement']);
+      if (response.containsKey('engagement') && response['engagement'] != null) {
+        engagement = EngagementResult.fromJson(response['engagement'] as Map<String, dynamic>);
       }
 
       // Cập nhật state cục bộ ngay lập tức

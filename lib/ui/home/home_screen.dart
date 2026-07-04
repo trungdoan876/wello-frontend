@@ -317,28 +317,34 @@ class HomeScreenState extends State<HomeScreen> with RouteAware {
                                       displayDate:
                                           nutritionProvider.selectedDate,
                                       onSaved: (bedtime) async {
-                                        // bedtime is now full ISO timestamp: "2026-01-03T22:00:00"
-                                        final engagement = await sleepProvider
-                                            .logBedtime(
-                                              credentials.userId,
-                                              bedtime, // Pass ISO string directly
-                                            );
-
-                                        // ⭐ HIỂN THỊ CHÚC MỪNG CHUỖI MỚI (STREAK)
-                                        if (engagement != null &&
-                                            engagement.isStreak &&
-                                            context.mounted) {
-                                          showStreakCelebration(
-                                            engagement.message,
-                                          );
-                                          context
-                                              .read<NutritionProvider>()
-                                              .updateStreakCount(
-                                                engagement.streakCount,
+                                        // null = thành công, string = thông báo lỗi
+                                        try {
+                                          final engagement = await sleepProvider
+                                              .logBedtime(
+                                                credentials.userId,
+                                                bedtime,
                                               );
-                                        }
 
-                                        return engagement != null;
+                                          // ⭐ HIỂN THỊ CHÚC MỪNG CHUỖI MỚI (STREAK)
+                                          if (engagement != null &&
+                                              engagement.isStreak &&
+                                              context.mounted) {
+                                            showStreakCelebration(
+                                              engagement.message,
+                                            );
+                                            context
+                                                .read<NutritionProvider>()
+                                                .updateStreakCount(
+                                                  engagement.streakCount,
+                                                );
+                                          }
+
+                                          return null; // thành công
+                                        } catch (e) {
+                                          // Lấy message từ exception, bỏ prefix "Exception: "
+                                          final msg = e.toString().replaceFirst('Exception: ', '');
+                                          return msg;
+                                        }
                                       },
                                     ),
                                   );

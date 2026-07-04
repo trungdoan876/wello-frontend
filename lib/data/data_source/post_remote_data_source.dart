@@ -144,4 +144,47 @@ class PostRemoteDataSource {
       throw Exception('Failed to add comment');
     }
   }
+
+  Future<PostModel> editPost({
+    required String token,
+    required int postId,
+    required String? content,
+    required String? imageUrl,
+  }) async {
+    final url = Uri.parse(ApiEndpoints.updatePost(postId));
+    final response = await client.put(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'content': content,
+        'imageUrl': imageUrl,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return PostModel.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to edit post');
+    }
+  }
+
+  Future<void> deletePost({
+    required String token,
+    required int postId,
+  }) async {
+    final url = Uri.parse(ApiEndpoints.deletePost(postId));
+    final response = await client.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete post');
+    }
+  }
 }
+

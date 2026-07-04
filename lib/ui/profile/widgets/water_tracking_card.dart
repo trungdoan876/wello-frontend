@@ -295,6 +295,7 @@ class _WaterTrackingCardState extends State<WaterTrackingCard>
                     context,
                     Icons.remove,
                     () => _handleDecrease(context),
+                    enabled: widget.amount > 0,
                   ),
                 ],
               ),
@@ -318,29 +319,34 @@ class _WaterTrackingCardState extends State<WaterTrackingCard>
       ),
     );
   }
-
+ 
   Widget _roundButton(
     BuildContext context,
     IconData icon,
-    VoidCallback? onTap,
-  ) {
+    VoidCallback? onTap, {
+    bool enabled = true,
+  }) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: context.w(0.11),
-        height: context.w(0.11),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey.shade300),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: context.w(0.03),
-            ),
-          ],
+      onTap: enabled ? onTap : null,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: enabled ? 1.0 : 0.4,
+        child: Container(
+          width: context.w(0.11),
+          height: context.w(0.11),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.grey.shade300),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: context.w(0.03),
+              ),
+            ],
+          ),
+          child: Icon(icon, size: context.sp(4.5)),
         ),
-        child: Icon(icon, size: context.sp(4.5)),
       ),
     );
   }

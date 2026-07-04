@@ -12,7 +12,7 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/ui/widgets/beautiful_dialog.dart';
 import 'package:wello_frontend/core/utils/user_session.dart';
 
-class LoginFormContent extends StatelessWidget {
+class LoginFormContent extends StatefulWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
 
@@ -21,6 +21,13 @@ class LoginFormContent extends StatelessWidget {
     required this.emailController,
     required this.passwordController,
   });
+
+  @override
+  State<LoginFormContent> createState() => _LoginFormContentState();
+}
+
+class _LoginFormContentState extends State<LoginFormContent> {
+  bool _isLoading = false;
 
   // Show beautiful dialog
   void showPopup(
@@ -71,8 +78,8 @@ class LoginFormContent extends StatelessWidget {
 
           // --- Input Fields ---
           LoginTextFields(
-            emailController: emailController,
-            passwordController: passwordController,
+            emailController: widget.emailController,
+            passwordController: widget.passwordController,
           ),
 
           // --- Quên mật khẩu ---
@@ -105,9 +112,11 @@ class LoginFormContent extends StatelessWidget {
             width: context.w(0.8), // responsive theo chiều ngang
             child: AnimatedStartButton(
               text: "Đăng nhập",
+              isLoading: _isLoading,
               onPressed: () async {
-                final email = emailController.text.trim();
-                final password = passwordController.text;
+                print('Nút đăng nhập được nhấn');
+                final email = widget.emailController.text.trim();
+                final password = widget.passwordController.text;
 
                 // Validation
                 if (email.isEmpty || password.isEmpty) {
@@ -118,6 +127,10 @@ class LoginFormContent extends StatelessWidget {
                   );
                   return;
                 }
+
+                setState(() {
+                  _isLoading = true;
+                });
 
                 try {
                   final repository = AuthRepositoryImpl();
@@ -175,6 +188,12 @@ class LoginFormContent extends StatelessWidget {
                     title: "",
                     message: "Không thể kết nối server: $e",
                   );
+                } finally {
+                  if (mounted) {
+                    setState(() {
+                      _isLoading = false;
+                    });
+                  }
                 }
               },
             ),

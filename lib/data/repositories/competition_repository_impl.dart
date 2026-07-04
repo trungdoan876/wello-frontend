@@ -1,4 +1,3 @@
-import '../../domain/entities/challenge.dart';
 import '../../domain/entities/badge.dart';
 import '../../domain/entities/post.dart';
 import '../../domain/repositories/competition_repository.dart';
@@ -23,37 +22,6 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
   }
 
   @override
-  Future<List<Challenge>> getChallenges({required String token}) async {
-    return await remoteDataSource.getChallenges(token: token);
-  }
-
-  @override
-  Future<void> joinChallenge({
-    required String token,
-    required int challengeId,
-  }) async {
-    return await remoteDataSource.joinChallenge(
-      token: token,
-      challengeId: challengeId,
-    );
-  }
-
-  @override
-  Future<Post> submitProof({
-    required String token,
-    required int challengeId,
-    required String content,
-    required String? imageUrl,
-  }) async {
-    return await remoteDataSource.submitProof(
-      token: token,
-      challengeId: challengeId,
-      content: content,
-      imageUrl: imageUrl,
-    );
-  }
-
-  @override
   Future<List<Badge>> getBadges({required String token}) async {
     return await remoteDataSource.getBadges(token: token);
   }
@@ -67,5 +35,15 @@ class CompetitionRepositoryImpl implements CompetitionRepository {
       token: token,
       userId: userId,
     );
+  }
+
+  @override
+  Future<bool> equipBadge({required String token, required int badgeId}) async {
+    return await remoteDataSource.equipBadge(token: token, badgeId: badgeId);
+  }
+
+  @override
+  Future<bool> unequipBadge({required String token}) async {
+    return await remoteDataSource.unequipBadge(token: token);
   }
 }

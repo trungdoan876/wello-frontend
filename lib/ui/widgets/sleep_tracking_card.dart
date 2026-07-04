@@ -83,17 +83,21 @@ class SleepTrackingCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildTimeInfo(
-                context,
-                "Đi ngủ lúc",
-                bedtime ?? "22:30",
-                Icons.bedtime_outlined,
+              Expanded(
+                child: _buildTimeInfo(
+                  context,
+                  "Đi ngủ lúc",
+                  bedtime ?? "22:30",
+                  Icons.bedtime_outlined,
+                ),
               ),
-              _buildTimeInfo(
-                context,
-                "Thức dậy lúc",
-                wakeTime ?? "06:30",
-                Icons.wb_sunny_outlined,
+              Expanded(
+                child: _buildTimeInfo(
+                  context,
+                  "Thức dậy lúc",
+                  wakeTime ?? "06:30",
+                  Icons.wb_sunny_outlined,
+                ),
               ),
             ],
           ),
@@ -104,22 +108,27 @@ class SleepTrackingCard extends StatelessWidget {
 
   Widget _buildTimeInfo(BuildContext context, String label, String time, IconData icon) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: context.sp(4.5), color: const Color(0xff6C63FF).withOpacity(0.6)),
-            SizedBox(width: 6),
-            Text(
-              label,
-              style: GoogleFonts.baloo2(
-                fontSize: context.sp(4),
-                color: const Color(0xffADA6A7),
-                fontWeight: FontWeight.bold,
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                style: GoogleFonts.baloo2(
+                  fontSize: context.sp(4),
+                  color: const Color(0xffADA6A7),
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           time,
           style: GoogleFonts.baloo2(
@@ -131,4 +140,5 @@ class SleepTrackingCard extends StatelessWidget {
       ],
     );
   }
+
 }

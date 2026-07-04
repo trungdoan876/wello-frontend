@@ -1,13 +1,19 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:quickalert/quickalert.dart';
 import 'package:wello_frontend/domain/entities/post.dart';
 import 'package:wello_frontend/ui/profile/profile_screen.dart';
 import 'package:wello_frontend/ui/community/widgets/other_user_profile_screen.dart';
 import 'package:wello_frontend/core/utils/avatar_helper.dart';
 import 'package:wello_frontend/ui/community/widgets/comments_sheet.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/domain/providers/profile_provider.dart';
+import 'package:wello_frontend/domain/providers/community_provider.dart';
 
 class PostCard extends StatelessWidget {
   final Post post;
@@ -134,13 +140,9 @@ class PostCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                _buildMoreButton(context),
               ],
             ),
-          ),
-          
-          IconButton(
-            icon: const Icon(Icons.more_horiz),
-            onPressed: () {},
           ),
           
           SizedBox(height: context.h(0.015)),
@@ -385,5 +387,398 @@ class PostCard extends StatelessWidget {
     if (difference.inDays < 7) return "${difference.inDays} ngày trước";
     
     return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  Widget _buildMoreButton(BuildContext context) {
+    final currentUserId = context.watch<ProfileProvider>().profileData?.userId;
+    if (post.authorId == null || post.authorId != currentUserId) {
+      return const SizedBox.shrink();
+    }
+
+    return IconButton(
+      icon: const Icon(Icons.more_horiz, color: Colors.grey),
+      onPressed: () => _showPostOptions(context),
+    );
+  }
+
+  void _showPostOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined, color: Colors.blue),
+              title: Text(
+                'Chỉnh sửa bài viết',
+                style: GoogleFonts.baloo2(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _showEditDialog(context);
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: Colors.red),
+              title: Text(
+                'Xóa bài viết',
+                style: GoogleFonts.baloo2(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _showDeleteConfirmation(context);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    QuickAlert.show(
+      context: context,
+      type: QuickAlertType.confirm,
+      title: 'Xóa bài viết',
+      text: 'Bạn có chắc chắn muốn xóa bài viết này không?',
+      confirmBtnText: 'Xóa',
+      cancelBtnText: 'Hủy',
+      confirmBtnColor: Colors.red,
+      onConfirmBtnTap: () async {
+        Navigator.pop(sheetContextOfAlert(context)); // Close QuickAlert
+        
+        // Show loading dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFFEBCF23),
+            ),
+          ),
+        );
+        
+        final success = await context.read<CommunityProvider>().deletePost(post.idPost!);
+        
+        if (context.mounted) {
+          Navigator.pop(context); // Close loading dialog
+        }
+        
+        if (success) {
+          if (context.mounted) {
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.success,
+              text: 'Đã xóa bài viết thành công!',
+            );
+          }
+        } else {
+          if (context.mounted) {
+            final error = context.read<CommunityProvider>().errorMessage;
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.error,
+              text: 'Lỗi khi xóa bài viết: $error',
+            );
+          }
+        }
+      },
+    );
+  }
+
+  // Helper method to safely pop the alert dialog context
+  BuildContext sheetContextOfAlert(BuildContext context) => context;
+
+  void _showEditDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return _EditPostDialog(post: post);
+      },
+    );
+  }
+}
+
+class _EditPostDialog extends StatefulWidget {
+  final Post post;
+  const _EditPostDialog({required this.post});
+
+  @override
+  State<_EditPostDialog> createState() => _EditPostDialogState();
+}
+
+class _EditPostDialogState extends State<_EditPostDialog> {
+  late TextEditingController _controller;
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+  bool _removeImage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.post.content);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+          _removeImage = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (bottomSheetContext) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Thư viện'),
+              onTap: () {
+                Navigator.pop(bottomSheetContext);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Máy ảnh'),
+              onTap: () {
+                Navigator.pop(bottomSheetContext);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isUploading = context.watch<CommunityProvider>().isLoading;
+    
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(
+        'Chỉnh sửa bài viết',
+        style: GoogleFonts.baloo2(fontWeight: FontWeight.bold),
+      ),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _controller,
+                maxLines: 5,
+                style: GoogleFonts.baloo2(fontSize: 15),
+                decoration: const InputDecoration(
+                  hintText: 'Bạn đang nghĩ gì?',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (!_removeImage && (_imageFile != null || widget.post.imageUrl != null)) ...[
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: _imageFile != null
+                          ? Image.file(
+                              _imageFile!,
+                              width: double.infinity,
+                              height: 150,
+                              fit: BoxFit.cover,
+                            )
+                          : _buildDialogPostImage(widget.post.imageUrl!),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _imageFile = null;
+                            _removeImage = true;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+              Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: _showImagePickerOptions,
+                    icon: const Icon(Icons.add_photo_alternate, color: Colors.green),
+                    label: Text(
+                      'Đổi ảnh',
+                      style: GoogleFonts.baloo2(color: Colors.green, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: isUploading ? null : () => Navigator.pop(context),
+          child: Text(
+            'Hủy',
+            style: GoogleFonts.baloo2(color: Colors.grey, fontWeight: FontWeight.bold),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFEBCF23),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onPressed: isUploading ? null : _submitEdit,
+          child: isUploading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                )
+              : Text(
+                  'Lưu',
+                  style: GoogleFonts.baloo2(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDialogPostImage(String imageUrl) {
+    if (imageUrl.startsWith('http')) {
+      return Image.network(
+        imageUrl,
+        width: double.infinity,
+        height: 150,
+        fit: BoxFit.cover,
+      );
+    } else {
+      try {
+        String base64Data = imageUrl;
+        if (imageUrl.contains(',')) {
+          base64Data = imageUrl.split(',').last;
+        }
+        return Image.memory(
+          base64Decode(base64Data),
+          width: double.infinity,
+          height: 150,
+          fit: BoxFit.cover,
+        );
+      } catch (e) {
+        return Container(
+          width: double.infinity,
+          height: 150,
+          color: Colors.grey[200],
+          child: const Icon(Icons.broken_image, color: Colors.grey),
+        );
+      }
+    }
+  }
+
+  Future<void> _submitEdit() async {
+    if (_controller.text.trim().isEmpty && _imageFile == null && _removeImage) {
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        text: 'Vui lòng nhập nội dung hoặc chọn ảnh!',
+      );
+      return;
+    }
+
+    final success = await context.read<CommunityProvider>().editPost(
+          postId: widget.post.idPost!,
+          content: _controller.text.trim(),
+          imageFile: _imageFile,
+          keepImage: !_removeImage,
+        );
+
+    if (success) {
+      if (mounted) {
+        Navigator.pop(context); // Close dialog
+        QuickAlert.show(
+          context: context,
+          type: QuickAlertType.success,
+          text: 'Đã cập nhật bài viết thành công!',
+        );
+      }
+    } else {
+      if (mounted) {
+        final error = context.read<CommunityProvider>().errorMessage;
+        QuickAlert.show(
+          context: context,
+          type: QuickAlertType.error,
+          text: 'Lỗi khi cập nhật bài viết: $error',
+        );
+      }
+    }
   }
 }

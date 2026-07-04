@@ -771,23 +771,6 @@ class _VoiceLogBottomSheetState extends State<VoiceLogBottomSheet>
                   ),
                 ),
               ),
-              const SizedBox(width: 32),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _showTextFallback = true;
-                  });
-                },
-                child: Text(
-                  'Nhập bằng tay',
-                  style: GoogleFonts.baloo2(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.bold,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
             ],
           ),
         ],

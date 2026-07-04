@@ -5,19 +5,20 @@ class ApiEndpoints {
   // BASE URL - Đổi URL này để chuyển server
   // ============================================
 
-  // Server production (memap.id.vn)
-  static const String baseUrl = 'https://wello.memap.id.vn/api';
+  // Server production (api.wello.id.vn)
+  // static const String baseUrl = 'https://api.wello.id.vn/api';
 
-  // Local development (REAL DEVICE - dùng adb reverse)
-  //static const String baseUrl = 'http://127.0.0.1:8086/api';
-  // Local development (REAL DEVICE - dùng IP Wi-Fi)
-  // static const String baseUrl = 'http://192.168.100.101:8086/api';
-  // Local development (Android Emulator)
-  // static const String baseUrl = 'http://10.0.2.2:8086/api';
-  // Local development (REAL DEVICE - điện thoại thật)
-  //  static const String baseUrl = 'http://192.168.88.246:8086/api';
-  //static const String baseUrl = 'http://192.168.11.211:8086/api';
+  // Server local (Đổi cổng 8086 theo cấu hình backend)
+  // Chọn URL phù hợp với môi trường test của bạn:
+  
+  // 1. Dành cho Android Emulator kết nối với localhost của máy host
+  static const String baseUrl = 'http://10.0.2.2:8086/api';
 
+  // 2. Dành cho iOS Simulator hoặc chạy Web
+  // static const String baseUrl = 'http://localhost:8086/api';
+
+  // 3. Dành cho thiết bị thật (Đổi 192.168.100.101 thành IP máy tính của bạn)
+  // static const String baseUrl = 'http://192.168.100.101:8086/api';  
   // ============================================
   // AUTH ENDPOINTS - Xác thực, đăng nhập, đăng ký
   // ============================================
@@ -145,6 +146,9 @@ class ApiEndpoints {
   static String get posts => '$baseUrl/posts';
   static String reactPost(int postId, String type) =>
       '$baseUrl/posts/$postId/react?type=$type';
+  static String deletePost(int idPost) => '$baseUrl/posts/$idPost';
+  static String updatePost(int idPost) => '$baseUrl/posts/$idPost';
+
 
   // ===================== CHAT =====================
   static String get chatConversations => '$baseUrl/chat/conversations';
@@ -167,14 +171,12 @@ class ApiEndpoints {
   static String leaderboard(String type, String period) =>
       '$baseUrl/leaderboard?type=$type&period=$period';
 
-  static String get challenges => '$baseUrl/challenges';
-  static String challengeDetail(int id) => '$baseUrl/challenges/$id';
-  static String joinChallenge(int id) => '$baseUrl/challenges/$id/join';
-  static String submitChallengeProof(int id) =>
-      '$baseUrl/challenges/$id/submit-proof';
+
 
   static String get badges => '$baseUrl/badges';
   static String userBadges(int userId) => '$baseUrl/badges/user/$userId';
+  static String equipBadge(int badgeId) => '$baseUrl/badges/equip/$badgeId';
+  static String get unequipBadge => '$baseUrl/badges/unequip';
 
   // ===================== AI ASSISTANT =====================
   static String get aiParseMeal => '$baseUrl/ai/parse-meal';

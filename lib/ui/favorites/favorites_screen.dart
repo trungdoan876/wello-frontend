@@ -136,7 +136,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
         ),
         centerTitle: false,
-        actions: [],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white, size: 28),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateMealPage(),
+                ),
+              );
+              if (result == true) {
+                _loadMyFavorites();
+              }
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [

@@ -33,4 +33,16 @@ abstract class PostRepository {
     required int postId,
     required String content,
   });
+
+  Future<Post> editPost({
+    required String token,
+    required int postId,
+    required String? content,
+    required String? imageUrl,
+  });
+  Future<void> deletePost({
+    required String token,
+    required int postId,
+  });
 }
+

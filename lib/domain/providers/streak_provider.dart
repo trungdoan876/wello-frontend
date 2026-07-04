@@ -19,14 +19,16 @@ class StreakProvider extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
 
-    final data = await _repo.getMonthly(token, userId, year, month);
+    try {
+      final data = await _repo.getMonthly(token, userId, year, month);
 
-    streaks = {
-      for (final s in data)
-        DateTime(s.date.year, s.date.month, s.date.day): s
-    };
-
-    isLoading = false;
-    notifyListeners();
+      streaks = {
+        for (final s in data)
+          DateTime(s.date.year, s.date.month, s.date.day): s
+      };
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 }

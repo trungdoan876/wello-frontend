@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart' hide Badge;
+import 'package:provider/provider.dart';
+import '../../../../domain/providers/profile_provider.dart';
+import '../../../../domain/providers/competition_provider.dart';
+import '../../../../core/utils/auth_helper.dart';
 import '../../../../domain/entities/badge.dart' as entity;
 
 class BadgeGridWidget extends StatelessWidget {
@@ -33,7 +37,7 @@ class BadgeItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _showBadgeDetails(context),
+      onTap: () => showBadgeDetails(context, badge),
       child: Column(
         children: [
           Container(
@@ -85,7 +89,7 @@ class BadgeItem extends StatelessWidget {
     );
   }
 
-  void _showBadgeDetails(BuildContext context) {
+  static void showBadgeDetails(BuildContext context, entity.Badge badge) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -149,12 +153,79 @@ class BadgeItem extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            if (badge.isUnlocked)
+            if (badge.isUnlocked) ...[
               Text(
-                'Đã đạt được vào: ${badge.unlockedAt?.day}/${badge.unlockedAt?.month}/${badge.unlockedAt?.year}',
+                badge.unlockedAt != null
+                    ? 'Đã đạt được vào: ${badge.unlockedAt!.day.toString().padLeft(2, '0')}/${badge.unlockedAt!.month.toString().padLeft(2, '0')}/${badge.unlockedAt!.year}'
+                    : 'Đã đạt được',
                 style: const TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.w900, fontSize: 16),
-              )
-            else
+              ),
+              const SizedBox(height: 20),
+              Consumer<ProfileProvider>(
+                builder: (context, profileProvider, _) {
+                  final isEquipped = profileProvider.profileData?.equippedBadgeId?.toString() == badge.id;
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final credentials = await AuthHelper.getCredentials();
+                        final token = credentials?.token ?? '';
+                        final userId = credentials?.userId;
+                        if (token.isEmpty || userId == null) return;
+
+                        final compProvider = Provider.of<CompetitionProvider>(context, listen: false);
+                        bool success;
+                        if (isEquipped) {
+                          success = await compProvider.unequipBadge(token);
+                        } else {
+                          success = await compProvider.equipBadge(token, int.parse(badge.id));
+                        }
+
+                        if (success) {
+                          // Reload profile data to update equipped badge
+                          await profileProvider.loadProfile(userId);
+                          if (context.mounted) {
+                            Navigator.pop(context); // Close bottom sheet
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  isEquipped 
+                                      ? 'Đã hủy trang bị huy hiệu! 🏅' 
+                                      : 'Đã trang bị huy hiệu thành công! 🏅',
+                                ),
+                                backgroundColor: const Color(0xFF22C55E),
+                              ),
+                            );
+                          }
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Đã xảy ra lỗi, vui lòng thử lại!'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isEquipped ? Colors.grey[300] : const Color(0xFFEBCF23),
+                        foregroundColor: isEquipped ? Colors.grey[700] : const Color(0xFF2D2D2D),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      child: Text(
+                        isEquipped ? 'Hủy trang bị' : 'Trang bị',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ] else
               const Text(
                 'Chưa đạt được',
                 style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),

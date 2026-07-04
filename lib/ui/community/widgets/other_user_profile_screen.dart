@@ -10,6 +10,10 @@ import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/ui/community/widgets/post_card.dart';
 import 'package:wello_frontend/ui/community/tagged_posts_screen.dart';
 import 'package:wello_frontend/ui/widgets/responsive.dart';
+import 'package:wello_frontend/ui/community/competition/widgets/badge_grid_widget.dart';
+import 'package:wello_frontend/data/repositories/competition_repository_impl.dart';
+import 'package:wello_frontend/data/data_source/competition_remote_data_source.dart';
+import 'package:wello_frontend/domain/entities/badge.dart' as entity;
 
 class OtherUserProfileScreen extends StatefulWidget {
   final int userId;
@@ -106,21 +110,130 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                   ),
                   child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: const Color(
-                          0xFFEBCF23,
-                        ).withOpacity(0.2),
-                        backgroundImage: AvatarHelper.getImageProvider(
-                          profile.avatarUrl,
-                        ),
-                        child: profile.avatarUrl == null
-                            ? const Icon(
-                                Icons.person,
-                                size: 50,
-                                color: Colors.grey,
-                              )
-                            : null,
+                      Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              border: Border.all(
+                                color: const Color(0xFFEBCF23),
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFEBCF23).withOpacity(0.25),
+                                  blurRadius: 16,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 47,
+                              backgroundColor: const Color(0xFFEBCF23).withOpacity(0.15),
+                              backgroundImage: AvatarHelper.getImageProvider(
+                                profile.avatarUrl,
+                              ),
+                              child: profile.avatarUrl == null
+                                  ? const Icon(
+                                      Icons.person,
+                                      size: 47,
+                                      color: Colors.grey,
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          if (profile.equippedBadgeIconUrl != null)
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: GestureDetector(
+                                onTap: () async {
+                                  // Show a transparent loading indicator
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (context) => const Center(
+                                      child: CircularProgressIndicator(
+                                        color: Color(0xFFEBCF23),
+                                      ),
+                                    ),
+                                  );
+
+                                  try {
+                                    final credentials = await AuthHelper.getCredentials();
+                                    final token = credentials?.token ?? '';
+                                    
+                                    final repo = CompetitionRepositoryImpl(
+                                      remoteDataSource: CompetitionRemoteDataSource(),
+                                    );
+                                    
+                                    final list = await repo.getUserBadges(
+                                      token: token,
+                                      userId: profile.userId,
+                                    );
+
+                                    if (context.mounted) {
+                                      Navigator.pop(context); // Close loading spinner
+                                    }
+
+                                    final matchingBadge = list.firstWhere(
+                                      (b) => b.id == profile.equippedBadgeId.toString(),
+                                    );
+
+                                    if (context.mounted) {
+                                      BadgeItem.showBadgeDetails(context, matchingBadge);
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      Navigator.pop(context); // Close loading spinner
+                                      // Fallback to local offline badge details
+                                      BadgeItem.showBadgeDetails(
+                                        context,
+                                        entity.Badge(
+                                          id: profile.equippedBadgeId.toString(),
+                                          name: profile.equippedBadgeName ?? 'Huy hiệu',
+                                          description: 'Huy hiệu được người dùng này trang bị.',
+                                          iconUrl: profile.equippedBadgeIconUrl ?? '',
+                                          isUnlocked: true,
+                                          criteria: 'Đã đạt được điều kiện nhận',
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xFFEBCF23),
+                                      width: 2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFFEBCF23).withOpacity(0.4),
+                                        blurRadius: 10,
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Image.network(
+                                    profile.equippedBadgeIconUrl!,
+                                    width: 24,
+                                    height: 24,
+                                    errorBuilder: (context, error, stackTrace) => const Icon(
+                                      Icons.emoji_events,
+                                      size: 24,
+                                      color: Color(0xFFEBCF23),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       Text(

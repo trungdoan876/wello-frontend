@@ -6,7 +6,7 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 class BedtimeBottomSheet extends StatefulWidget {
   final TimeOfDay? initialBedtime;
   final String? displayDate;
-  final Future<bool> Function(String bedtime)? onSaved;
+  final Future<String?> Function(String bedtime)? onSaved;
 
   const BedtimeBottomSheet({
     super.key,
@@ -346,12 +346,13 @@ class _BedtimeBottomSheetState extends State<BedtimeBottomSheet> {
                               "yyyy-MM-dd'T'HH:mm:ss",
                             ).format(bedDateTime);
 
-                            final success =
-                                await widget.onSaved?.call(bedtimeStr) ?? false;
+                            // null = thành công, string = thông báo lỗi
+                            final errorMsg =
+                                await widget.onSaved?.call(bedtimeStr);
 
                             if (!mounted) return;
 
-                            if (success) {
+                            if (errorMsg == null) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -367,7 +368,7 @@ class _BedtimeBottomSheetState extends State<BedtimeBottomSheet> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Không thể lưu giờ đi ngủ. Vui lòng thử lại.',
+                                    errorMsg,
                                     style: GoogleFonts.baloo2(),
                                   ),
                                   backgroundColor: Colors.red.shade600,
