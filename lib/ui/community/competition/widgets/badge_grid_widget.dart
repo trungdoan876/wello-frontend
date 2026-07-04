@@ -92,15 +92,17 @@ class BadgeItem extends StatelessWidget {
   static void showBadgeDetails(BuildContext context, entity.Badge badge) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.only(top: 32, left: 32, right: 32, bottom: 48),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(24),
@@ -233,6 +235,7 @@ class BadgeItem extends StatelessWidget {
             const SizedBox(height: 16),
           ],
         ),
+        ), // End of SingleChildScrollView
       ),
     );
   }
