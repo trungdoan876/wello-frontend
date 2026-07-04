@@ -71,7 +71,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> with SingleTicker
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
           isScrollable: false,
           tabs: const [
-            Tab(text: 'Xếp Hạng'),
+            Tab(text: 'Xếp Hạng Bước Chân'),
             Tab(text: 'Huy Hiệu'),
           ],
         ),

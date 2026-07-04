@@ -116,7 +116,12 @@ class SleepRemoteDataSource {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     } else {
-      throw Exception('Failed to log bedtime: ${response.statusCode}');
+      String message = 'Không thể lưu giờ đi ngủ. Vui lòng thử lại.';
+      try {
+        final body = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        if (body['message'] != null) message = body['message'] as String;
+      } catch (_) {}
+      throw Exception(message);
     }
   }
 

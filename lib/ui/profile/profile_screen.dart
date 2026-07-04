@@ -27,6 +27,11 @@ import 'widgets/water_tracking_card.dart';
 import 'widgets/bmi_card.dart';
 import 'widgets/physical_profile_page.dart';
 import 'package:wello_frontend/ui/widgets/water_reminder_sheet.dart';
+import 'package:wello_frontend/ui/community/competition/competition_screen.dart';
+import 'package:wello_frontend/ui/community/competition/widgets/badge_grid_widget.dart';
+import 'package:wello_frontend/data/repositories/competition_repository_impl.dart';
+import 'package:wello_frontend/data/data_source/competition_remote_data_source.dart';
+import 'package:wello_frontend/domain/entities/badge.dart' as entity;
 
 class ProfileScreen extends StatefulWidget {
   final Function(bool)? onQuickActionsChanged;
@@ -796,59 +801,66 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                           child: Stack(
                             children: [
                               Container(
-                                width: context.w(0.22),
-                                height: context.w(0.22),
+                                padding: const EdgeInsets.all(3),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: Colors.white,
                                   border: Border.all(
                                     color: const Color(0xFFEBCF23),
-                                    width: 2,
+                                    width: 3,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.08),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 6),
+                                      color: const Color(0xFFEBCF23).withOpacity(0.25),
+                                      blurRadius: 16,
+                                      spreadRadius: 2,
                                     ),
                                   ],
-                                  image: _profileImage != null
-                                      ? DecorationImage(
-                                          image: FileImage(_profileImage!),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : (profileData?.avatarUrl != null
-                                            ? DecorationImage(
-                                                image:
-                                                    profileData!.avatarUrl!
-                                                        .startsWith(
-                                                          'data:image',
-                                                        )
-                                                    ? MemoryImage(
-                                                        base64Decode(
-                                                          profileData.avatarUrl!
-                                                              .split(',')
-                                                              .last,
-                                                        ),
-                                                      )
-                                                    : NetworkImage(
-                                                            profileData
-                                                                .avatarUrl!,
-                                                          )
-                                                          as ImageProvider,
-                                                fit: BoxFit.cover,
-                                              )
-                                            : null),
                                 ),
-                                child:
-                                    _profileImage == null &&
-                                        profileData?.avatarUrl == null
-                                    ? Icon(
-                                        Icons.person,
-                                        size: context.w(0.12),
-                                        color: const Color(0xFFBDBDBD),
-                                      )
-                                    : null,
+                                child: Container(
+                                  width: context.w(0.22),
+                                  height: context.w(0.22),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                    image: _profileImage != null
+                                        ? DecorationImage(
+                                            image: FileImage(_profileImage!),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : (profileData?.avatarUrl != null
+                                              ? DecorationImage(
+                                                  image:
+                                                      profileData!.avatarUrl!
+                                                          .startsWith(
+                                                            'data:image',
+                                                          )
+                                                      ? MemoryImage(
+                                                          base64Decode(
+                                                            profileData.avatarUrl!
+                                                                .split(',')
+                                                                .last,
+                                                          ),
+                                                        )
+                                                      : NetworkImage(
+                                                              profileData
+                                                                  .avatarUrl!,
+                                                            )
+                                                            as ImageProvider,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : null),
+                                  ),
+                                  child:
+                                      _profileImage == null &&
+                                          profileData?.avatarUrl == null
+                                      ? Icon(
+                                          Icons.person,
+                                          size: context.w(0.12),
+                                          color: const Color(0xFFBDBDBD),
+                                        )
+                                      : null,
+                                ),
                               ),
 
                               Positioned(
@@ -868,6 +880,111 @@ class _ProfileScreenState extends State<ProfileScreen> with RouteAware {
                                     Icons.camera_alt,
                                     size: context.w(0.04),
                                     color: Colors.white,
+                                  ),
+                                ),
+                              ),
+
+                              Positioned(
+                                left: 0,
+                                bottom: 0,
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    if (profileData?.equippedBadgeIconUrl == null) {
+                                      // If empty, navigate to badge list directly
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const CompetitionScreen(),
+                                        ),
+                                      );
+                                    } else {
+                                      // If equipped, show details modal
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (context) => const Center(
+                                          child: CircularProgressIndicator(
+                                            color: Color(0xFFEBCF23),
+                                          ),
+                                        ),
+                                      );
+
+                                      try {
+                                        final credentials = await AuthHelper.getCredentials();
+                                        final token = credentials?.token ?? '';
+                                        
+                                        final repo = CompetitionRepositoryImpl(
+                                          remoteDataSource: CompetitionRemoteDataSource(),
+                                        );
+                                        
+                                        final list = await repo.getUserBadges(
+                                          token: token,
+                                          userId: profileData!.userId,
+                                        );
+
+                                        if (context.mounted) {
+                                          Navigator.pop(context); // Close loading spinner
+                                        }
+
+                                        final matchingBadge = list.firstWhere(
+                                          (b) => b.id == profileData.equippedBadgeId.toString(),
+                                        );
+
+                                        if (context.mounted) {
+                                          BadgeItem.showBadgeDetails(context, matchingBadge);
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          Navigator.pop(context); // Close loading spinner
+                                          // Fallback to local offline badge details
+                                          BadgeItem.showBadgeDetails(
+                                            context,
+                                            entity.Badge(
+                                              id: profileData!.equippedBadgeId.toString(),
+                                              name: profileData.equippedBadgeName ?? 'Huy hiệu',
+                                              description: 'Huy hiệu bạn đang trang bị.',
+                                              iconUrl: profileData.equippedBadgeIconUrl ?? '',
+                                              isUnlocked: true,
+                                              criteria: 'Đã đạt được điều kiện nhận',
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: const Color(0xFFEBCF23),
+                                        width: 2,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFFEBCF23).withOpacity(0.4),
+                                          blurRadius: 10,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: profileData?.equippedBadgeIconUrl != null
+                                        ? Image.network(
+                                            profileData!.equippedBadgeIconUrl!,
+                                            width: 20,
+                                            height: 20,
+                                            errorBuilder: (context, error, stackTrace) => const Icon(
+                                              Icons.emoji_events,
+                                              size: 20,
+                                              color: Color(0xFFEBCF23),
+                                            ),
+                                          )
+                                        : Icon(
+                                            Icons.emoji_events_outlined,
+                                            size: 20,
+                                            color: Colors.grey[400],
+                                          ),
                                   ),
                                 ),
                               ),

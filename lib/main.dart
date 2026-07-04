@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:wello_frontend/domain/providers/question_provider.dart';
 import 'package:wello_frontend/domain/providers/survey_provider.dart';
 import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
@@ -10,6 +9,7 @@ import 'package:wello_frontend/domain/providers/favorites_provider.dart';
 import 'package:wello_frontend/domain/providers/sleep_provider.dart';
 import 'package:wello_frontend/domain/providers/running_provider.dart';
 import 'package:wello_frontend/ui/auth/initial_page.dart';
+import 'package:wello_frontend/core/services/firebase_service.dart';
 import 'package:wello_frontend/core/services/notification_service.dart';
 import 'package:wello_frontend/core/navigation/route_observer.dart';
 import 'package:wello_frontend/data/repositories/streak_repository_impl.dart';
@@ -27,21 +27,17 @@ import 'package:wello_frontend/data/repositories/food_repository_impl.dart';
 import 'package:wello_frontend/data/data_source/food_remote_data_source.dart';
 import 'package:wello_frontend/data/repositories/exercise_repository_impl.dart';
 import 'package:wello_frontend/data/data_source/exercise_remote_data_source.dart';
-import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Pre-load Baloo2 font để tránh lỗi font khi không có internet
+  await GoogleFonts.pendingFonts([
+    GoogleFonts.baloo2(),
+  ]);
+
   // Khởi tạo Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Setup background message handler TRƯỚC KHI app chạy
-  FirebaseMessaging.onBackgroundMessage(
-    NotificationService.firebaseMessagingBackgroundHandler,
-  );
-
-  // Setup foreground message listener NGAY TẠI ĐÂY
-  NotificationService.setupForegroundListener();
+  await FirebaseService.initialize();
 
   runApp(
     MultiProvider(
@@ -94,7 +90,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: NotificationService.navigatorKey,
+      navigatorKey: FirebaseService.navigatorKey,
       title: 'My Wello',
       theme: ThemeData(
         primarySwatch: Colors.blue,

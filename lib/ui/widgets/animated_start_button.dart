@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class AnimatedStartButton extends StatefulWidget {
   final String text; 
   final VoidCallback? onPressed; // ✅ Cho phép null => disabled
+  final bool isLoading; // ✅ Hỗ trợ trạng thái loading
 
   const AnimatedStartButton({
     super.key,
     required this.text,
     this.onPressed, // nullable
+    this.isLoading = false,
   });
 
   @override
@@ -44,7 +46,7 @@ class _AnimatedStartButtonState extends State<AnimatedStartButton>
   }
 
   void _updateAnimationState() {
-    if (widget.onPressed == null) {
+    if (widget.onPressed == null || widget.isLoading) {
       _controller.stop();
       _controller.value = 1.0; // giữ stable không phóng to
     } else {
@@ -60,7 +62,7 @@ class _AnimatedStartButtonState extends State<AnimatedStartButton>
 
   @override
   Widget build(BuildContext context) {
-    final bool isDisabled = widget.onPressed == null;
+    final bool isDisabled = widget.onPressed == null || widget.isLoading;
 
     return ScaleTransition(
       scale: _scaleAnimation,
@@ -95,14 +97,23 @@ class _AnimatedStartButtonState extends State<AnimatedStartButton>
           ),
           padding: const EdgeInsets.symmetric(vertical: 15),
           alignment: Alignment.center,
-          child: Text(
-            widget.text,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDisabled ? Colors.black38 : Colors.white,
-            ),
-          ),
+          child: widget.isLoading
+              ? const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : Text(
+                  widget.text,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDisabled ? Colors.black38 : Colors.white,
+                  ),
+                ),
         ),
       ),
     );

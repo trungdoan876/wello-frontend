@@ -68,4 +68,28 @@ class PostRepositoryImpl implements PostRepository {
   }) {
     return remote.addComment(token: token, postId: postId, content: content);
   }
+
+  @override
+  Future<Post> editPost({
+    required String token,
+    required int postId,
+    required String? content,
+    required String? imageUrl,
+  }) {
+    return remote.editPost(
+      token: token,
+      postId: postId,
+      content: content,
+      imageUrl: imageUrl,
+    );
+  }
+
+  @override
+  Future<void> deletePost({
+    required String token,
+    required int postId,
+  }) {
+    return remote.deletePost(token: token, postId: postId);
+  }
 }
+

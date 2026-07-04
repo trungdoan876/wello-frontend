@@ -253,4 +253,88 @@ class CommunityProvider extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<bool> editPost({
+    required int postId,
+    required String? content,
+    File? imageFile,
+    bool keepImage = true,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token ?? '';
+
+      String? imageUrl;
+      if (imageFile != null) {
+        final bytes = await imageFile.readAsBytes();
+        imageUrl = base64Encode(bytes);
+      } else if (keepImage) {
+        final existingPostIndex = _posts.indexWhere((p) => p.idPost == postId);
+        if (existingPostIndex != -1) {
+          imageUrl = _posts[existingPostIndex].imageUrl;
+        } else {
+          final existingUserPostIndex = _userPosts.indexWhere((p) => p.idPost == postId);
+          if (existingUserPostIndex != -1) {
+            imageUrl = _userPosts[existingUserPostIndex].imageUrl;
+          }
+        }
+      }
+
+      final updatedPost = await _repository.editPost(
+        token: token,
+        postId: postId,
+        content: content,
+        imageUrl: imageUrl,
+      );
+
+      void updateInList(List<Post> list) {
+        final index = list.indexWhere((p) => p.idPost == postId);
+        if (index != -1) {
+          list[index] = updatedPost;
+        }
+      }
+
+      updateInList(_posts);
+      updateInList(_userPosts);
+      updateInList(_taggedPosts);
+
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> deletePost(int postId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final credentials = await AuthHelper.getCredentials();
+      final token = credentials?.token ?? '';
+
+      await _repository.deletePost(token: token, postId: postId);
+
+      _posts.removeWhere((p) => p.idPost == postId);
+      _userPosts.removeWhere((p) => p.idPost == postId);
+      _taggedPosts.removeWhere((p) => p.idPost == postId);
+
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
+

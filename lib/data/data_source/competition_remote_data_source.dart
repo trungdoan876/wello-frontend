@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:wello_frontend/core/constants/api_endpoints.dart';
-import 'package:wello_frontend/domain/entities/challenge.dart';
 import 'package:wello_frontend/domain/entities/badge.dart';
 import 'package:wello_frontend/data/models/responses/post_model.dart';
 
@@ -28,68 +27,6 @@ class CompetitionRemoteDataSource {
       return entries.map((e) => e as Map<String, dynamic>).toList();
     } else {
       throw Exception('Failed to load leaderboard');
-    }
-  }
-
-  Future<List<Challenge>> getChallenges({required String token}) async {
-    final url = Uri.parse(ApiEndpoints.challenges);
-    final response = await client.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      return data.map((e) => Challenge.fromJson(e as Map<String, dynamic>)).toList();
-    } else {
-      throw Exception('Failed to load challenges');
-    }
-  }
-
-  Future<void> joinChallenge({
-    required String token,
-    required int challengeId,
-  }) async {
-    final url = Uri.parse(ApiEndpoints.joinChallenge(challengeId));
-    final response = await client.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to join challenge');
-    }
-  }
-
-  Future<PostModel> submitProof({
-    required String token,
-    required int challengeId,
-    required String content,
-    required String? imageUrl,
-  }) async {
-    final url = Uri.parse(ApiEndpoints.submitChallengeProof(challengeId));
-    final response = await client.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'content': content,
-        'imageUrl': imageUrl,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      return PostModel.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to submit proof');
     }
   }
 
@@ -130,5 +67,29 @@ class CompetitionRemoteDataSource {
     } else {
       throw Exception('Failed to load user badges');
     }
+  }
+
+  Future<bool> equipBadge({required String token, required int badgeId}) async {
+    final url = Uri.parse(ApiEndpoints.equipBadge(badgeId));
+    final response = await client.put(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    return response.statusCode == 200;
+  }
+
+  Future<bool> unequipBadge({required String token}) async {
+    final url = Uri.parse(ApiEndpoints.unequipBadge);
+    final response = await client.put(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    return response.statusCode == 200;
   }
 }

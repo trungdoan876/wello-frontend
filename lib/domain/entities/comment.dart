@@ -19,9 +19,9 @@ class Comment {
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
-      idComment: json['idComment'],
+      idComment: json['idComment'] ?? json['id'],
       postId: json['postId'] ?? 0,
-      userId: json['userId'] ?? 0,
+      userId: json['userId'] ?? json['idUser'] ?? 0,
       authorName: json['authorName'] ?? 'Anonymous',
       authorAvatar: json['authorAvatar'],
       content: json['content'] ?? '',

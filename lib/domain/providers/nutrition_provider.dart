@@ -241,6 +241,16 @@ class NutritionProvider extends ChangeNotifier {
 
       // Update the daily summary with new water intake
       if (_dailySummary != null) {
+        final currentWaterIntake = _dailySummary!.waterIntake;
+        
+        final newConsumed = (updatedWaterIntake.consumed == 0 && updatedWaterIntake.target == 0)
+            ? (currentWaterIntake.consumed + glassSize)
+            : updatedWaterIntake.consumed;
+            
+        final newTarget = (updatedWaterIntake.consumed == 0 && updatedWaterIntake.target == 0)
+            ? currentWaterIntake.target
+            : updatedWaterIntake.target;
+
         _dailySummary = NutritionSummary(
           date: _dailySummary!.date,
           caloriesConsumed: _dailySummary!.caloriesConsumed,
@@ -249,7 +259,12 @@ class NutritionProvider extends ChangeNotifier {
           carb: _dailySummary!.carb,
           protein: _dailySummary!.protein,
           fat: _dailySummary!.fat,
-          waterIntake: updatedWaterIntake,
+          waterIntake: WaterIntake(
+            consumed: newConsumed,
+            target: newTarget,
+            unit: currentWaterIntake.unit,
+            glasses: (newConsumed / 250).round(),
+          ),
         );
       }
 

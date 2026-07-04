@@ -95,7 +95,7 @@ class _NotificationListBottomSheetState extends State<NotificationListBottomShee
               children: [
                 Text(
                   'Hộp thư thông báo',
-                  style: GoogleFonts.baloo2(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: darkBlue,
@@ -107,7 +107,7 @@ class _NotificationListBottomSheetState extends State<NotificationListBottomShee
                     icon: const Icon(Icons.done_all_rounded, size: 18, color: primaryYellow),
                     label: Text(
                       'Đọc tất cả',
-                      style: GoogleFonts.baloo2(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: primaryYellow,
@@ -176,7 +176,7 @@ class _NotificationListBottomSheetState extends State<NotificationListBottomShee
           const SizedBox(height: 20),
           Text(
             'Hộp thư trống',
-            style: GoogleFonts.baloo2(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF1E3F48),
@@ -187,7 +187,7 @@ class _NotificationListBottomSheetState extends State<NotificationListBottomShee
             padding: const EdgeInsets.symmetric(horizontal: 40.0),
             child: Text(
               'Bạn chưa nhận được thông báo nào từ hệ thống hoặc quản trị viên.',
-              style: GoogleFonts.baloo2(
+              style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey.shade600,
               ),
@@ -286,7 +286,7 @@ class _NotificationListBottomSheetState extends State<NotificationListBottomShee
                         Expanded(
                           child: Text(
                             notification.title,
-                            style: GoogleFonts.baloo2(
+                            style: TextStyle(
                               fontSize: 17,
                               fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.bold,
                               color: darkBlue,
@@ -308,7 +308,7 @@ class _NotificationListBottomSheetState extends State<NotificationListBottomShee
                     const SizedBox(height: 4),
                     Text(
                       notification.message,
-                      style: GoogleFonts.baloo2(
+                      style: TextStyle(
                         fontSize: 15,
                         color: notification.isRead ? Colors.grey.shade600 : Colors.black87,
                         height: 1.3,
@@ -317,7 +317,7 @@ class _NotificationListBottomSheetState extends State<NotificationListBottomShee
                     const SizedBox(height: 8),
                     Text(
                       _timeAgo(notification.createdAt),
-                      style: GoogleFonts.baloo2(
+                      style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade400,
                         fontWeight: FontWeight.w500,

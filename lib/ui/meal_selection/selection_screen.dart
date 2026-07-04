@@ -341,7 +341,7 @@ class _SelectionScreenState extends State<SelectionScreen> {
                         Text(
                           widget.mealType == 'tap_luyen'
                               ? 'Không tìm thấy bài tập'
-                              : 'Không tìm thấy món ăn',
+                              : 'Không tìm thấy thực phẩm',
                           style: GoogleFonts.baloo2(
                             fontSize: context.sp(6),
                             fontWeight: FontWeight.w800,

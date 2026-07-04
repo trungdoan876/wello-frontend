@@ -110,7 +110,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
                           const Icon(Icons.star_outline_rounded, color: Color(0xFFE68F00), size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'Danh Sách Thứ Hạng',
+                            'Xếp Hạng Bước Chân',
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 16,
@@ -145,47 +145,9 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _FilterChip(
-                    label: 'Bước chân',
-                    icon: Icons.directions_walk_rounded,
-                    isSelected: _selectedType == 'STEPS',
-                    onTap: () {
-                      setState(() => _selectedType = 'STEPS');
-                      _onFilterChanged();
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _FilterChip(
-                    label: 'Chuỗi',
-                    icon: Icons.bolt_rounded,
-                    isSelected: _selectedType == 'STREAKS',
-                    onTap: () {
-                      setState(() => _selectedType = 'STREAKS');
-                      _onFilterChanged();
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (_selectedType != 'STREAKS') ...[
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildPeriodSelector(),
-            ),
-          ],
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: _buildPeriodSelector(),
       ),
     );
   }
@@ -299,22 +261,15 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
 
   String _formatScore(dynamic score) {
     if (score == null) return '0';
-    if (_selectedType == 'STEPS') return '${score.toInt()}';
-    if (_selectedType == 'CALORIES') return '${score.toInt()} kcal';
-    if (_selectedType == 'STREAKS') return '${score.toInt()} ngày';
-    return score.toString();
+    return '${score.toInt()}';
   }
 
   IconData _getScoreIcon() {
-    if (_selectedType == 'STEPS') return Icons.directions_walk_rounded;
-    if (_selectedType == 'CALORIES') return Icons.local_fire_department_rounded;
-    return Icons.bolt_rounded;
+    return Icons.directions_walk_rounded;
   }
 
   Color _getScoreIconColor() {
-    if (_selectedType == 'STEPS') return const Color(0xFF4CAF50);
-    if (_selectedType == 'CALORIES') return const Color(0xFFFF5722);
-    return const Color(0xFFFFB300);
+    return const Color(0xFF4CAF50);
   }
 
   Widget _buildRankItem(Map<String, dynamic> entry, int? currentUserId) {

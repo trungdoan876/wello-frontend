@@ -14,6 +14,9 @@ class ProfileResponseModel {
   final double? sleepTargetHours;
   final String? sleepBedtimeTarget;
   final String? sleepWakeTimeTarget;
+  final int? equippedBadgeId;
+  final String? equippedBadgeIconUrl;
+  final String? equippedBadgeName;
 
   ProfileResponseModel({
     this.idProfile,
@@ -31,6 +34,9 @@ class ProfileResponseModel {
     this.sleepTargetHours,
     this.sleepBedtimeTarget,
     this.sleepWakeTimeTarget,
+    this.equippedBadgeId,
+    this.equippedBadgeIconUrl,
+    this.equippedBadgeName,
   });
 
   factory ProfileResponseModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +56,9 @@ class ProfileResponseModel {
       sleepTargetHours: json['sleepTargetHours'] != null ? (json['sleepTargetHours'] as num).toDouble() : null,
       sleepBedtimeTarget: json['sleepBedtimeTarget'] as String?,
       sleepWakeTimeTarget: json['sleepWakeTimeTarget'] as String?,
+      equippedBadgeId: json['equippedBadgeId'] as int?,
+      equippedBadgeIconUrl: json['equippedBadgeIconUrl'] as String?,
+      equippedBadgeName: json['equippedBadgeName'] as String?,
     );
   }
 
@@ -70,6 +79,9 @@ class ProfileResponseModel {
       'sleepTargetHours': sleepTargetHours,
       'sleepBedtimeTarget': sleepBedtimeTarget,
       'sleepWakeTimeTarget': sleepWakeTimeTarget,
+      'equippedBadgeId': equippedBadgeId,
+      'equippedBadgeIconUrl': equippedBadgeIconUrl,
+      'equippedBadgeName': equippedBadgeName,
     };
   }
 }
