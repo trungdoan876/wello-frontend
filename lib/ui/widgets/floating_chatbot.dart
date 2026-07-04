@@ -1,10 +1,17 @@
 import 'dart:async';
 import 'dart:ui';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:barcode_scan2/barcode_scan2.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/data/repositories/chat_repository.dart';
+import 'package:wello_frontend/ui/widgets/barcode_result_screen.dart';
+import 'package:wello_frontend/ui/widgets/food_image_analyzer_screen.dart';
 
 class FloatingChatbot extends StatefulWidget {
   const FloatingChatbot({Key? key}) : super(key: key);
@@ -143,6 +150,73 @@ class _FloatingChatbotState extends State<FloatingChatbot> with TickerProviderSt
       return "Chào bạn! Chúc bạn một ngày mới ngập tràn năng lượng và luôn duy trì lối sống lành mạnh cùng Wello! Bạn cần mình tư vấn điều gì hôm nay? 😊";
     }
     return "Cảm ơn bạn đã chia sẻ! Trợ lý Wello AI ghi nhận ý kiến của bạn. Để duy trì sức khỏe tốt nhất, hãy thường xuyên theo dõi số bước chân, lượng nước uống và giấc ngủ trên ứng dụng Wello nhé! 🍀";
+  }
+
+  Future<void> _scanBarcode() async {
+    try {
+      final result = await BarcodeScanner.scan();
+
+      if (result.type == ResultType.Barcode && result.rawContent.isNotEmpty) {
+        final barcode = result.rawContent;
+        
+        final aiMessage = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => BarcodeResultScreen(barcode: barcode)),
+        );
+
+        if (aiMessage != null && aiMessage is String) {
+          _textController.text = aiMessage;
+          _sendMessage();
+        }
+      }
+    } catch (e) {
+      debugPrint('[FloatingChatbot] Error scanning barcode: $e');
+      setState(() {
+        _messages.add(
+          _BotMessage(
+            text: 'Đã xảy ra lỗi khi quét mã vạch. Vui lòng thử lại sau nhé!',
+            isBot: true,
+            time: _formatTime(DateTime.now()),
+          ),
+        );
+      });
+      _scrollToBottom();
+    }
+  }
+
+  Future<void> _takeFoodPhoto(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: source, 
+        imageQuality: 70,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+      if (image != null) {
+        final aiMessage = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => FoodImageAnalyzerScreen(imageFile: File(image.path))),
+        );
+
+        if (aiMessage != null && aiMessage is String) {
+          _textController.text = aiMessage;
+          _sendMessage();
+        }
+      }
+    } catch (e) {
+      debugPrint('[FloatingChatbot] Error picking image: $e');
+      setState(() {
+        _messages.add(
+          _BotMessage(
+            text: 'Đã xảy ra lỗi khi mở camera. Vui lòng thử lại sau nhé!',
+            isBot: true,
+            time: _formatTime(DateTime.now()),
+          ),
+        );
+      });
+      _scrollToBottom();
+    }
   }
 
   @override
@@ -583,6 +657,85 @@ class _FloatingChatbotState extends State<FloatingChatbot> with TickerProviderSt
     );
   }
 
+  Future<void> _showImageSourceDialog() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 5,
+                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Chọn ảnh món ăn',
+                style: GoogleFonts.baloo2(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF2D2D2D)),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildImageSourceButton(
+                    icon: Icons.camera_alt_rounded,
+                    label: 'Chụp ảnh',
+                    color: const Color(0xFF34D399),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _takeFoodPhoto(ImageSource.camera);
+                    },
+                  ),
+                  _buildImageSourceButton(
+                    icon: Icons.photo_library_rounded,
+                    label: 'Thư viện',
+                    color: const Color(0xFF60A5FA),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _takeFoodPhoto(ImageSource.gallery);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildImageSourceButton({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+            ),
+            child: Icon(icon, color: color, size: 36),
+          ),
+          const SizedBox(height: 12),
+          Text(label, style: GoogleFonts.baloo2(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInputBar() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -597,6 +750,37 @@ class _FloatingChatbotState extends State<FloatingChatbot> with TickerProviderSt
       ),
       child: Row(
         children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _scanBarcode,
+              borderRadius: BorderRadius.circular(18),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                child: const Icon(
+                  Icons.qr_code_scanner_rounded,
+                  size: 22,
+                  color: Color(0xFF7D7A7D),
+                ),
+              ),
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _showImageSourceDialog,
+              borderRadius: BorderRadius.circular(18),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                child: const Icon(
+                  Icons.camera_alt_rounded,
+                  size: 22,
+                  color: Color(0xFF7D7A7D),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),

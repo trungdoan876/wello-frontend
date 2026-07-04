@@ -76,4 +76,14 @@ class ChatRepository {
       token: token,
     );
   }
+
+  Future<Map<String, dynamic>> analyzeFoodImage({
+    required String base64Image,
+    required String token,
+  }) async {
+    return _remote.analyzeFoodImage(
+      base64Image: base64Image,
+      token: token,
+    );
+  }
 }

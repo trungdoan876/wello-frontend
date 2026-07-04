@@ -282,4 +282,22 @@ class ChatRemoteDataSource {
       rethrow;
     }
   }
+
+  Future<Map<String, dynamic>> analyzeFoodImage({
+    required String base64Image,
+    required String token,
+  }) async {
+    try {
+      final resp = await _postWithFallback(
+        path: '/chat/analyze-food-image',
+        token: token,
+        data: {'base64Image': base64Image},
+      );
+      _logResponse('analyzeFoodImage', resp);
+      return {'statusCode': resp.statusCode, 'data': resp.data};
+    } catch (e) {
+      print('[ChatRemote] analyzeFoodImage error: $e');
+      rethrow;
+    }
+  }
 }
