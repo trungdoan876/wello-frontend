@@ -34,6 +34,7 @@ class NamePage extends StatefulWidget {
 class _NamePageState extends State<NamePage> {
   final TextEditingController nameController = TextEditingController();
   Question? _currentQuestion;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -168,13 +169,17 @@ class _NamePageState extends State<NamePage> {
                   width: context.w(0.5),
                   child: AnimatedStartButton(
                     text: widget.buttonText ?? "Cập nhật",
+                    isLoading: _isLoading,
                     onPressed: nameController.text.trim().isEmpty
                         ? null
                         : () async {
+                            if (_isLoading) return;
                             final name = nameController.text.trim();
                             if (widget.onUpdate != null) {
+                              setState(() { _isLoading = true; });
                               final ok = await widget.onUpdate!(name);
                               if (!mounted) return;
+                              setState(() { _isLoading = false; });
                               if (ok) {
                                 Navigator.pop(context, name);
                               } else {

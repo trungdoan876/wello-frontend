@@ -41,6 +41,7 @@ class AgePage extends StatefulWidget {
 
 class _AgePageState extends State<AgePage> {
   late int age;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -145,22 +146,16 @@ class _AgePageState extends State<AgePage> {
                   width: context.w(0.5),
                   child: AnimatedStartButton(
                     text: widget.buttonText ?? "Tiếp tục",
+                    isLoading: _isLoading,
                     onPressed: () async {
+                      if (_isLoading) return;
                       if (widget.onUpdate != null) {
-                        // Update mode
-                        print(
-                          '[AgePage] Che do cap nhat - dang goi onUpdate voi $age',
-                        );
+                        setState(() { _isLoading = true; });
                         final success = await widget.onUpdate!(age);
-                        print(
-                          '[AgePage] Ket qua onUpdate: thanh cong=$success',
-                        );
                         if (!mounted) return;
+                        setState(() { _isLoading = false; });
                         if (success) {
-                          // Only return the result; parent shows a single top banner
                           Navigator.pop(context, age);
-                        } else {
-                          // Stay on page; parent will decide how to notify
                         }
                       } else {
                         // Normal onboarding flow

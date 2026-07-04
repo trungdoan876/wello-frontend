@@ -32,6 +32,7 @@ class GenderPage extends StatefulWidget {
 
 class _GenderPageState extends State<GenderPage> {
   String selectedGender = "";
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -116,24 +117,21 @@ class _GenderPageState extends State<GenderPage> {
                   width: context.w(0.5),
                   child: AnimatedStartButton(
                     text: widget.buttonText ?? "Tiếp tục",
+                    isLoading: _isLoading,
                     onPressed: selectedGender.isEmpty
                         ? null
                         : () async {
+                            if (_isLoading) return;
                             print('[GenderPage] onUpdate: ${widget.onUpdate}');
                             if (widget.onUpdate != null) {
-                              // Update mode
-                              print(
-                                '[GenderPage] Che do cap nhat - dang goi onUpdate voi $selectedGender',
-                              );
+                              setState(() { _isLoading = true; });
                               final success = await widget.onUpdate!(
                                 selectedGender,
                               );
                               if (!mounted) return;
+                              setState(() { _isLoading = false; });
                               if (success) {
-                                // Only return the result; parent shows a single top banner
                                 Navigator.pop(context, selectedGender);
-                              } else {
-                                // Stay on page; parent will decide how to notify
                               }
                             } else {
                               // Normal onboarding flow

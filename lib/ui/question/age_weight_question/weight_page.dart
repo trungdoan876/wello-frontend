@@ -46,6 +46,7 @@ class WeightPage extends StatefulWidget {
 class _WeightPageState extends State<WeightPage> {
   late int weight;
   CalculateBmiResponse? bmiData;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -185,14 +186,14 @@ class _WeightPageState extends State<WeightPage> {
                     width: context.w(0.5),
                     child: AnimatedStartButton(
                       text: widget.buttonText ?? "Tiếp tục",
+                      isLoading: _isLoading,
                       onPressed: () async {
+                        if (_isLoading) return;
                         if (widget.onUpdate != null) {
-                          // Update mode
-                          print(
-                            '[WeightPage] Che do cap nhat - dang goi onUpdate voi $weight',
-                          );
+                          setState(() { _isLoading = true; });
                           final success = await widget.onUpdate!(weight);
                           if (!mounted) return;
+                          setState(() { _isLoading = false; });
                           if (success) {
                             Navigator.pop(context, weight);
                           }

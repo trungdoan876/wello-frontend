@@ -34,6 +34,7 @@ class HeightPage extends StatefulWidget {
 
 class _HeightPageState extends State<HeightPage> {
   late double height;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -129,15 +130,15 @@ class _HeightPageState extends State<HeightPage> {
                   width: context.w(0.5),
                   child: AnimatedStartButton(
                     text: widget.buttonText ?? "Tiếp tục",
+                    isLoading: _isLoading,
                     onPressed: () async {
+                      if (_isLoading) return;
                       print('[HeightPage] onUpdate: ${widget.onUpdate}');
                       if (widget.onUpdate != null) {
-                        // Update mode
-                        print(
-                          '[HeightPage] Che do cap nhat - dang goi onUpdate voi ${height.toInt()}',
-                        );
+                        setState(() { _isLoading = true; });
                         final success = await widget.onUpdate!(height.toInt());
                         if (!mounted) return;
+                        setState(() { _isLoading = false; });
                         if (success) {
                           // Avoid showing SnackBar from a route that will be popped
                           Navigator.pop(context, height.toInt());

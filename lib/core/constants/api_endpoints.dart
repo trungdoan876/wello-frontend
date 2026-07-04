@@ -12,13 +12,13 @@ class ApiEndpoints {
   // Chọn URL phù hợp với môi trường test của bạn:
   
   // 1. Dành cho Android Emulator kết nối với localhost của máy host
-  static const String baseUrl = 'http://10.0.2.2:8086/api';
+  //static const String baseUrl = 'http://10.0.2.2:8086/api';
 
   // 2. Dành cho iOS Simulator hoặc chạy Web
   // static const String baseUrl = 'http://localhost:8086/api';
 
   // 3. Dành cho thiết bị thật (Đổi 192.168.100.101 thành IP máy tính của bạn)
-  // static const String baseUrl = 'http://192.168.100.101:8086/api';  
+   static const String baseUrl = 'http://192.168.88.246:8086/api';  
   // ============================================
   // AUTH ENDPOINTS - Xác thực, đăng nhập, đăng ký
   // ============================================
