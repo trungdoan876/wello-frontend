@@ -18,7 +18,7 @@ class ApiEndpoints {
   // static const String baseUrl = 'http://localhost:8086/api';
 
   // 3. Dành cho thiết bị thật (Đổi 192.168.100.101 thành IP máy tính của bạn)
-   static const String baseUrl = 'http://192.168.88.246:8086/api';  
+   static const String baseUrl = 'http://192.168.100.33:8086/api';  
   // ============================================
   // AUTH ENDPOINTS - Xác thực, đăng nhập, đăng ký
   // ============================================
