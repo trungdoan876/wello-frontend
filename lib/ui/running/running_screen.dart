@@ -5,6 +5,7 @@ import 'package:wello_frontend/ui/widgets/responsive.dart';
 import 'package:wello_frontend/core/utils/auth_helper.dart';
 import 'package:wello_frontend/domain/providers/running_provider.dart';
 import 'package:wello_frontend/domain/providers/profile_provider.dart';
+import 'package:wello_frontend/domain/providers/nutrition_provider.dart';
 import 'package:wello_frontend/domain/entities/running_session.dart';
 import 'route_detail_screen.dart';
 import 'live_running_screen.dart';
@@ -58,10 +59,12 @@ class _RunningScreenState extends State<RunningScreen> {
 
       final profileProvider = context.read<ProfileProvider>();
       final runningProvider = context.read<RunningProvider>();
+      final nutritionProvider = context.read<NutritionProvider>();
 
       await Future.wait([
         profileProvider.loadProfile(userId),
         runningProvider.loadDashboard(credentials.token, userId),
+        nutritionProvider.loadHomeData(credentials.token, credentials.userIdString),
       ]);
 
       final profile = profileProvider.profileData;
